@@ -1,7 +1,21 @@
+import Header from '@/components/layout/header';
+import Hero from '@/components/landing/hero';
+import About from '@/components/landing/about';
+import Features from '@/components/landing/features';
+import Testimonials from '@/components/landing/testimonials';
+import Footer from '@/components/layout/footer';
+import CTA from '@/components/landing/cta';
+
 export default function Home() {
   return (
-    <div>
-      <h1>Welcome to the Home Page</h1>
-    </div>
+    <>
+      <Header />
+      <Hero />
+      <About />
+      <Features />
+      <Testimonials />
+      <CTA />
+      <Footer />
+    </>
   );
 }

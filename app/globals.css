@@ -1,25 +1,114 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: oklch(0.98 0.004 250);
+  --foreground: oklch(0.18 0.006 250);
+  --primary: oklch(0.67 0.23 55); /* Vibrant Orange */
+  --primary-foreground: oklch(0.985 0.004 250);
+  --secondary: oklch(0.65 0.08 240); /* Blue-gray */
+  --secondary-foreground: oklch(0.18 0.006 250);
+  --accent: oklch(0.6 0.12 250); /* Deep blue accent */
+  --accent-foreground: oklch(0.96 0.004 80);
+  --muted: oklch(0.93 0.01 250);
+  --muted-foreground: oklch(0.55 0.006 250);
+  --border: oklch(0.88 0.01 250);
+  --card: oklch(0.985 0.004 250);
+  --card-foreground: oklch(0.18 0.006 250);
+  --success: oklch(0.68 0.22 145); /* Green */
+  --success-foreground: oklch(0.985 0.004 250);
+  --danger: oklch(0.6 0.24 25); /* Red */
+  --danger-foreground: oklch(0.985 0.004 250);
+  --warning: oklch(0.8 0.2 90); /* Bright yellow for clarity */
+  --warning-foreground: oklch(0.18 0.006 250);
+  --info: oklch(0.6 0.1 250); /* Blue */
+  --info-foreground: oklch(0.985 0.004 250);
+}
+
+.dark {
+  --background: oklch(0.12 0.008 250);
+  --foreground: oklch(0.96 0.004 80);
+  --primary: oklch(0.72 0.27 55); /* Glowing Orange */
+  --primary-foreground: oklch(0.12 0.008 250);
+  --secondary: oklch(0.45 0.08 240); /* Muted Blue-gray */
+  --secondary-foreground: oklch(0.96 0.004 80);
+  --accent: oklch(0.52 0.12 250); /* Deep blue accent */
+  --accent-foreground: oklch(0.12 0.008 250);
+  --muted: oklch(0.22 0.012 250);
+  --muted-foreground: oklch(0.7 0.005 80);
+  --border: oklch(0.3 0.012 250);
+  --card: oklch(0.16 0.008 250);
+  --card-foreground: oklch(0.96 0.004 80);
+  --success: oklch(0.72 0.25 145);
+  --success-foreground: oklch(0.12 0.008 250);
+  --danger: oklch(0.65 0.3 25);
+  --danger-foreground: oklch(0.12 0.008 250);
+  --warning: oklch(0.8 0.22 90); /* Bright yellow warning */
+  --warning-foreground: oklch(0.12 0.008 250);
+  --info: oklch(0.65 0.15 250);
+  --info-foreground: oklch(0.12 0.008 250);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --font-sans: 'Roboto', sans-serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: 'Roboto', sans-serif;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Fade edges for scrolling containers */
+.fade-edges {
+  mask: linear-gradient(
+    to right,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent
+  );
+  -webkit-mask: linear-gradient(
+    to right,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent
+  );
+}
+
+/* Mobile menu animations */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
