@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { MdMenu, MdClose } from 'react-icons/md';
 import ThemeToggle from '@/components/shared/theme-toggle';
+import { Button } from '@/components/ui/button';
 
 const navLinks = [
   { href: '#hero', label: 'Home' },
@@ -21,10 +22,10 @@ export default function Header() {
   const toggleMobileMenu = () => {
     if (isMobileMenuOpen) {
       setIsAnimating(true);
+      setIsMobileMenuOpen(false);
       setTimeout(() => {
-        setIsMobileMenuOpen(false);
         setIsAnimating(false);
-      }, 300); // Match transition duration
+      }, 300);
     } else {
       setIsMobileMenuOpen(true);
     }
@@ -78,7 +79,19 @@ export default function Header() {
                   {link.label}
                 </a>
               ))}
-              <ThemeToggle />
+              <div className="flex items-center gap-3">
+                <Link href="/login">
+                  <Button variant="outline" size="sm">
+                    Login
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button variant="primary" size="sm">
+                    Register
+                  </Button>
+                </Link>
+              </div>
+              <ThemeToggle variant="cycle" />
             </div>
 
             {/* Mobile Menu Button */}
@@ -142,11 +155,25 @@ export default function Header() {
 
             {/* Footer with Theme Toggle */}
             <div className="p-6 border-t border-border">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Theme
-                </span>
-                <ThemeToggle direction="up" />
+              <div className="flex flex-col gap-4">
+                <div className="flex gap-3">
+                  <Link href="/login" className="flex-1">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Login
+                    </Button>
+                  </Link>
+                  <Link href="/register" className="flex-1">
+                    <Button variant="primary" size="sm" className="w-full">
+                      Register
+                    </Button>
+                  </Link>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Theme
+                  </span>
+                  <ThemeToggle direction="up" />
+                </div>
               </div>
             </div>
           </div>

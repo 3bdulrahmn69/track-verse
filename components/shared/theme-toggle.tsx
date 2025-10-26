@@ -7,7 +7,7 @@ import { MdLightMode, MdDarkMode, MdComputer } from 'react-icons/md';
 import { useEffect, useState } from 'react';
 
 interface ThemeToggleProps {
-  variant?: 'dropdown' | 'icons';
+  variant?: 'dropdown' | 'icons' | 'cycle';
   direction?: 'up' | 'down';
   className?: string;
 }
@@ -74,6 +74,32 @@ export default function ThemeToggle({
           </button>
         ))}
       </div>
+    );
+  }
+
+  if (variant === 'cycle') {
+    const currentOption =
+      options.find((option) => option.value === theme) || options[0];
+
+    const cycleTheme = () => {
+      const currentIndex = options.findIndex(
+        (option) => option.value === theme
+      );
+      const nextIndex = (currentIndex + 1) % options.length;
+      setTheme(options[nextIndex].value);
+    };
+
+    return (
+      <button
+        onClick={cycleTheme}
+        className={cn(
+          'p-2 rounded-full bg-muted/50 border border-border/50 text-primary hover:bg-muted transition-colors duration-200',
+          className
+        )}
+        aria-label={`Current theme: ${currentOption.label}. Click to cycle themes.`}
+      >
+        {currentOption.icon}
+      </button>
     );
   }
 

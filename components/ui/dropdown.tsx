@@ -59,7 +59,9 @@ export function Dropdown({
         <MdKeyboardArrowDown
           className={cn(
             'ml-2 h-4 w-4 transition-transform',
-            isOpen && 'rotate-180'
+            direction === 'up'
+              ? !isOpen && 'rotate-180'
+              : isOpen && 'rotate-180'
           )}
         />
       </Button>
