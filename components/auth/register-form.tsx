@@ -17,10 +17,23 @@ import {
   MdMenuBook,
   MdCheckCircle,
 } from 'react-icons/md';
+import { FcGoogle } from 'react-icons/fc';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import {
+  validateEmail,
+  validatePassword,
+  validateUsername,
+  validateFullName,
+  validateDateOfBirth,
+  validatePasswordMatch,
+  validateTermsAcceptance,
+} from '@/lib/validation';
 
 export default function RegisterForm() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     fullName: '',
@@ -39,43 +52,44 @@ export default function RegisterForm() {
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
-    } else if (formData.fullName.trim().length < 2) {
-      newErrors.fullName = 'Full name must be at least 2 characters';
+    // Validate full name
+    const fullNameValidation = validateFullName(formData.fullName);
+    if (!fullNameValidation.isValid) {
+      newErrors.fullName = fullNameValidation.message!;
     }
 
+    // Validate email
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    } else if (!validateEmail(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    // Validate password
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.isValid) {
+      newErrors.password = passwordValidation.message!;
     }
 
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+    // Validate password match
+    const passwordMatchValidation = validatePasswordMatch(
+      formData.password,
+      formData.confirmPassword
+    );
+    if (!passwordMatchValidation.isValid) {
+      newErrors.confirmPassword = passwordMatchValidation.message!;
     }
 
-    if (!formData.dateOfBirth) {
-      newErrors.dateOfBirth = 'Date of birth is required';
-    } else {
-      const birthDate = new Date(formData.dateOfBirth);
-      const today = new Date();
-      const age = today.getFullYear() - birthDate.getFullYear();
-      if (age < 13) {
-        newErrors.dateOfBirth = 'You must be at least 13 years old';
-      }
+    // Validate date of birth
+    const dobValidation = validateDateOfBirth(formData.dateOfBirth);
+    if (!dobValidation.isValid) {
+      newErrors.dateOfBirth = dobValidation.message!;
     }
 
-    if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = 'You must agree to the terms and conditions';
+    // Validate terms acceptance
+    const termsValidation = validateTermsAcceptance(formData.agreeToTerms);
+    if (!termsValidation.isValid) {
+      newErrors.agreeToTerms = termsValidation.message!;
     }
 
     setErrors(newErrors);
@@ -85,32 +99,41 @@ export default function RegisterForm() {
   const validateStep2 = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
-    } else if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
-    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-      newErrors.username =
-        'Username can only contain letters, numbers, and underscores';
+    // Validate username
+    const usernameValidation = validateUsername(formData.username);
+    if (!usernameValidation.isValid) {
+      newErrors.username = usernameValidation.message!;
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => {
+  const handleNext = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     if (validateStep1()) {
       setCurrentStep(2);
     }
   };
 
-  const handleBack = () => {
+  const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     setCurrentStep(1);
+    setErrors({});
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate current step first
+    if (currentStep === 1) {
+      if (validateStep1()) {
+        setCurrentStep(2);
+      }
+      return;
+    }
+
+    // If on step 2, validate and submit
     if (!validateStep2()) {
       return;
     }
@@ -118,32 +141,59 @@ export default function RegisterForm() {
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullname: formData.fullName,
+          email: formData.email,
+          username: formData.username,
+          password: formData.password,
+          dateOfBirth: formData.dateOfBirth,
+        }),
+      });
 
-      toast.success('Account created successfully! Welcome to Track Verse.', {
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || 'Registration failed. Please try again.', {
+          position: 'top-right',
+          autoClose: 5000,
+        });
+        return;
+      }
+
+      toast.success('Account created successfully! Redirecting to login...', {
         position: 'top-right',
         autoClose: 3000,
       });
 
-      // Reset form
-      setFormData({
-        fullName: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        dateOfBirth: '',
-        username: '',
-        agreeToTerms: false,
-      });
-      setCurrentStep(1);
-    } catch {
+      // Reset form and redirect to login
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+    } catch (error) {
+      console.error('Registration error:', error);
       toast.error('Registration failed. Please try again.', {
         position: 'top-right',
         autoClose: 5000,
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signIn('google', { callbackUrl: '/portal' });
+    } catch (error) {
+      console.error('Google sign in error:', error);
+      toast.error('Google sign in failed. Please try again.', {
+        position: 'top-right',
+        autoClose: 5000,
+      });
     }
   };
 
@@ -366,6 +416,7 @@ export default function RegisterForm() {
                 >
                   <div className="flex items-start space-x-2">
                     <Checkbox
+                      id="agreeToTerms"
                       checked={formData.agreeToTerms}
                       onChange={(e) =>
                         handleInputChange('agreeToTerms', e.target.checked)
@@ -374,13 +425,17 @@ export default function RegisterForm() {
                       aria-required="true"
                       className="mt-0.5"
                     />
-                    <label className="text-sm font-medium text-foreground">
+                    <label
+                      htmlFor="agreeToTerms"
+                      className="text-sm font-medium text-foreground cursor-pointer"
+                    >
                       I agree to the{' '}
                       <Link
                         href="/terms"
                         className="text-primary hover:text-primary/90 underline"
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         Terms of Service
                       </Link>{' '}
@@ -390,6 +445,7 @@ export default function RegisterForm() {
                         className="text-primary hover:text-primary/90 underline"
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         Privacy Policy
                       </Link>
@@ -449,6 +505,32 @@ export default function RegisterForm() {
               </div>
             )}
           </form>
+
+          {currentStep === 1 && (
+            <>
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-card text-muted-foreground">
+                    Or continue with
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
+              >
+                <FcGoogle className="w-5 h-5 mr-2" />
+                Sign up with Google
+              </Button>
+            </>
+          )}
 
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">

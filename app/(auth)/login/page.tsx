@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Login | Track Verse - Sign In to Your Account',
   description:
-    'Sign in to Track Verse to track your favorite movies, TV shows, games, books, and more. Access your personalized entertainment dashboard.',
+    'Sign in to Track Verse to track your favorite movies, TV shows, games, books, and more. Access your personalized entertainment portal.',
   keywords: [
     'login',
     'sign in',
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Login to Track Verse',
     description:
-      'Sign in to access your personalized entertainment tracking dashboard',
+      'Sign in to access your personalized entertainment tracking portal',
     type: 'website',
   },
 };

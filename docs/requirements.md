@@ -15,8 +15,23 @@ Track Verse is a comprehensive tracking application that allows users to monitor
 - **Frontend**: Next.js (App Router), Tailwind CSS, Three.js (@react-three/fiber for React integration), TypeScript
 - **State Management & Data Fetching**: TanStack Query (React Query)
 - **Backend/Database**: PostgreSQL with Drizzle ORM
-- **Authentication**: NextAuth.js
+- **Authentication**: NextAuth.js with google auth, email/password, username/password
 - **Deployment**: (To be determined - e.g., Vercel, Netlify)
+
+## Database Schema
+
+### User Table
+
+- id: UUID primary key
+- fullname: VARCHAR(255)
+- email: VARCHAR(255) UNIQUE
+- username: VARCHAR(255) UNIQUE
+- password: VARCHAR(255) (hashed)
+- date_of_birth: DATE
+- created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+- updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+- google_id: VARCHAR(255) (for Google OAuth)
+- provider: VARCHAR(50) DEFAULT 'local' (e.g., 'local', 'google')
 
 ## Features
 

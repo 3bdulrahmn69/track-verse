@@ -13,10 +13,15 @@ import {
   MdSportsEsports,
   MdMenuBook,
 } from 'react-icons/md';
+import { FcGoogle } from 'react-icons/fc';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { validateIdentifier, validateLoginPassword } from '@/lib/validation';
 
 export default function LoginForm() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     identifier: '', // Can be email or username
     password: '',
@@ -28,14 +33,16 @@ export default function LoginForm() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.identifier.trim()) {
-      newErrors.identifier = 'Email or username is required';
+    // Validate identifier (email or username)
+    const identifierValidation = validateIdentifier(formData.identifier);
+    if (!identifierValidation.isValid) {
+      newErrors.identifier = identifierValidation.message!;
     }
 
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    // Validate password
+    const passwordValidation = validateLoginPassword(formData.password);
+    if (!passwordValidation.isValid) {
+      newErrors.password = passwordValidation.message!;
     }
 
     setErrors(newErrors);
@@ -52,27 +59,44 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // For demo purposes, show success message
-      toast.success('Login successful! Welcome back to Track Verse.', {
-        position: 'top-right',
-        autoClose: 3000,
+      const result = await signIn('credentials', {
+        identifier: formData.identifier,
+        password: formData.password,
+        redirect: false,
       });
 
-      // Reset form
-      setFormData({ identifier: '', password: '' });
-    } catch {
-      toast.error(
-        'Login failed. Please check your credentials and try again.',
-        {
+      if (result?.error) {
+        toast.error('Invalid credentials. Please try again.', {
           position: 'top-right',
           autoClose: 5000,
-        }
-      );
+        });
+      } else {
+        toast.success('Login successful! Welcome back to Track Verse.', {
+          position: 'top-right',
+          autoClose: 3000,
+        });
+        router.push('/portal'); // Redirect to portal
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('Login failed. Please try again.', {
+        position: 'top-right',
+        autoClose: 5000,
+      });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signIn('google', { callbackUrl: '/portal' });
+    } catch (error) {
+      console.error('Google sign in error:', error);
+      toast.error('Google sign in failed. Please try again.', {
+        position: 'top-right',
+        autoClose: 5000,
+      });
     }
   };
 
@@ -193,6 +217,28 @@ export default function LoginForm() {
               aria-busy={isLoading}
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
+            </Button>
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-card text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+            >
+              <FcGoogle className="w-5 h-5 mr-2" />
+              Sign in with Google
             </Button>
           </form>
 

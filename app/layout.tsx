@@ -3,10 +3,12 @@ import { Roboto } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from 'next-themes';
 import { Bounce, ToastContainer } from 'react-toastify';
+import SessionProvider from '@/components/providers/session-provider';
 
 const roboto = Roboto({
   variable: '--font-roboto',
   subsets: ['latin'],
+  weight: ['300', '400', '500', '700'],
 });
 
 export const metadata: Metadata = {
@@ -23,28 +25,29 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll="smooth" suppressHydrationWarning>
       <body className={`${roboto.variable} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          themes={['light', 'dark', 'system']}
-          enableSystem={true}
-          defaultTheme="system"
-          storageKey="track-verse-theme"
-        >
-          {children}
-          <ToastContainer
-            position="top-right"
-            autoClose={500}
-            hideProgressBar={false}
-            newestOnTop={true}
-            closeOnClick={false}
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="light"
-            transition={Bounce}
-          />
-        </ThemeProvider>
+        <SessionProvider>
+          <ThemeProvider
+            attribute="class"
+            themes={['light', 'dark', 'system']}
+            enableSystem={true}
+            defaultTheme="system"
+            storageKey="track-verse-theme"
+          >
+            {children}
+            <ToastContainer
+              position="top-right"
+              autoClose={500}
+              hideProgressBar={false}
+              newestOnTop={true}
+              closeOnClick={true}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="light"
+              transition={Bounce}
+            />
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );
