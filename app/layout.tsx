@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Roboto } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from 'next-themes';
+import { Bounce, ToastContainer } from 'react-toastify';
 
 const roboto = Roboto({
   variable: '--font-roboto',
@@ -30,6 +31,19 @@ export default function RootLayout({
           storageKey="track-verse-theme"
         >
           {children}
+          <ToastContainer
+            position="top-right"
+            autoClose={500}
+            hideProgressBar={false}
+            newestOnTop={true}
+            closeOnClick={false}
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+            transition={Bounce}
+          />
         </ThemeProvider>
       </body>
     </html>
