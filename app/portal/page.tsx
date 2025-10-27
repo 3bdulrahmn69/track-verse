@@ -15,8 +15,8 @@ export default async function PortalPage() {
           Welcome to Track Verse, {session.user?.name}!
         </h1>
         <p className="text-lg text-muted-foreground mb-8">
-          This is your portal. The 3D world will be implemented here in Phase
-          2.
+          This is your dashboard. Start tracking your favorite movies, TV shows,
+          games, books, and more.
         </p>
 
         <div className="bg-card p-6 rounded-lg border border-border">

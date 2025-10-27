@@ -12,7 +12,7 @@ Track Verse is a comprehensive tracking application that allows users to monitor
 
 ### Tech Stack
 
-- **Frontend**: Next.js (App Router), Tailwind CSS, Three.js (@react-three/fiber for React integration), TypeScript
+- **Frontend**: Next.js (App Router), Tailwind CSS, TypeScript
 - **State Management & Data Fetching**: TanStack Query (React Query)
 - **Backend/Database**: PostgreSQL with Drizzle ORM
 - **Authentication**: NextAuth.js with google auth, email/password, username/password
@@ -35,9 +35,9 @@ Track Verse is a comprehensive tracking application that allows users to monitor
 
 ## Features
 
-### Public Pages (No Three.js)
+### Public Pages
 
-These pages are standard web pages without 3D elements, focusing on user onboarding and authentication.
+These pages are standard web pages focusing on user onboarding and authentication.
 
 1. **Landing Page**
 
@@ -80,77 +80,77 @@ These pages are standard web pages without 3D elements, focusing on user onboard
    - Validation: Password strength
    - Success message and redirect to login
 
-### Main App (Three.js Immersive Experience)
+### Main App (Web Dashboard)
 
-After authentication, users enter the main app, which is a 3D virtual world built with Three.js. The world represents a "real-world" environment with four main areas. A main character (avatar) navigates the world and "joins" areas to access tracking features.
+After authentication, users enter the main app, which is a comprehensive web dashboard for tracking various media and activities. The dashboard provides easy navigation between different tracking categories through a clean, intuitive interface.
 
 #### Core Concept
 
-- **Virtual World**: A 3D scene with buildings/areas for Cinema, Home, Library, and Cybercafe.
-- **Character Movement**: User controls an avatar to move around and interact with areas.
-- **Interaction**: Clicking/entering an area transitions to that category's tracking interface (overlay or new scene).
-- **Scalability**: Designed to add more areas (e.g., Bookstore, Gym) in the future.
+- **Dashboard**: A responsive web dashboard with sections for different tracking categories
+- **Navigation**: Clean sidebar or tab-based navigation between categories
+- **Interaction**: Click on categories to access tracking features and manage items
+- **Scalability**: Designed to add more categories (e.g., Music, Travel, Fitness) easily
 
-#### Main Areas
+#### Main Categories
 
 1. **Cinema**
 
    - Tracks movies and series
    - Features: Add watched films, rate/review, watchlist, recommendations
-   - 3D Element: Movie theater building with posters/screens
+   - UI: Movie cards, watch status, ratings, and review forms
 
 2. **Home**
 
    - Tracks personal/home-related activities (e.g., chores, habits, daily logs)
    - Features: Task lists, habit trackers, journal entries
-   - 3D Element: House/apartment model
+   - UI: Task management interface, habit tracking charts, journal editor
 
 3. **Library**
 
    - Tracks books and reading progress
    - Features: Reading lists, progress tracking, notes, quotes
-   - 3D Element: Library building with bookshelves
+   - UI: Book catalog, reading progress bars, note-taking interface
 
 4. **Cybercafe**
    - Tracks video games
    - Features: Game library, playtime tracking, achievements, reviews
-   - 3D Element: Cafe with arcade machines/consoles
+   - UI: Game collection, playtime statistics, achievement badges
 
 #### General Main App Features
 
-- **Navigation**: 3D movement controls (WASD or click-to-move)
-- **UI Overlays**: When in an area, show category-specific UI (e.g., lists, forms) overlaid on the 3D scene
+- **Navigation**: Sidebar or top navigation between categories
+- **UI Components**: Category-specific interfaces (lists, forms, statistics) in responsive layouts
 - **Data Persistence**: All tracking data stored in PostgreSQL via Drizzle ORM
 - **Real-time Sync**: TanStack Query for fetching/updating data
-- **Responsive**: 3D scene adapts to screen size; UI remains usable on mobile (though 3D may be simplified)
-- **Accessibility**: Keyboard navigation, screen reader support for UI elements
+- **Responsive**: Fully responsive design that works on desktop, tablet, and mobile
+- **Accessibility**: Keyboard navigation, screen reader support for all UI elements
 
 ## Scalability and Future Features
 
-- **Modular Areas**: Easy to add new tracking categories (e.g., Music, Travel, Fitness) by creating new 3D models and UI modules
+- **Modular Categories**: Easy to add new tracking categories (e.g., Music, Travel, Fitness) by creating new UI modules and database tables
 - **API Design**: RESTful or GraphQL API for data operations
-- **User Profiles**: Avatars, stats, achievements across categories
+- **User Profiles**: User profiles, stats, achievements across categories
 - **Social Features**: Share progress, leaderboards (future)
 - **Offline Support**: PWA capabilities for offline tracking
 - **Integrations**: Import from external services (e.g., Goodreads for books, Steam for games)
 
 ## Non-Functional Requirements
 
-- **Performance**: 3D scenes load quickly; data fetches cached via TanStack Query
+- **Performance**: Fast loading times; data fetches cached via TanStack Query
 - **Security**: Secure auth with NextAuth; data encryption in DB
-- **Usability**: Intuitive 3D navigation; clear UI for tracking actions
+- **Usability**: Intuitive navigation; clear UI for tracking actions
 - **Testing**: Unit tests for components/utilities; E2E tests for auth and tracking flows
 - **Documentation**: API docs, component library, deployment guides
 
 ## Development Phases
 
 1. **Phase 1**: Public pages and auth setup
-2. **Phase 2**: Basic 3D world and one area (e.g., Cinema)
-3. **Phase 3**: Add remaining areas and full tracking features
+2. **Phase 2**: Dashboard layout and one category (e.g., Cinema)
+3. **Phase 3**: Add remaining categories and full tracking features
 4. **Phase 4**: Scalability enhancements and optimizations
 
 ## Assumptions and Constraints
 
-- Users have modern browsers with WebGL support for Three.js
-- Initial focus on desktop; mobile optimization later
+- Users have modern browsers with JavaScript enabled
+- Initial focus on desktop; mobile optimization included from start
 - Data models designed for extensibility (e.g., generic "item" types for different categories)

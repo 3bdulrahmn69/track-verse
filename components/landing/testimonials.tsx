@@ -12,35 +12,35 @@ type Testimonial = {
 const testimonials: Testimonial[] = [
   {
     quote:
-      'Track Verse has completely transformed how I organize my movie collection. The 3D interface makes browsing my watched films feel like exploring a virtual cinema!',
+      'Track Verse has completely transformed how I organize my movie collection. The clean interface makes browsing my watched films so easy and enjoyable!',
     author: 'Alex Johnson',
     role: 'Film Enthusiast',
     avatar: 'https://i.pravatar.cc/150?img=1',
   },
   {
     quote:
-      'As a hardcore gamer, I love how Track Verse lets me track my gaming achievements in an immersive 3D world. Finally, a gaming tracker that feels like part of the game itself!',
+      "As a hardcore gamer, I love how Track Verse lets me track my gaming achievements in a comprehensive dashboard. Finally, a gaming tracker that's both powerful and easy to use!",
     author: 'Sam Lee',
     role: 'Gaming Pro',
     avatar: 'https://i.pravatar.cc/150?img=2',
   },
   {
     quote:
-      "My bookshelf just got a whole new dimension! Track Verse's 3D world makes organizing my reading list and tracking my progress through books absolutely delightful.",
+      'My bookshelf just got a whole new level of organization! Track Verse makes organizing my reading list and tracking my progress through books absolutely delightful.',
     author: 'Jordan Kim',
     role: 'Book Lover',
     avatar: 'https://i.pravatar.cc/150?img=3',
   },
   {
     quote:
-      'Binge-watching has never been this organized. Track Verse helps me keep track of all my favorite series across different platforms in one beautiful 3D space.',
+      'Binge-watching has never been this organized. Track Verse helps me keep track of all my favorite series across different platforms in one beautiful dashboard.',
     author: 'Taylor Brown',
     role: 'Series Addict',
     avatar: 'https://i.pravatar.cc/150?img=4',
   },
   {
     quote:
-      "The perfect blend of functionality and fun! Track Verse's 3D world makes tracking my media consumption across movies, games, books, and series an enjoyable experience.",
+      'The perfect blend of functionality and fun! Track Verse makes tracking my media consumption across movies, games, books, and series an enjoyable experience.',
     author: 'Morgan Davis',
     role: 'Media Collector',
     avatar: 'https://i.pravatar.cc/150?img=5',

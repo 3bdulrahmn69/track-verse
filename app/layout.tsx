@@ -14,7 +14,7 @@ const roboto = Roboto({
 export const metadata: Metadata = {
   title: 'Track Verse',
   description:
-    'Immerse yourself in a virtual world to track movies, series, games, books, and more.',
+    'Track your favorite movies, series, games, books, and more with our comprehensive tracking dashboard.',
 };
 
 export default function RootLayout({

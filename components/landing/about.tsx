@@ -1,6 +1,6 @@
 import {
   MdTrackChanges,
-  Md3dRotation,
+  MdDashboard,
   MdGroup,
   MdExpandMore,
 } from 'react-icons/md';
@@ -14,10 +14,10 @@ const highlights = [
       'One platform for all your entertainment and personal tracking needs.',
   },
   {
-    icon: Md3dRotation,
-    title: 'Immersive 3D Experience',
+    icon: MdDashboard,
+    title: 'Intuitive Dashboard',
     description:
-      'Navigate virtual worlds instead of boring spreadsheets and lists.',
+      'Clean, organized interface that makes tracking simple and enjoyable.',
   },
   {
     icon: MdGroup,
@@ -28,7 +28,8 @@ const highlights = [
   {
     icon: MdExpandMore,
     title: 'Scalable Design',
-    description: 'Add new tracking areas as your interests and hobbies expand.',
+    description:
+      'Add new tracking categories as your interests and hobbies expand.',
   },
 ];
 
@@ -54,8 +55,8 @@ export default function About() {
             Why Track Verse?
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Experience the future of media tracking with our immersive 3D
-            platform that makes organization feel like exploration.
+            Experience the future of media tracking with our comprehensive
+            dashboard that makes organization simple and effective.
           </p>
         </div>
 
@@ -69,21 +70,19 @@ export default function About() {
               <p className="text-lg text-muted-foreground leading-relaxed">
                 In a world overflowing with content and activities, keeping
                 track of what you&apos;ve experienced can be overwhelming. Track
-                Verse bridges the gap between your digital and physical worlds,
-                offering a gamified 3D environment where tracking feels like an
-                adventure.
+                Verse provides a clean, organized platform where tracking feels
+                effortless and enjoyable.
               </p>
             </div>
 
             <div className="bg-linear-to-r from-primary/10 to-accent/10 border border-primary/20 rounded-2xl p-8">
               <h3 className="text-2xl font-bold mb-4 text-foreground">
-                Immersive Experience
+                Clean & Organized
               </h3>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Unlike traditional apps that feel like spreadsheets, Track Verse
-                immerses you in a virtual universe. Navigate through Cinema,
-                Home, Library, and CyberCafe to manage movies, series, books,
-                and games—all in one place.
+                Unlike cluttered traditional apps, Track Verse provides a clean
+                dashboard. Navigate through Cinema, Home, Library, and CyberCafe
+                to manage movies, series, books, and games—all in one place.
               </p>
             </div>
           </div>
@@ -96,7 +95,7 @@ export default function About() {
                   <MdTrackChanges className="w-12 h-12 text-white" />
                 </div>
                 <h3 className="text-3xl font-bold mb-4 text-foreground">
-                  Your Tracking Universe
+                  Your Tracking Hub
                 </h3>
                 <p className="text-muted-foreground mb-6">
                   Explore virtual spaces designed for every aspect of your life

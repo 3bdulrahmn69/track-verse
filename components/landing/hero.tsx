@@ -21,9 +21,9 @@ export default function Hero() {
               Everything, Everywhere, All at Once
             </p>
             <p className="text-lg mb-10 text-muted-foreground leading-relaxed max-w-lg mx-auto lg:mx-0">
-              Enter a gamified universe where tracking your world becomes an
-              epic adventure. From movies to habits, organize your life in
-              immersive 3D spaces.
+              Track everything that matters to you in one comprehensive
+              dashboard. From movies to habits, organize your entertainment and
+              daily life with ease.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link href="/register">
@@ -43,7 +43,7 @@ export default function Hero() {
           <div className="flex justify-center lg:justify-end">
             <div className="bg-card border border-border rounded-3xl p-8 md:p-12 shadow-2xl max-w-md w-full">
               <h3 className="text-2xl font-bold mb-8 text-center text-foreground">
-                Explore Your Worlds
+                Track Your Interests
               </h3>
               <div className="grid grid-cols-2 gap-6">
                 <div className="flex flex-col items-center text-center">
@@ -85,7 +85,7 @@ export default function Hero() {
               </div>
               <div className="mt-8 pt-6 border-t border-border">
                 <p className="text-center text-muted-foreground text-sm">
-                  And more areas coming soon...
+                  And more categories coming soon...
                 </p>
               </div>
             </div>

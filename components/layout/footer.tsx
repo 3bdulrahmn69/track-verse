@@ -21,12 +21,12 @@ export default function Footer() {
               Track Verse
             </h3>
             <p className="text-muted-foreground mb-4">
-              Everything, Everywhere, All at once. Track your world in an
-              immersive 3D experience.
+              Everything, Everywhere, All at once. Your comprehensive tracking
+              dashboard.
             </p>
             <p className="text-sm text-muted-foreground">
-              Navigate your personal universe and manage movies, series, games,
-              books, and more.
+              Manage movies, series, games, books, and more in one organized
+              place.
             </p>
           </div>
 
@@ -60,9 +60,10 @@ export default function Footer() {
               Abdulrahman Moussa
             </Link>
             <p className="text-sm text-muted-foreground mt-2">
-              Full-Stack Developer passionate about immersive web experiences.
+              Full-Stack Developer passionate about creating intuitive web
+              applications.
             </p>
-            <ThemeToggle variant="icons" className='mt-2' />
+            <ThemeToggle variant="icons" className="mt-2" />
           </div>
         </div>
 

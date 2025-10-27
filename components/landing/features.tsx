@@ -83,11 +83,11 @@ export default function Features() {
       <Container className="max-w-7xl mx-auto relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-linear-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-            Explore Your Tracking Universe
+            Your Complete Tracking Solution
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Dive into immersive virtual spaces designed for every aspect of your
-            entertainment and personal tracking needs.
+            Access all your tracking needs in one comprehensive, easy-to-use
+            dashboard designed for entertainment and personal organization.
           </p>
         </div>
 
