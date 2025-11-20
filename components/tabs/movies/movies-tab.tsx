@@ -18,6 +18,14 @@ export default function MoviesTab({
   const [activeTab, setActiveTab] = useState<'discover' | 'watchlist'>(
     'discover'
   );
+  const [mountedTabs, setMountedTabs] = useState<Set<string>>(
+    new Set(['discover'])
+  );
+
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId as 'discover' | 'watchlist');
+    setMountedTabs((prev) => new Set(prev).add(tabId));
+  };
 
   const tabs = [
     { id: 'discover', label: 'Discover' },
@@ -30,19 +38,21 @@ export default function MoviesTab({
         <Tabs
           tabs={tabs}
           activeTab={activeTab}
-          onTabChange={(tabId) =>
-            setActiveTab(tabId as 'discover' | 'watchlist')
-          }
+          onTabChange={handleTabChange}
           className="mb-8"
         />
 
-        {activeTab === 'discover' && (
-          <DiscoverTab
-            popularMovies={popularMovies}
-            nowPlayingMovies={nowPlayingMovies}
-          />
-        )}
-        {activeTab === 'watchlist' && <WatchListTab />}
+        <div style={{ display: activeTab === 'discover' ? 'block' : 'none' }}>
+          {mountedTabs.has('discover') && (
+            <DiscoverTab
+              popularMovies={popularMovies}
+              nowPlayingMovies={nowPlayingMovies}
+            />
+          )}
+        </div>
+        <div style={{ display: activeTab === 'watchlist' ? 'block' : 'none' }}>
+          {mountedTabs.has('watchlist') && <WatchListTab />}
+        </div>
       </div>
     </div>
   );

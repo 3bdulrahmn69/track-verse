@@ -77,75 +77,77 @@ export default function MovieActions({
   }
 
   return (
-    <div className="flex flex-wrap gap-3">
-      {/* Watch List Button - Don't show when watched */}
-      {status !== 'watched' && status !== 'want_to_watch' && (
-        <Button
-          variant="primary"
-          size="md"
-          onClick={handleAddToWatchList}
-          disabled={isUpdating}
-          className="flex items-center gap-2"
-        >
-          <FiBookmark className="w-5 h-5" />
-          <span>{isUpdating ? 'Adding...' : 'Add to Watch List'}</span>
-        </Button>
-      )}
-
-      {/* Remove from Watch List - Show when in watch list */}
-      {status === 'want_to_watch' && (
-        <Button
-          variant="primary"
-          size="md"
-          onClick={handleRemoveFromWatchList}
-          disabled={isUpdating}
-          className="flex items-center gap-2"
-        >
-          <FiBookmark className="w-5 h-5 fill-current" />
-          <span>{isUpdating ? 'Removing...' : 'In Watch List'}</span>
-        </Button>
-      )}
-
-      {/* Mark as Watched - Show when not watched */}
-      {status !== 'watched' && (
-        <Button
-          variant="destructive"
-          size="md"
-          onClick={handleMarkAsWatched}
-          disabled={isUpdating}
-          className="flex items-center gap-2"
-        >
-          <FiCheck className="w-5 h-5" />
-          <span>{isUpdating ? 'Marking...' : 'Mark as Watched'}</span>
-        </Button>
-      )}
-
-      {/* Mark as Unwatched & Rewatch - Show when watched */}
-      {status === 'watched' && (
-        <>
+    <>
+      <div className="flex flex-wrap gap-3">
+        {/* Watch List Button - Don't show when watched */}
+        {status !== 'watched' && status !== 'want_to_watch' && (
           <Button
-            variant="success"
+            variant="primary"
+            size="md"
+            onClick={handleAddToWatchList}
+            disabled={isUpdating}
+            className="flex items-center gap-2"
+          >
+            <FiBookmark className="w-5 h-5" />
+            <span>{isUpdating ? 'Adding...' : 'Add to Watch List'}</span>
+          </Button>
+        )}
+
+        {/* Remove from Watch List - Show when in watch list */}
+        {status === 'want_to_watch' && (
+          <Button
+            variant="primary"
             size="md"
             onClick={handleRemoveFromWatchList}
             disabled={isUpdating}
             className="flex items-center gap-2"
           >
-            <FiCheck className="w-5 h-5" />
-            <span>{isUpdating ? 'Updating...' : 'Mark as Unwatched'}</span>
+            <FiBookmark className="w-5 h-5 fill-current" />
+            <span>{isUpdating ? 'Removing...' : 'In Watch List'}</span>
           </Button>
+        )}
 
+        {/* Mark as Watched - Show when not watched */}
+        {status !== 'watched' && (
           <Button
-            variant="info"
+            variant="destructive"
             size="md"
-            onClick={handleRewatch}
+            onClick={handleMarkAsWatched}
             disabled={isUpdating}
             className="flex items-center gap-2"
           >
-            <FiRefreshCw className="w-5 h-5" />
-            <span>{isUpdating ? 'Rewatching...' : 'Rewatch'}</span>
+            <FiCheck className="w-5 h-5" />
+            <span>{isUpdating ? 'Marking...' : 'Mark as Watched'}</span>
           </Button>
-        </>
-      )}
-    </div>
+        )}
+
+        {/* Mark as Unwatched & Rewatch - Show when watched */}
+        {status === 'watched' && (
+          <>
+            <Button
+              variant="success"
+              size="md"
+              onClick={handleRemoveFromWatchList}
+              disabled={isUpdating}
+              className="flex items-center gap-2"
+            >
+              <FiCheck className="w-5 h-5" />
+              <span>{isUpdating ? 'Updating...' : 'Mark as Unwatched'}</span>
+            </Button>
+
+            <Button
+              variant="info"
+              size="md"
+              onClick={handleRewatch}
+              disabled={isUpdating}
+              className="flex items-center gap-2"
+            >
+              <FiRefreshCw className="w-5 h-5" />
+              <span>{isUpdating ? 'Rewatching...' : 'Rewatch'}</span>
+            </Button>
+          </>
+        )}
+      </div>
+    </>
   );
 }

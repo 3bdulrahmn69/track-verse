@@ -5,7 +5,7 @@ import { FiSettings, FiLogOut, FiChevronDown, FiUser } from 'react-icons/fi';
 import ThemeToggle from '@/components/shared/theme-toggle';
 import { signOut, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import { Avatar } from '@/components/ui/avatar';
 
 interface UserMenuProps {
   openUp?: boolean;
@@ -28,19 +28,11 @@ export function UserMenu({ openUp = false }: UserMenuProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const getInitials = (name?: string | null) => {
-    if (!name) return 'U';
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/login' });
   };
+
+  console.log(session?.user);
 
   return (
     <div className="relative" ref={menuRef}>
@@ -48,19 +40,11 @@ export function UserMenu({ openUp = false }: UserMenuProps) {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 p-2 rounded-full hover:bg-muted transition-colors duration-200"
       >
-        {session?.user?.image ? (
-          <Image
-            src={session.user.image}
-            alt={session.user.name || 'User'}
-            width={32}
-            height={32}
-            className="w-8 h-8 rounded-full object-cover"
-          />
-        ) : (
-          <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm">
-            {getInitials(session?.user?.name)}
-          </div>
-        )}
+        <Avatar
+          src={session?.user?.image}
+          alt={session?.user?.name || 'User'}
+          size="sm"
+        />
         <FiChevronDown
           className={`w-4 h-4 transition-transform duration-200 hidden md:block ${
             isOpen ? 'rotate-180' : ''
@@ -77,19 +61,11 @@ export function UserMenu({ openUp = false }: UserMenuProps) {
           {/* User Info */}
           <div className="p-4 border-b border-border bg-muted/30">
             <div className="flex items-center gap-3">
-              {session?.user?.image ? (
-                <Image
-                  src={session.user.image}
-                  alt={session.user.name || 'User'}
-                  width={48}
-                  height={48}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-lg">
-                  {getInitials(session?.user?.name)}
-                </div>
-              )}
+              <Avatar
+                src={session?.user?.image}
+                alt={session?.user?.name || 'User'}
+                size="md"
+              />
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-foreground truncate">
                   {session?.user?.name || 'User'}

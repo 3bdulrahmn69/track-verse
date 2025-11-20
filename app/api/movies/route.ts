@@ -57,8 +57,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { movieId, movieTitle, moviePosterPath, movieReleaseDate, status } =
-      body;
+    const {
+      movieId,
+      movieTitle,
+      moviePosterPath,
+      movieReleaseDate,
+      status,
+      userRating,
+      userComment,
+      tmdbRating,
+    } = body;
 
     if (!movieId || !movieTitle || !status) {
       return NextResponse.json(
@@ -84,6 +92,9 @@ export async function POST(request: NextRequest) {
         status: 'want_to_watch' | 'watched';
         updatedAt: Date;
         watchCount?: number;
+        userRating?: number | null;
+        userComment?: string | null;
+        tmdbRating?: number | null;
       } = {
         status,
         updatedAt: new Date(),
@@ -92,6 +103,17 @@ export async function POST(request: NextRequest) {
       // If marking as watched, increment watch count
       if (status === 'watched' && existingMovie[0].status !== 'watched') {
         updateData.watchCount = (existingMovie[0].watchCount || 0) + 1;
+      }
+
+      // Update rating and comment if provided
+      if (userRating !== undefined) {
+        updateData.userRating = userRating;
+      }
+      if (userComment !== undefined) {
+        updateData.userComment = userComment;
+      }
+      if (tmdbRating !== undefined) {
+        updateData.tmdbRating = tmdbRating;
       }
 
       const updated = await db
@@ -121,6 +143,9 @@ export async function POST(request: NextRequest) {
         moviePosterPath,
         movieReleaseDate,
         status,
+        userRating: userRating || null,
+        userComment: userComment || null,
+        tmdbRating: tmdbRating || null,
       })
       .returning();
 

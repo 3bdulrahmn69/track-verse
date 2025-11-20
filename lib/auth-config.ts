@@ -107,6 +107,7 @@ export const authConfig = {
         token.username = user.username;
         token.dateOfBirth = user.dateOfBirth;
         token.isPublic = user.isPublic;
+        token.picture = user.image;
       }
       if (account?.provider === 'google') {
         const dbUser = await db.query.users.findFirst({
@@ -117,20 +118,68 @@ export const authConfig = {
           token.username = dbUser.username;
           token.dateOfBirth = dbUser.dateOfBirth;
           token.isPublic = dbUser.isPublic || false;
+          token.picture = dbUser.image;
         }
       }
-      // Handle session update trigger
-      if (trigger === 'update' && session) {
-        token = { ...token, ...session };
+      // Handle session update trigger - fetch fresh data from DB
+      if (trigger === 'update') {
+        if (session?.user) {
+          // Update token with session data
+          token = { ...token, ...session.user };
+        }
+        // Fetch fresh data from database to ensure we have latest image and dateOfBirth
+        const dbUser = await db.query.users.findFirst({
+          where: eq(users.id, token.id as string),
+        });
+        if (dbUser) {
+          token.username = dbUser.username;
+          token.dateOfBirth = dbUser.dateOfBirth;
+          token.isPublic = dbUser.isPublic || false;
+          token.picture = dbUser.image;
+        }
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.username = token.username as string;
-        session.user.dateOfBirth = token.dateOfBirth as string | undefined;
-        session.user.isPublic = token.isPublic as boolean | undefined;
+        // Fetch fresh user data from database on every session call
+        const dbUser = await db.query.users.findFirst({
+          where: eq(users.id, token.id as string),
+        });
+
+        if (dbUser) {
+          session.user.id = dbUser.id;
+          session.user.name = dbUser.fullname;
+          session.user.email = dbUser.email;
+          session.user.username = dbUser.username;
+          session.user.image = dbUser.image;
+          session.user.isPublic = dbUser.isPublic || false;
+
+          // Format dateOfBirth for display
+          if (dbUser.dateOfBirth) {
+            const dateValue = dbUser.dateOfBirth;
+            if (dateValue instanceof Date) {
+              session.user.dateOfBirth = dateValue.toISOString().split('T')[0];
+            } else if (typeof dateValue === 'string') {
+              session.user.dateOfBirth = dateValue;
+            }
+          }
+        } else {
+          // Fallback to token data if DB fetch fails
+          session.user.id = token.id as string;
+          session.user.username = token.username as string;
+          session.user.isPublic = token.isPublic as boolean | undefined;
+          session.user.image = token.picture as string | null | undefined;
+
+          if (token.dateOfBirth) {
+            const dateValue = token.dateOfBirth;
+            if (dateValue instanceof Date) {
+              session.user.dateOfBirth = dateValue.toISOString().split('T')[0];
+            } else if (typeof dateValue === 'string') {
+              session.user.dateOfBirth = dateValue;
+            }
+          }
+        }
       }
       return session;
     },

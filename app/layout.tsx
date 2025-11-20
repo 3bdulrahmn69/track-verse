@@ -25,7 +25,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-scroll="smooth" suppressHydrationWarning>
-      <body className={`${roboto.variable} antialiased`}>
+      <body
+        suppressHydrationWarning
+        className={`${roboto.variable} antialiased`}
+      >
         <SessionProvider>
           <ThemeProvider
             attribute="class"

@@ -8,9 +8,9 @@ import {
   getMovieVideos,
 } from '@/lib/tmdb';
 import { notFound } from 'next/navigation';
-import { MovieCard } from '@/components/tabs/movies/movie-card';
 import BackButton from '@/components/shared/back-button';
 import MovieActions from '@/components/tabs/movies/movie-actions';
+import { MovieDetailsTabs } from '@/components/tabs/movies/movie-details-tabs';
 
 interface MoviePageProps {
   params: Promise<{
@@ -291,19 +291,14 @@ export default async function MoviePage({ params }: MoviePageProps) {
           </section>
         )}
 
-        {/* Similar Movies Section */}
-        {similarMovies.results.length > 0 && (
-          <section className="mt-12">
-            <h2 className="text-2xl font-semibold text-foreground mb-6">
-              Similar Movies
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {similarMovies.results.slice(0, 10).map((similarMovie) => (
-                <MovieCard key={similarMovie.id} movie={similarMovie} />
-              ))}
-            </div>
-          </section>
-        )}
+        {/* Similar Movies and Comments Tabs */}
+        <section className="mt-12">
+          <MovieDetailsTabs
+            movieId={movie.id}
+            movieTitle={movie.title}
+            similarMovies={similarMovies.results}
+          />
+        </section>
       </div>
     </div>
   );

@@ -4,8 +4,8 @@ import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { FiSave, FiUser, FiMail, FiCalendar, FiImage } from 'react-icons/fi';
-import Image from 'next/image';
+import { Avatar } from '@/components/ui/avatar';
+import { FiSave, FiUser, FiCalendar, FiCamera, FiX } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -17,14 +17,11 @@ export function PersonalInfoTab() {
     null
   );
   const [usernameError, setUsernameError] = useState<string>('');
-  const [message, setMessage] = useState<{
-    type: 'success' | 'error';
-    text: string;
-  } | null>(null);
+  const [previewImage, setPreviewImage] = useState<string>('');
+  const [pendingImageFile, setPendingImageFile] = useState<string>('');
 
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
     username: '',
     dateOfBirth: '',
     image: '',
@@ -35,13 +32,30 @@ export function PersonalInfoTab() {
 
   useEffect(() => {
     if (session?.user) {
+      // Format dateOfBirth for input field (YYYY-MM-DD)
+      let formattedDate = '';
+      if (session.user.dateOfBirth) {
+        // Handle both Date object and string
+        const date =
+          typeof session.user.dateOfBirth === 'string'
+            ? new Date(session.user.dateOfBirth)
+            : session.user.dateOfBirth;
+
+        if (date instanceof Date && !isNaN(date.getTime())) {
+          formattedDate = date.toISOString().split('T')[0];
+        } else if (typeof session.user.dateOfBirth === 'string') {
+          // If it's already a string in YYYY-MM-DD format
+          formattedDate = session.user.dateOfBirth;
+        }
+      }
+
       setFormData({
         name: session.user.name || '',
-        email: session.user.email || '',
         username: session.user.username || '',
-        dateOfBirth: session.user.dateOfBirth || '',
+        dateOfBirth: formattedDate,
         image: session.user.image || '',
       });
+      setPreviewImage(session.user.image || '');
     }
   }, [session]);
 
@@ -92,30 +106,56 @@ export function PersonalInfoTab() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Check file type - only allow png, jpg, webp
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Please upload a PNG, JPG, or WEBP image');
+      return;
+    }
+
     // Check file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast.error('Image size must be less than 2MB');
       return;
     }
 
-    // Check file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
-      return;
-    }
-
+    // Only create preview - don't upload yet
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result as string;
-      setFormData({ ...formData, image: base64String });
+      setPreviewImage(base64String);
+      setPendingImageFile(base64String);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    // Just clear the preview and pending file
+    // Actual deletion from Cloudinary will happen on Save
+    setPreviewImage('');
+    setPendingImageFile('');
+    setFormData({ ...formData, image: '' });
+  };
+
+  const handleCancel = () => {
+    // Reset form to session data
+    if (session?.user) {
+      setFormData({
+        name: session.user.name || '',
+        username: session.user.username || '',
+        dateOfBirth: session.user.dateOfBirth || '',
+        image: session.user.image || '',
+      });
+      setPreviewImage(session.user.image || '');
+      setPendingImageFile('');
+      setUsernameAvailable(null);
+      setUsernameError('');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setMessage(null);
 
     // Validate username
     if (formData.username.length < 3) {
@@ -135,10 +175,29 @@ export function PersonalInfoTab() {
     }
 
     try {
+      let imageUrl = formData.image;
+
+      // If there's a pending image file, upload it to Cloudinary first
+      if (pendingImageFile) {
+        const uploadResponse = await fetch('/api/upload/avatar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: pendingImageFile }),
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload image');
+        }
+
+        const uploadData = await uploadResponse.json();
+        imageUrl = uploadData.url;
+      }
+
+      // Update profile with new data
       const response = await fetch('/api/user/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, image: imageUrl }),
       });
 
       const data = await response.json();
@@ -147,17 +206,15 @@ export function PersonalInfoTab() {
         throw new Error(data.error || 'Failed to update profile');
       }
 
-      // Update session
-      await update({
-        ...session,
-        user: {
-          ...session?.user,
-          ...formData,
-        },
-      });
+      // Trigger session update to fetch fresh data from DB
+      await update();
+
+      // Update local state
+      setFormData({ ...formData, image: imageUrl });
+      setPreviewImage(imageUrl);
+      setPendingImageFile('');
 
       toast.success('Profile updated successfully!');
-      setMessage(null);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : 'Failed to update profile'
@@ -169,150 +226,118 @@ export function PersonalInfoTab() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 w-full">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground mb-4">
-          Personal Information
-        </h2>
-        <p className="text-muted-foreground mb-6">
-          Update your personal details and profile information.
-        </p>
-      </div>
-
-      {message && (
-        <div
-          className={`p-4 rounded-lg ${
-            message.type === 'success'
-              ? 'bg-green-500/10 text-green-500 border border-green-500/20'
-              : 'bg-red-500/10 text-red-500 border border-red-500/20'
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
-
-      {/* Name */}
-      <div>
-        <Input
-          id="name"
-          type="text"
-          label="Full Name"
-          icon={<FiUser className="w-4 h-4" />}
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="Enter your full name"
-          required
-        />
-      </div>
-
-      {/* Email */}
-      <div>
-        <Input
-          id="email"
-          type="email"
-          label="Email Address"
-          icon={<FiMail className="w-4 h-4" />}
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          placeholder="Enter your email"
-          required
-        />
-      </div>
-
-      {/* Username */}
-      <div>
-        <div className="space-y-1">
-          <div className="relative">
-            <Input
-              id="username"
-              type="text"
-              label="Username"
-              icon={<FiUser className="w-4 h-4" />}
-              value={formData.username}
-              onChange={(e) => handleUsernameChange(e.target.value)}
-              placeholder="Enter your username"
-              required
-              minLength={3}
-            />
-            {isCheckingUsername && (
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                Checking...
-              </span>
-            )}
-            {!isCheckingUsername &&
-              usernameAvailable === true &&
-              formData.username !== session?.user?.username && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-sm">
-                  ✓ Available
-                </span>
-              )}
-            {!isCheckingUsername && usernameAvailable === false && (
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-destructive text-sm">
-                ✗ Taken
-              </span>
-            )}
-          </div>
-          {usernameError && (
-            <p className="text-sm text-destructive">{usernameError}</p>
-          )}
-        </div>
-      </div>
-
-      {/* Date of Birth */}
-      <div>
-        <Input
-          id="dateOfBirth"
-          type="date"
-          label="Date of Birth"
-          icon={<FiCalendar className="w-4 h-4" />}
-          value={formData.dateOfBirth}
-          onChange={(e) =>
-            setFormData({ ...formData, dateOfBirth: e.target.value })
-          }
-        />
-      </div>
-
-      {/* Profile Image */}
-      <div>
-        <div className="space-y-4">
-          <label className="text-sm font-medium text-foreground block mb-2">
-            <div className="flex items-center gap-2">
-              <FiImage className="w-4 h-4" />
-              <span>Profile Image</span>
-            </div>
-          </label>
-          {formData.image && (
-            <div className="flex items-center gap-4">
-              <Image
-                src={formData.image}
-                alt="Profile preview"
-                className="w-24 h-24 rounded-full object-cover border-2 border-border"
-                width={96}
-                height={96}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setFormData({ ...formData, image: '' })}
-              >
-                Remove Image
-              </Button>
-            </div>
-          )}
-          <div className="flex items-center gap-4">
-            <Input
-              id="image"
+      <div className="flex items-start gap-6">
+        {/* Avatar Section - Left Side */}
+        <div className="relative group">
+          <Avatar src={previewImage} alt={formData.name} size="xl" />
+          <label
+            htmlFor="image-upload"
+            className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-full"
+          >
+            <input
+              id="image-upload"
               type="file"
-              accept="image/*"
+              accept="image/png,image/jpeg,image/webp"
               onChange={handleImageUpload}
-              className="cursor-pointer"
+              className="hidden"
             />
-            <p className="text-sm text-muted-foreground">Max 2MB</p>
-          </div>
+            <FiCamera className="w-8 h-8 text-white" />
+          </label>
+          {previewImage && (
+            <button
+              type="button"
+              onClick={handleRemoveImage}
+              className="absolute -bottom-2 -right-2 p-2 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors shadow-lg"
+              title="Remove image"
+            >
+              <FiX className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Info Section - Right Side */}
+        <div className="flex-1">
+          <h2 className="text-2xl font-bold text-foreground mb-2">
+            Personal Information
+          </h2>
+          <p className="text-muted-foreground mb-4">
+            Update your personal details and profile information.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Supported formats: PNG, JPG, WEBP (Max 2MB)
+          </p>
         </div>
       </div>
 
-      {/* Submit Button */}
-      <div className="flex gap-4 pt-4">
+      {/* Form Fields in Two Columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Name */}
+        <div>
+          <Input
+            id="name"
+            type="text"
+            label="Full Name"
+            icon={<FiUser className="w-4 h-4" />}
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            placeholder="Enter your full name"
+            required
+          />
+        </div>
+
+        {/* Username */}
+        <div>
+          <Input
+            id="username"
+            type="text"
+            label="Username"
+            icon={<FiUser className="w-4 h-4" />}
+            value={formData.username}
+            onChange={(e) => handleUsernameChange(e.target.value)}
+            placeholder="Enter your username"
+            required
+            minLength={3}
+            rightIcon={
+              isCheckingUsername ? (
+                <span className="text-muted-foreground text-sm">
+                  Checking...
+                </span>
+              ) : usernameAvailable === true &&
+                formData.username !== session?.user?.username ? (
+                <span className="text-green-500 text-sm">✓ Available</span>
+              ) : usernameAvailable === false ? (
+                <span className="text-destructive text-sm">✗ Taken</span>
+              ) : null
+            }
+            error={usernameError}
+          />
+        </div>
+
+        {/* Date of Birth */}
+        <div>
+          <Input
+            id="dateOfBirth"
+            type="date"
+            label="Date of Birth"
+            icon={<FiCalendar className="w-4 h-4" />}
+            value={formData.dateOfBirth}
+            onChange={(e) =>
+              setFormData({ ...formData, dateOfBirth: e.target.value })
+            }
+          />
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex justify-end gap-3 pt-4 border-t border-border">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleCancel}
+          disabled={isLoading}
+        >
+          Cancel
+        </Button>
         <Button type="submit" disabled={isLoading}>
           <FiSave className="w-4 h-4 mr-2" />
           {isLoading ? 'Saving...' : 'Save Changes'}

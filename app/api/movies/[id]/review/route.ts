@@ -4,26 +4,33 @@ import { db } from '@/lib/db';
 import { userMovies } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
-// POST - Increment watch count (rewatch movie)
-export async function POST(request: NextRequest) {
+interface RouteParams {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+// POST - Add or update review for a movie
+export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const session = await auth();
-
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
+    const movieId = parseInt(id);
     const body = await request.json();
-    const { movieId, userRating, userComment } = body;
+    const { userRating, userComment } = body;
 
-    if (!movieId) {
+    if (!userRating) {
       return NextResponse.json(
-        { error: 'Movie ID is required' },
+        { error: 'Rating is required' },
         { status: 400 }
       );
     }
 
-    // Check if movie exists for this user
+    // Check if user has this movie in their list
     const existingMovie = await db
       .select()
       .from(userMovies)
@@ -36,35 +43,19 @@ export async function POST(request: NextRequest) {
 
     if (existingMovie.length === 0) {
       return NextResponse.json(
-        { error: 'Movie not found in user library' },
+        { error: 'Movie not in your list. Please mark it as watched first.' },
         { status: 404 }
       );
     }
 
-    // Increment watch count
-    const updateData: {
-      watchCount: number;
-      status: 'watched';
-      updatedAt: Date;
-      userRating?: number | null;
-      userComment?: string | null;
-    } = {
-      watchCount: (existingMovie[0].watchCount || 0) + 1,
-      status: 'watched', // Ensure status is watched
-      updatedAt: new Date(),
-    };
-
-    // Update rating and comment if provided
-    if (userRating !== undefined) {
-      updateData.userRating = userRating;
-    }
-    if (userComment !== undefined) {
-      updateData.userComment = userComment;
-    }
-
+    // Update the review
     const updated = await db
       .update(userMovies)
-      .set(updateData)
+      .set({
+        userRating,
+        userComment: userComment || null,
+        updatedAt: new Date(),
+      })
       .where(
         and(
           eq(userMovies.userId, session.user.id),
@@ -74,13 +65,13 @@ export async function POST(request: NextRequest) {
       .returning();
 
     return NextResponse.json(
-      { message: 'Watch count incremented', movie: updated[0] },
+      { message: 'Review added successfully', review: updated[0] },
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error incrementing watch count:', error);
+    console.error('Error adding review:', error);
     return NextResponse.json(
-      { error: 'Failed to increment watch count' },
+      { error: 'Failed to add review' },
       { status: 500 }
     );
   }

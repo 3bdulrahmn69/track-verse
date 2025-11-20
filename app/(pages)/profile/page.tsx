@@ -4,9 +4,10 @@ import { db } from '@/lib/db';
 import { userMovies } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { MovieCard } from '@/components/tabs/movies/movie-card';
-import { FiUser, FiCalendar, FiFilm, FiClock, FiEdit2 } from 'react-icons/fi';
+import { FiUser, FiFilm, FiClock, FiEdit2 } from 'react-icons/fi';
 import Link from 'next/link';
 import BackButton from '@/components/shared/back-button';
+import { Avatar } from '@/components/ui/avatar';
 import type { Movie } from '@/lib/tmdb';
 
 export default async function ProfilePage() {
@@ -58,14 +59,11 @@ export default async function ProfilePage() {
         <div className="bg-card rounded-lg shadow-lg p-8 mb-8">
           <div className="flex items-start gap-6">
             {/* Avatar */}
-            <div className="w-24 h-24 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-3xl shrink-0">
-              {session.user.name
-                ?.split(' ')
-                .map((n) => n[0])
-                .join('')
-                .toUpperCase()
-                .slice(0, 2) || 'U'}
-            </div>
+            <Avatar
+              src={session.user.image}
+              alt={session.user.name || 'User'}
+              size="xl"
+            />
 
             {/* User Info */}
             <div className="flex-1">
@@ -87,15 +85,6 @@ export default async function ProfilePage() {
                   <FiUser className="w-5 h-5" />
                   <span>@{session.user.username}</span>
                 </div>
-
-                {session.user.dateOfBirth && (
-                  <div className="flex items-center gap-3 text-muted-foreground">
-                    <FiCalendar className="w-5 h-5" />
-                    <span>
-                      {new Date(session.user.dateOfBirth).toLocaleDateString()}
-                    </span>
-                  </div>
-                )}
               </div>
             </div>
           </div>

@@ -6,11 +6,15 @@ import { MovieCard } from './movie-card';
 import MovieSearch from './movie-search';
 import type { Movie } from '@/lib/tmdb';
 import type { UserMovie } from '@/lib/db/schema';
+import { useMovieCacheStore } from '@/store/movie-cache-store';
 
 export default function WatchListTab() {
   const [watchListMovies, setWatchListMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const subscribeToStatusChanges = useMovieCacheStore(
+    (state) => state.subscribeToStatusChanges
+  );
 
   const handleStatusChange = (
     movieId: number,
@@ -23,6 +27,50 @@ export default function WatchListTab() {
       );
     }
   };
+
+  // Subscribe to status changes from cache
+  useEffect(() => {
+    const unsubscribe = subscribeToStatusChanges(async (movieId, status) => {
+      if (status === 'want_to_watch') {
+        // Check if movie is already in the list
+        const exists = watchListMovies.some((m) => m.id === movieId);
+        if (!exists) {
+          // Fetch the movie details to add to watchlist
+          try {
+            const response = await fetch(`/api/movies?movieId=${movieId}`);
+            if (response.ok) {
+              const data = await response.json();
+              const movieRecord = data.movies?.find(
+                (m: UserMovie) => m.movieId === movieId
+              );
+              if (movieRecord) {
+                const newMovie: Movie = {
+                  id: movieRecord.movieId,
+                  title: movieRecord.movieTitle,
+                  poster_path: movieRecord.moviePosterPath,
+                  backdrop_path: null,
+                  release_date: movieRecord.movieReleaseDate,
+                  overview: '',
+                  vote_average: 0,
+                  vote_count: 0,
+                  popularity: 0,
+                  genre_ids: [],
+                };
+                setWatchListMovies((prev) => [newMovie, ...prev]);
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching movie details:', error);
+          }
+        }
+      } else {
+        // Remove from watchlist if status changed to watched or null
+        setWatchListMovies((prev) => prev.filter((m) => m.id !== movieId));
+      }
+    });
+
+    return () => unsubscribe();
+  }, [subscribeToStatusChanges, watchListMovies]);
 
   useEffect(() => {
     const fetchWatchList = async () => {

@@ -2,14 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { Movie } from '@/lib/tmdb';
+import {
+  useMovieCacheStore,
+  type MovieStatus,
+} from '@/store/movie-cache-store';
 
-export type MovieStatus = 'want_to_watch' | 'watched' | null;
-
-interface UserMovie {
-  id: string;
-  movieId: number;
-  status: MovieStatus;
-}
+export type { MovieStatus };
 
 export function useMovieStatus(
   movieId: number,
@@ -17,25 +15,25 @@ export function useMovieStatus(
 ) {
   const [status, setStatus] = useState<MovieStatus>(null);
   const [loading, setLoading] = useState(true);
+  const { getMovieStatus, updateMovieStatusCache } = useMovieCacheStore();
 
   const fetchStatus = useCallback(async () => {
     try {
-      const response = await fetch(`/api/movies?movieId=${movieId}`);
-      if (response.ok) {
-        const data = await response.json();
-        const userMovie = data.movies?.find(
-          (m: UserMovie) => m.movieId === movieId
-        );
-        setStatus(userMovie?.status || null);
-      }
+      const cachedStatus = await getMovieStatus(movieId);
+      setStatus(cachedStatus);
     } catch (error) {
       console.error('Error fetching movie status:', error);
     } finally {
       setLoading(false);
     }
-  }, [movieId]);
+  }, [movieId, getMovieStatus]);
 
-  const updateStatus = async (newStatus: MovieStatus, movie: Movie) => {
+  const updateStatus = async (
+    newStatus: MovieStatus,
+    movie: Movie,
+    rating?: number,
+    comment?: string
+  ) => {
     try {
       if (newStatus === null) {
         // Remove from list
@@ -53,10 +51,16 @@ export function useMovieStatus(
             moviePosterPath: movie.poster_path,
             movieReleaseDate: movie.release_date,
             status: newStatus,
+            userRating: rating,
+            userComment: comment,
+            tmdbRating: movie.vote_average
+              ? Math.round(movie.vote_average)
+              : null,
           }),
         });
       }
       setStatus(newStatus);
+      updateMovieStatusCache(movieId, newStatus);
       onStatusChange?.(newStatus);
     } catch (error) {
       console.error('Error updating movie status:', error);
@@ -67,14 +71,19 @@ export function useMovieStatus(
     fetchStatus();
   }, [fetchStatus]);
 
-  const rewatch = async () => {
+  const rewatch = async (rating?: number, comment?: string) => {
     try {
       await fetch('/api/movies/rewatch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ movieId }),
+        body: JSON.stringify({
+          movieId,
+          userRating: rating,
+          userComment: comment,
+        }),
       });
       setStatus('watched');
+      updateMovieStatusCache(movieId, 'watched');
       onStatusChange?.('watched');
     } catch (error) {
       console.error('Error rewatching movie:', error);

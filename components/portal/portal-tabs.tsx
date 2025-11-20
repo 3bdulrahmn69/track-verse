@@ -23,6 +23,15 @@ export function PortalTabs({
   const [activeTab, setActiveTab] = useState<TabType>('movies');
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [mountedTabs, setMountedTabs] = useState<Set<TabType>>(
+    new Set(['movies'])
+  );
+
+  // Cache tabs that have been mounted
+  const handleTabChange = (tabId: TabType) => {
+    setActiveTab(tabId);
+    setMountedTabs((prev) => new Set(prev).add(tabId));
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -51,18 +60,22 @@ export function PortalTabs({
   ];
 
   const renderTabContent = () => {
-    switch (activeTab) {
-      case 'movies':
-        return moviesTab;
-      case 'tv-shows':
-        return tvShowsTab;
-      case 'books':
-        return booksTab;
-      case 'games':
-        return gamesTab;
-      default:
-        return moviesTab;
-    }
+    return (
+      <>
+        <div style={{ display: activeTab === 'movies' ? 'block' : 'none' }}>
+          {mountedTabs.has('movies') && moviesTab}
+        </div>
+        <div style={{ display: activeTab === 'tv-shows' ? 'block' : 'none' }}>
+          {mountedTabs.has('tv-shows') && tvShowsTab}
+        </div>
+        <div style={{ display: activeTab === 'books' ? 'block' : 'none' }}>
+          {mountedTabs.has('books') && booksTab}
+        </div>
+        <div style={{ display: activeTab === 'games' ? 'block' : 'none' }}>
+          {mountedTabs.has('games') && gamesTab}
+        </div>
+      </>
+    );
   };
 
   return (
@@ -90,7 +103,7 @@ export function PortalTabs({
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => handleTabChange(tab.id)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all duration-200 ${
                       activeTab === tab.id
                         ? 'bg-primary text-primary-foreground shadow-md'
@@ -126,7 +139,7 @@ export function PortalTabs({
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => handleTabChange(tab.id)}
                   className={`flex flex-col items-center gap-1 px-3 py-2 rounded-full font-medium transition-all duration-200 ${
                     activeTab === tab.id
                       ? 'bg-primary text-primary-foreground'

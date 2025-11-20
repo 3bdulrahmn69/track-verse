@@ -16,8 +16,8 @@ export const users = pgTable('users', {
   email: varchar('email', { length: 255 }).notNull().unique(),
   username: varchar('username', { length: 255 }).notNull().unique(),
   password: varchar('password', { length: 255 }), // Nullable for OAuth users
-  dateOfBirth: date('date_of_birth').notNull(),
-  image: text('image'), // Changed to text to support base64 images
+  dateOfBirth: date('date_of_birth'), // Nullable - user may not provide
+  image: text('image'), // Cloudinary URL
   isPublic: boolean('is_public').notNull().default(false),
   googleId: varchar('google_id', { length: 255 }).unique(),
   provider: varchar('provider', { length: 50 }).notNull().default('local'),
@@ -46,6 +46,9 @@ export const userMovies = pgTable('user_movies', {
   movieReleaseDate: varchar('movie_release_date', { length: 50 }),
   status: movieStatusEnum('status').notNull(),
   watchCount: integer('watch_count').notNull().default(0),
+  userRating: integer('user_rating'), // 1-10 star rating
+  userComment: text('user_comment'), // User's comment/review
+  tmdbRating: integer('tmdb_rating'), // Store TMDB rating for reference
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
