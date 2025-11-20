@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { Roboto } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from 'next-themes';
-import { Bounce, ToastContainer } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import SessionProvider from '@/components/providers/session-provider';
 
 const roboto = Roboto({
@@ -36,15 +37,15 @@ export default function RootLayout({
             {children}
             <ToastContainer
               position="top-right"
-              autoClose={500}
+              autoClose={3000}
               hideProgressBar={false}
-              newestOnTop={true}
-              closeOnClick={true}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
               pauseOnFocusLoss
               draggable
               pauseOnHover
-              theme="light"
-              transition={Bounce}
+              theme="dark"
             />
           </ThemeProvider>
         </SessionProvider>

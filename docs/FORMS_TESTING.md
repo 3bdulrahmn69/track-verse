@@ -155,7 +155,7 @@
 
 ## Error Messages
 
-All error messages are now displayed in danger color (red) below the respective field.
+All error messages are now displayed in destructive color (red) below the respective field.
 
 ## Loading States
 

@@ -13,6 +13,7 @@ import {
   MdSportsEsports,
   MdMenuBook,
 } from 'react-icons/md';
+import { FiMail, FiLock } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
@@ -166,6 +167,7 @@ export default function LoginForm() {
             <Input
               label="Email or Username"
               type="text"
+              icon={<FiMail className="w-4 h-4" />}
               placeholder="Enter your email or username"
               value={formData.identifier}
               onChange={(e) => handleInputChange('identifier', e.target.value)}
@@ -183,6 +185,7 @@ export default function LoginForm() {
               <Input
                 label="Password"
                 type={showPassword ? 'text' : 'password'}
+                icon={<FiLock className="w-4 h-4" />}
                 placeholder="Enter your password"
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
@@ -198,7 +201,7 @@ export default function LoginForm() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-8 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute right-3 top-[52%] -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 disabled={isLoading}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >

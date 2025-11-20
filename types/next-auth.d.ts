@@ -6,11 +6,15 @@ declare module 'next-auth' {
     user: {
       id: string;
       username: string;
+      dateOfBirth?: string;
+      isPublic?: boolean;
     } & DefaultSession['user'];
   }
 
   interface User {
     username: string;
+    dateOfBirth?: string;
+    isPublic?: boolean;
   }
 }
 
@@ -18,5 +22,7 @@ declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
     username: string;
+    dateOfBirth?: string;
+    isPublic?: boolean;
   }
 }

@@ -13,7 +13,7 @@ interface BackButtonProps {
     | 'outline'
     | 'ghost'
     | 'success'
-    | 'danger'
+    | 'destructive'
     | 'warning'
     | 'info'
     | 'accent'

@@ -60,7 +60,9 @@ export const authConfig = {
           name: user.fullname,
           email: user.email,
           username: user.username,
-          image: null,
+          dateOfBirth: user.dateOfBirth,
+          isPublic: user.isPublic || false,
+          image: user.image || null,
         };
       },
     }),
@@ -99,10 +101,12 @@ export const authConfig = {
       }
       return true;
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.username = user.username;
+        token.dateOfBirth = user.dateOfBirth;
+        token.isPublic = user.isPublic;
       }
       if (account?.provider === 'google') {
         const dbUser = await db.query.users.findFirst({
@@ -111,7 +115,13 @@ export const authConfig = {
         if (dbUser) {
           token.id = dbUser.id;
           token.username = dbUser.username;
+          token.dateOfBirth = dbUser.dateOfBirth;
+          token.isPublic = dbUser.isPublic || false;
         }
+      }
+      // Handle session update trigger
+      if (trigger === 'update' && session) {
+        token = { ...token, ...session };
       }
       return token;
     },
@@ -119,6 +129,8 @@ export const authConfig = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.username = token.username as string;
+        session.user.dateOfBirth = token.dateOfBirth as string | undefined;
+        session.user.isPublic = token.isPublic as boolean | undefined;
       }
       return session;
     },

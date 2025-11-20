@@ -17,6 +17,7 @@ import {
   MdMenuBook,
   MdCheckCircle,
 } from 'react-icons/md';
+import { FiUser, FiMail, FiLock, FiCalendar } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
@@ -304,6 +305,7 @@ export default function RegisterForm() {
                 <Input
                   label="Full Name"
                   type="text"
+                  icon={<FiUser className="w-4 h-4" />}
                   placeholder="Enter your full name"
                   value={formData.fullName}
                   onChange={(e) =>
@@ -319,6 +321,7 @@ export default function RegisterForm() {
                 <Input
                   label="Email"
                   type="email"
+                  icon={<FiMail className="w-4 h-4" />}
                   placeholder="Enter your email address"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
@@ -333,6 +336,7 @@ export default function RegisterForm() {
                   <Input
                     label="Password"
                     type={showPassword ? 'text' : 'password'}
+                    icon={<FiLock className="w-4 h-4" />}
                     placeholder="Create a password"
                     value={formData.password}
                     onChange={(e) =>
@@ -347,7 +351,7 @@ export default function RegisterForm() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-8 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute right-3 top-[52%] -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     disabled={isLoading}
                     aria-label={
                       showPassword ? 'Hide password' : 'Show password'
@@ -365,6 +369,7 @@ export default function RegisterForm() {
                   <Input
                     label="Confirm Password"
                     type={showConfirmPassword ? 'text' : 'password'}
+                    icon={<FiLock className="w-4 h-4" />}
                     placeholder="Confirm your password"
                     value={formData.confirmPassword}
                     onChange={(e) =>
@@ -379,7 +384,7 @@ export default function RegisterForm() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-8 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute right-3 top-[52%] -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     disabled={isLoading}
                     aria-label={
                       showConfirmPassword ? 'Hide password' : 'Show password'
@@ -396,6 +401,7 @@ export default function RegisterForm() {
                 <Input
                   label="Date of Birth"
                   type="date"
+                  icon={<FiCalendar className="w-4 h-4" />}
                   value={formData.dateOfBirth}
                   onChange={(e) =>
                     handleInputChange('dateOfBirth', e.target.value)
@@ -410,7 +416,7 @@ export default function RegisterForm() {
                 <div
                   className={
                     errors.agreeToTerms
-                      ? 'p-3 rounded-lg border border-danger bg-danger/5'
+                      ? 'p-3 rounded-lg border border-destructive bg-destructive/5'
                       : ''
                   }
                 >
@@ -452,7 +458,7 @@ export default function RegisterForm() {
                     </label>
                   </div>
                   {errors.agreeToTerms && (
-                    <p className="text-sm text-danger mt-2">
+                    <p className="text-sm text-destructive mt-2">
                       {errors.agreeToTerms}
                     </p>
                   )}
@@ -469,6 +475,7 @@ export default function RegisterForm() {
                 <Input
                   label="Username"
                   type="text"
+                  icon={<FiUser className="w-4 h-4" />}
                   placeholder="Choose a unique username"
                   value={formData.username}
                   onChange={(e) =>

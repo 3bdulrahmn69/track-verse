@@ -8,7 +8,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     | 'outline'
     | 'ghost'
     | 'success'
-    | 'danger'
+    | 'destructive'
     | 'warning'
     | 'info'
     | 'accent'
@@ -39,9 +39,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             // Enhanced Success
             'bg-success text-success-foreground hover:bg-success/90 hover:shadow-lg hover:shadow-success/25':
               variant === 'success',
-            // Enhanced Danger
-            'bg-danger text-danger-foreground hover:bg-danger/90 hover:shadow-lg hover:shadow-danger/25':
-              variant === 'danger',
+            // Enhanced Destructive
+            'bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-lg hover:shadow-destructive/25':
+              variant === 'destructive',
             // Enhanced Warning
             'bg-warning text-warning-foreground hover:bg-warning/90 hover:shadow-lg hover:shadow-warning/25':
               variant === 'warning',
