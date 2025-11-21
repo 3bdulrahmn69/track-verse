@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { MdMenu, MdClose } from 'react-icons/md';
 import ThemeToggle from '@/components/shared/theme-toggle';
+import { AppLogo } from '@/components/shared/app-logo';
 import { Button } from '@/components/ui/button';
 
 const navLinks = [
@@ -61,12 +62,7 @@ export default function Header() {
         <nav className="max-w-6xl mx-auto px-4 md:px-6 py-2 md:py-3 rounded-full bg-card/95 backdrop-blur-sm shadow-lg border border-border/50">
           <div className="flex justify-between items-center">
             {/* Logo */}
-            <Link
-              href="/"
-              className="text-xl md:text-2xl font-bold text-primary hover:text-primary/90 transition-colors"
-            >
-              Track Verse
-            </Link>
+            <AppLogo href="/" size="md" />
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-6">

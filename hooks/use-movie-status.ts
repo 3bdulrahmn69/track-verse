@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect, useCallback } from 'react';
 import type { Movie } from '@/lib/tmdb';
 import {
@@ -69,7 +67,32 @@ export function useMovieStatus(
 
   useEffect(() => {
     fetchStatus();
+
+    // Listen for manual refresh events (e.g., after review submission)
+    const handleRefresh = () => {
+      fetchStatus();
+    };
+
+    window.addEventListener('movieStatusChanged', handleRefresh);
+    return () =>
+      window.removeEventListener('movieStatusChanged', handleRefresh);
   }, [fetchStatus]);
+
+  // Subscribe to status changes for this specific movie
+  useEffect(() => {
+    const { subscribeToStatusChanges } = useMovieCacheStore.getState();
+    const unsubscribe = subscribeToStatusChanges(
+      (changedMovieId, newStatus) => {
+        if (changedMovieId === movieId) {
+          // Status changed for this movie, update local state
+          setStatus(newStatus);
+          onStatusChange?.(newStatus);
+        }
+      }
+    );
+
+    return unsubscribe;
+  }, [movieId, onStatusChange]);
 
   const rewatch = async (rating?: number, comment?: string) => {
     try {

@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth-config';
 import { db } from '@/lib/db';
 import { userMovies } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { getMovieDetails } from '@/lib/tmdb';
 
 interface RouteParams {
   params: Promise<{
@@ -41,31 +42,46 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         )
       );
 
+    let result;
+
     if (existingMovie.length === 0) {
-      return NextResponse.json(
-        { error: 'Movie not in your list. Please mark it as watched first.' },
-        { status: 404 }
-      );
+      // Movie not in list - fetch details and add it as watched with the review
+      const movieDetails = await getMovieDetails(movieId);
+
+      result = await db
+        .insert(userMovies)
+        .values({
+          userId: session.user.id,
+          movieId,
+          movieTitle: movieDetails.title,
+          moviePosterPath: movieDetails.poster_path,
+          movieReleaseDate: movieDetails.release_date,
+          status: 'watched',
+          userRating,
+          userComment: userComment || null,
+        })
+        .returning();
+    } else {
+      // Update existing movie with review and mark as watched
+      result = await db
+        .update(userMovies)
+        .set({
+          status: 'watched',
+          userRating,
+          userComment: userComment || null,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(userMovies.userId, session.user.id),
+            eq(userMovies.movieId, movieId)
+          )
+        )
+        .returning();
     }
 
-    // Update the review
-    const updated = await db
-      .update(userMovies)
-      .set({
-        userRating,
-        userComment: userComment || null,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(userMovies.userId, session.user.id),
-          eq(userMovies.movieId, movieId)
-        )
-      )
-      .returning();
-
     return NextResponse.json(
-      { message: 'Review added successfully', review: updated[0] },
+      { message: 'Review added successfully', review: result[0] },
       { status: 200 }
     );
   } catch (error) {

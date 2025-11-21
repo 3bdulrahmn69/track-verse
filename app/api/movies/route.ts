@@ -178,6 +178,8 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    // Delete the movie (this will automatically delete associated reviews
+    // since they're stored in the same record)
     await db
       .delete(userMovies)
       .where(

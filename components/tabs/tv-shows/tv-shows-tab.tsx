@@ -1,13 +1,48 @@
+'use client';
+
+import { useState } from 'react';
+import DiscoverTab from './discover-tab';
+import CurrentWatchingTab from './current-watching-tab';
+import WatchListTab from './watch-list-tab';
+import { Tabs } from '@/components/ui/tabs';
+
 export default function TvShowsTab() {
+  const [activeTab, setActiveTab] = useState<
+    'discover' | 'watching' | 'watchlist'
+  >('discover');
+  const [mountedTabs, setMountedTabs] = useState<Set<string>>(
+    new Set(['discover'])
+  );
+
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId as 'discover' | 'watching' | 'watchlist');
+    setMountedTabs((prev) => new Set(prev).add(tabId));
+  };
+
+  const tabs = [
+    { id: 'discover', label: 'Discover' },
+    { id: 'watching', label: 'Current Watching' },
+    { id: 'watchlist', label: 'Watch List' },
+  ];
+
   return (
-    <div className="min-h-screen py-8">
+    <div className="py-8">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col items-center justify-center py-20">
-          <div className="text-6xl mb-4">📺</div>
-          <h2 className="text-3xl font-bold mb-4 text-foreground">TV Shows</h2>
-          <p className="text-lg text-muted-foreground text-center max-w-md">
-            Track your favorite TV shows and series. Coming soon!
-          </p>
+        <Tabs
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          className="mb-8"
+        />
+
+        <div style={{ display: activeTab === 'discover' ? 'block' : 'none' }}>
+          {mountedTabs.has('discover') && <DiscoverTab />}
+        </div>
+        <div style={{ display: activeTab === 'watching' ? 'block' : 'none' }}>
+          {mountedTabs.has('watching') && <CurrentWatchingTab />}
+        </div>
+        <div style={{ display: activeTab === 'watchlist' ? 'block' : 'none' }}>
+          {mountedTabs.has('watchlist') && <WatchListTab />}
         </div>
       </div>
     </div>

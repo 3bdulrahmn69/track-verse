@@ -60,9 +60,9 @@ export const authConfig = {
           name: user.fullname,
           email: user.email,
           username: user.username,
-          dateOfBirth: user.dateOfBirth,
+          dateOfBirth: user.dateOfBirth || undefined,
           isPublic: user.isPublic || false,
-          image: user.image || null,
+          image: user.image || undefined,
         };
       },
     }),
@@ -157,12 +157,7 @@ export const authConfig = {
 
           // Format dateOfBirth for display
           if (dbUser.dateOfBirth) {
-            const dateValue = dbUser.dateOfBirth;
-            if (dateValue instanceof Date) {
-              session.user.dateOfBirth = dateValue.toISOString().split('T')[0];
-            } else if (typeof dateValue === 'string') {
-              session.user.dateOfBirth = dateValue;
-            }
+            session.user.dateOfBirth = dbUser.dateOfBirth;
           }
         } else {
           // Fallback to token data if DB fetch fails
@@ -171,13 +166,8 @@ export const authConfig = {
           session.user.isPublic = token.isPublic as boolean | undefined;
           session.user.image = token.picture as string | null | undefined;
 
-          if (token.dateOfBirth) {
-            const dateValue = token.dateOfBirth;
-            if (dateValue instanceof Date) {
-              session.user.dateOfBirth = dateValue.toISOString().split('T')[0];
-            } else if (typeof dateValue === 'string') {
-              session.user.dateOfBirth = dateValue;
-            }
+          if (token.dateOfBirth && typeof token.dateOfBirth === 'string') {
+            session.user.dateOfBirth = token.dateOfBirth;
           }
         }
       }

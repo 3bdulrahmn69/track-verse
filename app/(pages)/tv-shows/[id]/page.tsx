@@ -1,36 +1,37 @@
 import Image from 'next/image';
-import { FiCalendar, FiClock, FiStar, FiPlay } from 'react-icons/fi';
+import { FiCalendar, FiStar, FiPlay, FiTv } from 'react-icons/fi';
 import {
-  getMovieDetails,
+  getTVShowDetails,
   getImageUrl,
-  getMovieCredits,
-  getSimilarMovies,
-  getMovieVideos,
+  getTVShowCredits,
+  getSimilarTVShows,
+  getTVShowVideos,
 } from '@/lib/tmdb';
 import { notFound } from 'next/navigation';
 import BackButton from '@/components/shared/back-button';
-import MovieActions from '@/components/tabs/movies/movie-actions';
-import { MovieDetailsTabs } from '@/components/tabs/movies/movie-details-tabs';
+import TVShowActions from '@/components/tabs/tv-shows/tv-show-actions';
+import { TVShowDetailsTabs } from '@/components/tabs/tv-shows/tv-show-details-tabs';
+import { SeasonTracker } from '@/components/tabs/tv-shows/season-tracker';
 
-interface MoviePageProps {
+interface TVShowPageProps {
   params: Promise<{
-    movie: string;
+    id: string;
   }>;
 }
 
-export default async function MoviePage({ params }: MoviePageProps) {
-  const { movie: movieParam } = await params;
-  const movieId = parseInt(movieParam);
+export default async function TVShowPage({ params }: TVShowPageProps) {
+  const { id: tvShowParam } = await params;
+  const tvShowId = parseInt(tvShowParam);
 
-  if (isNaN(movieId)) {
+  if (isNaN(tvShowId)) {
     notFound();
   }
 
-  const [movie, credits, similarMovies, videos] = await Promise.all([
-    getMovieDetails(movieId),
-    getMovieCredits(movieId),
-    getSimilarMovies(movieId),
-    getMovieVideos(movieId),
+  const [tvShow, credits, similarShows, videos] = await Promise.all([
+    getTVShowDetails(tvShowId),
+    getTVShowCredits(tvShowId),
+    getSimilarTVShows(tvShowId),
+    getTVShowVideos(tvShowId),
   ]);
 
   // Get trailer
@@ -38,17 +39,17 @@ export default async function MoviePage({ params }: MoviePageProps) {
     (video) => video.type === 'Trailer' && video.site === 'YouTube'
   );
 
-  // Get director
-  const director = credits.crew.find((person) => person.job === 'Director');
+  // Get creators
+  const creators = tvShow.created_by || [];
 
   return (
     <div className="min-h-screen bg-background">
       {/* Backdrop Image */}
       <div className="relative h-[50vh] md:h-[60vh] w-full">
-        {movie.backdrop_path && (
+        {tvShow.backdrop_path && (
           <Image
-            src={getImageUrl(movie.backdrop_path, 'original')}
-            alt={movie.title}
+            src={getImageUrl(tvShow.backdrop_path, 'original')}
+            alt={tvShow.name}
             fill
             className="object-cover"
             priority
@@ -58,7 +59,11 @@ export default async function MoviePage({ params }: MoviePageProps) {
         <div className="absolute inset-0 bg-linear-to-t from-background via-background/60 to-transparent" />
 
         {/* Back Button */}
-        <BackButton variant="outline" className="fixed top-10 left-5 z-50" />
+        <BackButton
+          href="/portal?tab=tv-shows"
+          variant="outline"
+          className="fixed top-10 left-5 z-50"
+        />
       </div>
 
       {/* Content */}
@@ -68,8 +73,8 @@ export default async function MoviePage({ params }: MoviePageProps) {
           <div className="shrink-0">
             <div className="relative w-64 aspect-2/3 rounded-lg overflow-hidden shadow-2xl">
               <Image
-                src={getImageUrl(movie.poster_path, 'w500')}
-                alt={movie.title}
+                src={getImageUrl(tvShow.poster_path, 'w500')}
+                alt={tvShow.name}
                 fill
                 className="object-cover"
                 sizes="256px"
@@ -80,12 +85,12 @@ export default async function MoviePage({ params }: MoviePageProps) {
           {/* Details */}
           <div className="flex-1">
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-2">
-              {movie.title}
+              {tvShow.name}
             </h1>
 
-            {movie.tagline && (
+            {tvShow.tagline && (
               <p className="text-xl text-muted-foreground italic mb-4">
-                &ldquo;{movie.tagline}&rdquo;
+                &ldquo;{tvShow.tagline}&rdquo;
               </p>
             )}
 
@@ -94,34 +99,41 @@ export default async function MoviePage({ params }: MoviePageProps) {
               <div className="flex items-center gap-2 text-foreground">
                 <FiStar className="w-5 h-5 text-warning" />
                 <span className="font-semibold">
-                  {movie.vote_average.toFixed(1)}
+                  {tvShow.vote_average.toFixed(1)}
                 </span>
                 <span className="text-muted-foreground text-sm">
-                  ({movie.vote_count.toLocaleString()} votes)
+                  ({tvShow.vote_count.toLocaleString()} votes)
                 </span>
               </div>
 
-              {movie.release_date && (
+              {tvShow.first_air_date && (
                 <div className="flex items-center gap-2 text-foreground">
                   <FiCalendar className="w-5 h-5" />
-                  <span>{new Date(movie.release_date).getFullYear()}</span>
+                  <span>
+                    {new Date(tvShow.first_air_date).getFullYear()}
+                    {tvShow.last_air_date &&
+                      tvShow.status !== 'Returning Series' &&
+                      ` - ${new Date(tvShow.last_air_date).getFullYear()}`}
+                  </span>
                 </div>
               )}
 
-              {movie.runtime && (
+              {tvShow.number_of_seasons && (
                 <div className="flex items-center gap-2 text-foreground">
-                  <FiClock className="w-5 h-5" />
+                  <FiTv className="w-5 h-5" />
                   <span>
-                    {Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m
+                    {tvShow.number_of_seasons} Season
+                    {tvShow.number_of_seasons > 1 ? 's' : ''} •{' '}
+                    {tvShow.number_of_episodes} Episodes
                   </span>
                 </div>
               )}
             </div>
 
             {/* Genres */}
-            {movie.genres && movie.genres.length > 0 && (
+            {tvShow.genres && tvShow.genres.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-6">
-                {movie.genres.map((genre) => (
+                {tvShow.genres.map((genre) => (
                   <span
                     key={genre.id}
                     className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-medium"
@@ -134,22 +146,24 @@ export default async function MoviePage({ params }: MoviePageProps) {
 
             {/* Action Buttons */}
             <div className="mb-6">
-              <MovieActions
-                movieId={movie.id}
-                movieTitle={movie.title}
-                moviePosterPath={movie.poster_path}
-                movieReleaseDate={movie.release_date}
+              <TVShowActions
+                tvShowId={tvShow.id}
+                tvShowName={tvShow.name}
+                tvShowPosterPath={tvShow.poster_path}
+                tvShowFirstAirDate={tvShow.first_air_date}
               />
             </div>
 
-            {/* Director and Trailer */}
+            {/* Creators and Trailer */}
             <div className="flex flex-wrap items-center gap-4 mb-6">
-              {director && (
+              {creators.length > 0 && (
                 <div>
                   <h4 className="text-sm font-semibold text-muted-foreground mb-1">
-                    Director
+                    Created By
                   </h4>
-                  <p className="text-foreground">{director.name}</p>
+                  <p className="text-foreground">
+                    {creators.map((c) => c.name).join(', ')}
+                  </p>
                 </div>
               )}
 
@@ -172,83 +186,81 @@ export default async function MoviePage({ params }: MoviePageProps) {
                 Overview
               </h2>
               <p className="text-foreground leading-relaxed">
-                {movie.overview}
+                {tvShow.overview}
               </p>
             </div>
 
-            {/* Production Info */}
-            {movie.production_companies &&
-              movie.production_companies.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-xl font-semibold text-foreground mb-3">
-                    Production Companies
-                  </h3>
-                  <div className="flex flex-wrap gap-4">
-                    {movie.production_companies.map((company) => (
-                      <div
-                        key={company.id}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card"
-                      >
-                        {company.logo_path && (
-                          <div className="relative w-12 h-12">
-                            <Image
-                              src={getImageUrl(company.logo_path, 'w185')}
-                              alt={company.name}
-                              fill
-                              className="object-contain"
-                              sizes="48px"
-                            />
-                          </div>
-                        )}
-                        <span className="text-foreground text-sm">
-                          {company.name}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+            {/* Networks */}
+            {tvShow.networks && tvShow.networks.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold text-foreground mb-3">
+                  Networks
+                </h3>
+                <div className="flex flex-wrap gap-4">
+                  {tvShow.networks.map((network) => (
+                    <div
+                      key={network.id}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card"
+                    >
+                      {network.logo_path && (
+                        <div className="relative w-12 h-12">
+                          <Image
+                            src={getImageUrl(network.logo_path, 'w185')}
+                            alt={network.name}
+                            fill
+                            className="object-contain"
+                            sizes="48px"
+                          />
+                        </div>
+                      )}
+                      <span className="text-foreground text-sm">
+                        {network.name}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
 
             {/* Additional Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {movie.status && (
+              {tvShow.status && (
                 <div>
                   <h4 className="text-sm font-semibold text-muted-foreground mb-1">
                     Status
                   </h4>
-                  <p className="text-foreground">{movie.status}</p>
+                  <p className="text-foreground">{tvShow.status}</p>
                 </div>
               )}
 
-              {movie.budget > 0 && (
+              {tvShow.type && (
                 <div>
                   <h4 className="text-sm font-semibold text-muted-foreground mb-1">
-                    Budget
+                    Type
                   </h4>
-                  <p className="text-foreground">
-                    ${movie.budget.toLocaleString()}
-                  </p>
+                  <p className="text-foreground">{tvShow.type}</p>
                 </div>
               )}
 
-              {movie.revenue > 0 && (
-                <div>
-                  <h4 className="text-sm font-semibold text-muted-foreground mb-1">
-                    Revenue
-                  </h4>
-                  <p className="text-foreground">
-                    ${movie.revenue.toLocaleString()}
-                  </p>
-                </div>
-              )}
+              {tvShow.episode_run_time &&
+                tvShow.episode_run_time.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-muted-foreground mb-1">
+                      Episode Runtime
+                    </h4>
+                    <p className="text-foreground">
+                      {tvShow.episode_run_time[0]} minutes
+                    </p>
+                  </div>
+                )}
 
-              {movie.spoken_languages && movie.spoken_languages.length > 0 && (
+              {tvShow.languages && tvShow.languages.length > 0 && (
                 <div>
                   <h4 className="text-sm font-semibold text-muted-foreground mb-1">
                     Languages
                   </h4>
                   <p className="text-foreground">
-                    {movie.spoken_languages.map((lang) => lang.name).join(', ')}
+                    {tvShow.languages.join(', ')}
                   </p>
                 </div>
               )}
@@ -295,12 +307,24 @@ export default async function MoviePage({ params }: MoviePageProps) {
           </section>
         )}
 
-        {/* Similar Movies and Comments Tabs */}
+        {/* Seasons */}
+        {tvShow.seasons && tvShow.seasons.length > 0 && (
+          <section className="mt-12">
+            <h2 className="text-2xl font-semibold text-foreground mb-6">
+              Episodes
+            </h2>
+            <SeasonTracker
+              tvShowId={tvShow.id}
+              seasons={tvShow.seasons}
+            />
+          </section>
+        )}
+
+        {/* Similar Shows and Reviews Tabs */}
         <section className="mt-12">
-          <MovieDetailsTabs
-            movieId={movie.id}
-            movieTitle={movie.title}
-            similarMovies={similarMovies.results}
+          <TVShowDetailsTabs
+            tvShowName={tvShow.name}
+            similarShows={similarShows.results}
           />
         </section>
       </div>

@@ -51,7 +51,7 @@ export default function WatchListTab() {
                   backdrop_path: null,
                   release_date: movieRecord.movieReleaseDate,
                   overview: '',
-                  vote_average: 0,
+                  vote_average: movieRecord.tmdbRating || 0,
                   vote_count: 0,
                   popularity: 0,
                   genre_ids: [],
@@ -94,7 +94,7 @@ export default function WatchListTab() {
           backdrop_path: null, // Not stored in DB
           release_date: record.movieReleaseDate,
           overview: '', // Not stored in DB
-          vote_average: 0, // Not stored in DB
+          vote_average: record.tmdbRating || 0,
           vote_count: 0, // Not stored in DB
           popularity: 0, // Not stored in DB
           genre_ids: [], // Not stored in DB

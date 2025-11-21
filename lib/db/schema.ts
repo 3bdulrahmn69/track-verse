@@ -46,7 +46,7 @@ export const userMovies = pgTable('user_movies', {
   movieReleaseDate: varchar('movie_release_date', { length: 50 }),
   status: movieStatusEnum('status').notNull(),
   watchCount: integer('watch_count').notNull().default(0),
-  userRating: integer('user_rating'), // 1-10 star rating
+  userRating: integer('user_rating'), // 1-5 star rating
   userComment: text('user_comment'), // User's comment/review
   tmdbRating: integer('tmdb_rating'), // Store TMDB rating for reference
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -55,3 +55,57 @@ export const userMovies = pgTable('user_movies', {
 
 export type UserMovie = typeof userMovies.$inferSelect;
 export type NewUserMovie = typeof userMovies.$inferInsert;
+
+// TV Show status enum
+export const tvShowStatusEnum = pgEnum('tv_show_status', [
+  'want_to_watch',
+  'watching',
+  'completed',
+  'dropped',
+]);
+
+// User TV Shows table
+export const userTvShows = pgTable('user_tv_shows', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  tvShowId: integer('tv_show_id').notNull(), // TMDB TV show ID
+  tvShowName: varchar('tv_show_name', { length: 500 }).notNull(),
+  tvShowPosterPath: varchar('tv_show_poster_path', { length: 500 }),
+  tvShowFirstAirDate: varchar('tv_show_first_air_date', { length: 50 }),
+  status: tvShowStatusEnum('status').notNull(),
+  userRating: integer('user_rating'), // 1-10 star rating
+  userComment: text('user_comment'), // User's comment/review
+  tmdbRating: integer('tmdb_rating'), // Store TMDB rating for reference
+  totalSeasons: integer('total_seasons').notNull().default(0),
+  totalEpisodes: integer('total_episodes').notNull().default(0),
+  watchedEpisodes: integer('watched_episodes').notNull().default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type UserTvShow = typeof userTvShows.$inferSelect;
+export type NewUserTvShow = typeof userTvShows.$inferInsert;
+
+// User Episodes table (for tracking individual episodes)
+export const userEpisodes = pgTable('user_episodes', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  userTvShowId: uuid('user_tv_show_id')
+    .notNull()
+    .references(() => userTvShows.id, { onDelete: 'cascade' }),
+  tvShowId: integer('tv_show_id').notNull(), // TMDB TV show ID
+  seasonNumber: integer('season_number').notNull(),
+  episodeNumber: integer('episode_number').notNull(),
+  episodeName: varchar('episode_name', { length: 500 }),
+  watched: boolean('watched').notNull().default(false),
+  watchedAt: timestamp('watched_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type UserEpisode = typeof userEpisodes.$inferSelect;
+export type NewUserEpisode = typeof userEpisodes.$inferInsert;

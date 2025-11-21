@@ -5,7 +5,9 @@ import { FiStar, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { RatingDialog } from './rating-dialog';
+import { RatingDialog } from '@/components/ui/rating-dialog';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { useMovieStatus } from '@/hooks/use-movie-status';
 import { Avatar } from '@/components/ui/avatar';
 
 interface MovieComment {
@@ -31,7 +33,13 @@ export function MovieComments({ movieId, movieTitle }: MovieCommentsProps) {
   const [showAddReview, setShowAddReview] = useState(false);
   const [editRating, setEditRating] = useState(0);
   const [editComment, setEditComment] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(
+    null
+  );
+  const [isDeleting, setIsDeleting] = useState(false);
   const { data: session } = useSession();
+  const { status: movieStatus } = useMovieStatus(movieId);
 
   // Check if current user has already reviewed
   const userReview = comments.find((c) => c.userId === session?.user?.id);
@@ -89,6 +97,7 @@ export function MovieComments({ movieId, movieTitle }: MovieCommentsProps) {
 
   const handleAddReview = async (rating: number, comment: string) => {
     try {
+      // Backend will handle marking as watched automatically
       const response = await fetch(`/api/movies/${movieId}/review`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -105,6 +114,9 @@ export function MovieComments({ movieId, movieTitle }: MovieCommentsProps) {
       toast.success('Review added successfully!');
       setShowAddReview(false);
       fetchComments();
+
+      // Trigger a re-fetch of movie status to update UI
+      window.dispatchEvent(new Event('movieStatusChanged'));
     } catch (error) {
       console.error('Error adding review:', error);
       toast.error('Failed to add review');
@@ -112,15 +124,19 @@ export function MovieComments({ movieId, movieTitle }: MovieCommentsProps) {
   };
 
   const handleDelete = async (commentId: string) => {
-    if (!confirm('Are you sure you want to delete this review?')) {
-      return;
-    }
+    setDeletingCommentId(commentId);
+    setShowDeleteConfirm(true);
+  };
 
+  const confirmDelete = async () => {
+    if (!deletingCommentId) return;
+
+    setIsDeleting(true);
     try {
       const response = await fetch(`/api/movies/${movieId}/comments`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ commentId }),
+        body: JSON.stringify({ commentId: deletingCommentId }),
       });
 
       if (!response.ok) {
@@ -128,10 +144,14 @@ export function MovieComments({ movieId, movieTitle }: MovieCommentsProps) {
       }
 
       toast.success('Review deleted successfully!');
+      setShowDeleteConfirm(false);
+      setDeletingCommentId(null);
       fetchComments();
     } catch (error) {
       console.error('Error deleting review:', error);
       toast.error('Failed to delete review');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -140,25 +160,18 @@ export function MovieComments({ movieId, movieTitle }: MovieCommentsProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [movieId]);
 
+  // Refetch comments when movie status changes (in case a review was added)
+  useEffect(() => {
+    if (movieStatus === 'watched') {
+      fetchComments();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [movieStatus]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (comments.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <FiStar className="w-16 h-16 text-muted-foreground mb-4" />
-        <h3 className="text-xl font-semibold text-foreground mb-2">
-          No Reviews Yet
-        </h3>
-        <p className="text-muted-foreground max-w-md">
-          Be the first to share your thoughts about this movie! Add it to your
-          watchlist or mark it as watched to leave a review.
-        </p>
       </div>
     );
   }
@@ -178,6 +191,19 @@ export function MovieComments({ movieId, movieTitle }: MovieCommentsProps) {
         onClose={() => setShowAddReview(false)}
         movieTitle={movieTitle}
         onSubmit={handleAddReview}
+      />
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          setShowDeleteConfirm(false);
+          setDeletingCommentId(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Delete Review"
+        message="Are you sure you want to delete this review? This action cannot be undone."
+        confirmText="Delete"
+        isLoading={isDeleting}
+        confirmVariant="destructive"
       />
       <div className="space-y-6 py-6">
         {/* Add Review Button - Only show if user hasn't reviewed */}
@@ -199,9 +225,18 @@ export function MovieComments({ movieId, movieTitle }: MovieCommentsProps) {
             <h3 className="text-xl font-semibold text-foreground mb-2">
               No Reviews Yet
             </h3>
-            <p className="text-muted-foreground max-w-md">
+            <p className="text-muted-foreground max-w-md mb-6">
               Be the first to share your thoughts about this movie!
             </p>
+            {session && !hasUserReviewed && (
+              <button
+                onClick={() => setShowAddReview(true)}
+                className="flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
+              >
+                <FiStar className="w-5 h-5" />
+                <span>Write the First Review</span>
+              </button>
+            )}
           </div>
         )}
 

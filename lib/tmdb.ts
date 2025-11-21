@@ -92,20 +92,135 @@ export interface VideosResponse {
   results: Video[];
 }
 
+// TV Show Types
+export interface TVShow {
+  id: number;
+  name: string;
+  original_name: string;
+  overview: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  first_air_date: string;
+  vote_average: number;
+  vote_count: number;
+  popularity: number;
+  genre_ids: number[];
+  origin_country: string[];
+  original_language: string;
+}
+
+export interface TVShowDetails extends TVShow {
+  created_by: {
+    id: number;
+    name: string;
+    profile_path: string | null;
+  }[];
+  episode_run_time: number[];
+  genres: { id: number; name: string }[];
+  homepage: string;
+  in_production: boolean;
+  languages: string[];
+  last_air_date: string;
+  last_episode_to_air: Episode | null;
+  next_episode_to_air: Episode | null;
+  networks: {
+    id: number;
+    name: string;
+    logo_path: string | null;
+    origin_country: string;
+  }[];
+  number_of_episodes: number;
+  number_of_seasons: number;
+  production_companies: {
+    id: number;
+    name: string;
+    logo_path: string | null;
+    origin_country: string;
+  }[];
+  seasons: Season[];
+  status: string;
+  tagline: string;
+  type: string;
+}
+
+export interface Season {
+  air_date: string;
+  episode_count: number;
+  id: number;
+  name: string;
+  overview: string;
+  poster_path: string | null;
+  season_number: number;
+  vote_average: number;
+}
+
+export interface SeasonDetails extends Season {
+  _id: string;
+  episodes: Episode[];
+}
+
+export interface Episode {
+  air_date: string;
+  episode_number: number;
+  id: number;
+  name: string;
+  overview: string;
+  production_code: string;
+  runtime: number;
+  season_number: number;
+  show_id: number;
+  still_path: string | null;
+  vote_average: number;
+  vote_count: number;
+  crew: CrewMember[];
+  guest_stars: CastMember[];
+}
+
+export interface TVShowsResponse {
+  page: number;
+  results: TVShow[];
+  total_pages: number;
+  total_results: number;
+}
+
+export interface TVShowCredits {
+  id: number;
+  cast: CastMember[];
+  crew: CrewMember[];
+}
+
 async function fetchFromTMDB(endpoint: string) {
+  if (!TMDB_API_KEY) {
+    throw new Error('TMDB_API_KEY is not defined in environment variables');
+  }
+
   const url = `${TMDB_BASE_URL}${endpoint}${
     endpoint.includes('?') ? '&' : '?'
   }api_key=${TMDB_API_KEY}`;
 
-  const response = await fetch(url, {
-    next: { revalidate: 3600 }, // Cache for 1 hour
-  });
+  try {
+    const response = await fetch(url, {
+      next: { revalidate: 3600 }, // Cache for 1 hour
+    });
 
-  if (!response.ok) {
-    throw new Error(`TMDB API Error: ${response.statusText}`);
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error('TMDB API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: url.replace(TMDB_API_KEY, '***'),
+        body: errorBody,
+      });
+      throw new Error(
+        `TMDB API Error: ${response.status} ${response.statusText}`
+      );
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('TMDB Fetch Error:', error);
+    throw error;
   }
-
-  return response.json();
 }
 
 export async function getPopularMovies(
@@ -165,4 +280,63 @@ export function getImageUrl(
 ): string {
   if (!path) return '/assets/placeholder-movie.jpg';
   return `${TMDB_IMAGE_BASE_URL}/${size}${path}`;
+}
+
+// TV Show API Functions
+export async function getPopularTVShows(
+  page: number = 1
+): Promise<TVShowsResponse> {
+  return fetchFromTMDB(`/tv/popular?page=${page}`);
+}
+
+export async function getTopRatedTVShows(
+  page: number = 1
+): Promise<TVShowsResponse> {
+  return fetchFromTMDB(`/tv/top_rated?page=${page}`);
+}
+
+export async function getOnTheAirTVShows(
+  page: number = 1
+): Promise<TVShowsResponse> {
+  return fetchFromTMDB(`/tv/on_the_air?page=${page}`);
+}
+
+export async function getAiringTodayTVShows(
+  page: number = 1
+): Promise<TVShowsResponse> {
+  return fetchFromTMDB(`/tv/airing_today?page=${page}`);
+}
+
+export async function getTVShowDetails(tvId: number): Promise<TVShowDetails> {
+  return fetchFromTMDB(`/tv/${tvId}`);
+}
+
+export async function getTVShowCredits(tvId: number): Promise<TVShowCredits> {
+  return fetchFromTMDB(`/tv/${tvId}/credits`);
+}
+
+export async function getSeasonDetails(
+  tvId: number,
+  seasonNumber: number
+): Promise<SeasonDetails> {
+  return fetchFromTMDB(`/tv/${tvId}/season/${seasonNumber}`);
+}
+
+export async function getSimilarTVShows(
+  tvId: number,
+  page: number = 1
+): Promise<TVShowsResponse> {
+  return fetchFromTMDB(`/tv/${tvId}/similar?page=${page}`);
+}
+
+export async function getTVShowVideos(tvId: number): Promise<VideosResponse> {
+  return fetchFromTMDB(`/tv/${tvId}/videos`);
+}
+
+export async function searchTVShows(
+  query: string,
+  page: number = 1
+): Promise<TVShowsResponse> {
+  const encodedQuery = encodeURIComponent(query);
+  return fetchFromTMDB(`/search/tv?query=${encodedQuery}&page=${page}`);
 }

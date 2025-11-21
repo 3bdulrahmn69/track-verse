@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { FiBookmark, FiCheck, FiRefreshCw } from 'react-icons/fi';
 import { Button } from '@/components/ui/button';
 import { useMovieStatus } from '@/hooks/use-movie-status';
+import { RatingDialog } from '@/components/ui/rating-dialog';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import type { Movie } from '@/lib/tmdb';
 
 interface MovieActionsProps {
@@ -21,6 +23,8 @@ export default function MovieActions({
 }: MovieActionsProps) {
   const { status, loading, updateStatus, rewatch } = useMovieStatus(movieId);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showRatingDialog, setShowRatingDialog] = useState(false);
+  const [showUnwatchConfirm, setShowUnwatchConfirm] = useState(false);
 
   const movie: Movie = {
     id: movieId,
@@ -51,7 +55,14 @@ export default function MovieActions({
   };
 
   const handleMarkAsWatched = async () => {
-    await handleStatusUpdate('watched');
+    setIsUpdating(true);
+    try {
+      await updateStatus('watched', movie);
+      // Show rating dialog after marking as watched
+      setShowRatingDialog(true);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const handleRewatch = async () => {
@@ -67,6 +78,30 @@ export default function MovieActions({
     await handleStatusUpdate(null);
   };
 
+  const handleUnwatchConfirm = async () => {
+    setIsUpdating(true);
+    try {
+      // Backend will handle review deletion automatically
+      await updateStatus(null, movie);
+      setShowUnwatchConfirm(false);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleRatingSubmit = async (rating: number, comment: string) => {
+    setIsUpdating(true);
+    try {
+      if (status === 'watched') {
+        // Update the already-watched movie with rating/comment
+        await updateStatus('watched', movie, rating, comment);
+      }
+    } finally {
+      setIsUpdating(false);
+      setShowRatingDialog(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-wrap gap-3">
@@ -78,6 +113,22 @@ export default function MovieActions({
 
   return (
     <>
+      <RatingDialog
+        isOpen={showRatingDialog}
+        onClose={() => setShowRatingDialog(false)}
+        movieTitle={movieTitle}
+        onSubmit={handleRatingSubmit}
+      />
+      <ConfirmDialog
+        isOpen={showUnwatchConfirm}
+        onClose={() => setShowUnwatchConfirm(false)}
+        onConfirm={handleUnwatchConfirm}
+        title="Remove from Watched"
+        message="Are you sure you want to mark this movie as unwatched? This will also delete your review if you have one."
+        confirmText="Remove & Delete"
+        isLoading={isUpdating}
+        confirmVariant="destructive"
+      />
       <div className="flex flex-wrap gap-3">
         {/* Watch List Button - Don't show when watched */}
         {status !== 'watched' && status !== 'want_to_watch' && (
@@ -110,7 +161,7 @@ export default function MovieActions({
         {/* Mark as Watched - Show when not watched */}
         {status !== 'watched' && (
           <Button
-            variant="destructive"
+            variant="success"
             size="md"
             onClick={handleMarkAsWatched}
             disabled={isUpdating}
@@ -125,9 +176,9 @@ export default function MovieActions({
         {status === 'watched' && (
           <>
             <Button
-              variant="success"
+              variant="destructive"
               size="md"
-              onClick={handleRemoveFromWatchList}
+              onClick={() => setShowUnwatchConfirm(true)}
               disabled={isUpdating}
               className="flex items-center gap-2"
             >

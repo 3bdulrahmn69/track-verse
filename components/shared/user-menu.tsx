@@ -4,8 +4,8 @@ import { useState, useRef, useEffect } from 'react';
 import { FiSettings, FiLogOut, FiChevronDown, FiUser } from 'react-icons/fi';
 import ThemeToggle from '@/components/shared/theme-toggle';
 import { signOut, useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import { Avatar } from '@/components/ui/avatar';
+import Link from 'next/link';
 
 interface UserMenuProps {
   openUp?: boolean;
@@ -15,7 +15,6 @@ export function UserMenu({ openUp = false }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { data: session } = useSession();
-  const router = useRouter();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -31,8 +30,6 @@ export function UserMenu({ openUp = false }: UserMenuProps) {
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/login' });
   };
-
-  console.log(session?.user);
 
   return (
     <div className="relative" ref={menuRef}>
@@ -79,26 +76,22 @@ export function UserMenu({ openUp = false }: UserMenuProps) {
 
           {/* Menu Items */}
           <div className="py-2">
-            <button
-              onClick={() => {
-                setIsOpen(false);
-                router.push('/profile');
-              }}
+            <Link
+              href="/profile"
+              onClick={() => setIsOpen(false)}
               className="w-full flex items-center gap-3 px-4 py-2 text-foreground hover:bg-muted transition-colors duration-200"
             >
               <FiUser className="w-5 h-5" />
               <span>Profile</span>
-            </button>
-            <button
-              onClick={() => {
-                setIsOpen(false);
-                router.push('/settings');
-              }}
+            </Link>
+            <Link
+              href="/settings"
+              onClick={() => setIsOpen(false)}
               className="w-full flex items-center gap-3 px-4 py-2 text-foreground hover:bg-muted transition-colors duration-200"
             >
               <FiSettings className="w-5 h-5" />
               <span>Settings</span>
-            </button>
+            </Link>
 
             {/* Theme Toggle */}
             <div className="px-4 py-2">

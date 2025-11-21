@@ -3,13 +3,15 @@
 import { useState, useEffect } from 'react';
 import { FiFilm, FiTv, FiBook, FiMonitor } from 'react-icons/fi';
 import { UserMenu } from '@/components/shared/user-menu';
-import Link from 'next/link';
+import { AppLogo } from '@/components/shared/app-logo';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface PortalTabsProps {
   moviesTab: React.ReactNode;
   tvShowsTab: React.ReactNode;
   booksTab: React.ReactNode;
   gamesTab: React.ReactNode;
+  initialTab?: 'movies' | 'tv-shows' | 'books' | 'games';
 }
 
 type TabType = 'movies' | 'tv-shows' | 'books' | 'games';
@@ -19,18 +21,26 @@ export function PortalTabs({
   tvShowsTab,
   booksTab,
   gamesTab,
+  initialTab = 'movies',
 }: PortalTabsProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('movies');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [mountedTabs, setMountedTabs] = useState<Set<TabType>>(
-    new Set(['movies'])
+    new Set([initialTab])
   );
 
   // Cache tabs that have been mounted
   const handleTabChange = (tabId: TabType) => {
     setActiveTab(tabId);
     setMountedTabs((prev) => new Set(prev).add(tabId));
+
+    // Update URL with query parameter
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', tabId);
+    router.push(`/portal?${params.toString()}`, { scroll: false });
   };
 
   useEffect(() => {
@@ -89,12 +99,7 @@ export function PortalTabs({
         <nav className="max-w-7xl mx-auto px-4 md:px-6 py-2 md:py-3 rounded-full bg-card/95 backdrop-blur-sm shadow-lg border border-border/50">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <Link
-              href="/portal"
-              className="text-xl font-bold text-primary hover:text-primary/90 transition-colors"
-            >
-              Track Verse
-            </Link>
+            <AppLogo href="/portal" size="md" />
 
             {/* Navigation Tabs */}
             <div className="flex items-center gap-2">

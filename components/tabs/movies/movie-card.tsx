@@ -13,7 +13,8 @@ import { Movie, getImageUrl } from '@/lib/tmdb';
 import { useState } from 'react';
 import { useMovieStatus } from '@/hooks/use-movie-status';
 import { Popover } from '@/components/ui/popover';
-import { RatingDialog } from './rating-dialog';
+import { RatingDialog } from '@/components/ui/rating-dialog';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface MovieCardProps {
   movie: Movie;
@@ -32,6 +33,7 @@ export function MovieCard({ movie, onStatusChange }: MovieCardProps) {
   );
   const [isUpdating, setIsUpdating] = useState(false);
   const [showRatingDialog, setShowRatingDialog] = useState(false);
+  const [showUnwatchConfirm, setShowUnwatchConfirm] = useState(false);
 
   const handleStatusUpdate = async (
     newStatus: 'want_to_watch' | 'watched' | null,
@@ -80,13 +82,22 @@ export function MovieCard({ movie, onStatusChange }: MovieCardProps) {
     await handleStatusUpdate(null);
   };
 
+  const handleUnwatchConfirm = async () => {
+    setIsUpdating(true);
+    try {
+      // Backend will handle review deletion automatically
+      await updateStatus(null, movie);
+      setShowUnwatchConfirm(false);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const handleRewatch = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     // Rewatch immediately
     await rewatch();
-    // Then show the rating dialog (optional)
-    setShowRatingDialog(true);
   };
 
   return (
@@ -98,6 +109,16 @@ export function MovieCard({ movie, onStatusChange }: MovieCardProps) {
         }}
         movieTitle={movie.title}
         onSubmit={handleRatingSubmit}
+      />
+      <ConfirmDialog
+        isOpen={showUnwatchConfirm}
+        onClose={() => setShowUnwatchConfirm(false)}
+        onConfirm={handleUnwatchConfirm}
+        title="Remove from Watched"
+        message="Are you sure you want to mark this movie as unwatched? This will also delete your review if you have one."
+        confirmText="Remove & Delete"
+        isLoading={isUpdating}
+        confirmVariant="destructive"
       />
       <div className="group relative overflow-hidden rounded-lg bg-card shadow-lg hover:shadow-xl transition-all duration-300">
         <Link href={`/movies/${movie.id}`} className="block">
@@ -153,7 +174,7 @@ export function MovieCard({ movie, onStatusChange }: MovieCardProps) {
                   <button
                     onClick={handleMarkAsWatched}
                     disabled={isUpdating || loading}
-                    className="p-2 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors shadow-lg disabled:opacity-50"
+                    className="p-2 rounded-full bg-success text-success-foreground hover:bg-success/90 transition-colors shadow-lg disabled:opacity-50"
                   >
                     <FiCheck className="w-4 h-4" />
                   </button>
@@ -164,9 +185,9 @@ export function MovieCard({ movie, onStatusChange }: MovieCardProps) {
                 <>
                   <Popover content="Mark as Unwatched" position="right">
                     <button
-                      onClick={handleRemoveFromWatchList}
+                      onClick={() => setShowUnwatchConfirm(true)}
                       disabled={isUpdating || loading}
-                      className="p-2 rounded-full bg-success text-success-foreground hover:bg-success/90 transition-colors shadow-lg disabled:opacity-50"
+                      className="p-2 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors shadow-lg disabled:opacity-50"
                     >
                       <FiCheck className="w-4 h-4" />
                     </button>

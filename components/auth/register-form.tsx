@@ -23,6 +23,8 @@ import { toast } from 'react-toastify';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
 import {
   validateEmail,
   validatePassword,
@@ -35,6 +37,7 @@ import {
 
 export default function RegisterForm() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     fullName: '',
@@ -49,6 +52,13 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Redirect authenticated users to portal
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      router.push('/portal');
+    }
+  }, [status, session, router]);
 
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {};

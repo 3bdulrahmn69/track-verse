@@ -89,22 +89,23 @@ button {
   cursor: pointer;
 }
 
-/* Fade edges for scrolling containers */
-.fade-edges {
-  mask: linear-gradient(
-    to right,
-    transparent,
-    black 10%,
-    black 90%,
-    transparent
-  );
-  -webkit-mask: linear-gradient(
-    to right,
-    transparent,
-    black 10%,
-    black 90%,
-    transparent
-  );
+/* Custom scrollbar styles */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 0px;
+  width: 0px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.custom-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 /* Mobile menu animations */

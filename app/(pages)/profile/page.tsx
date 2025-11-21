@@ -36,7 +36,7 @@ export default async function ProfilePage() {
     backdrop_path: null,
     release_date: record.movieReleaseDate || '',
     overview: '',
-    vote_average: 0,
+    vote_average: record.tmdbRating || 0,
     vote_count: 0,
     popularity: 0,
     genre_ids: [],

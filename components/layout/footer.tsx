@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { Container } from '@/components/layout/container';
 import ThemeToggle from '../shared/theme-toggle';
+import { AppLogo } from '../shared/app-logo';
+import { FiHeart } from 'react-icons/fi';
 
 const quickLinks = [
   { href: '#hero', label: 'Home' },
@@ -17,9 +19,9 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand and Description */}
           <div>
-            <h3 className="text-2xl font-bold text-primary mb-4">
-              Track Verse
-            </h3>
+            <div className="mb-4">
+              <AppLogo size="lg" showText={false} />
+            </div>
             <p className="text-muted-foreground mb-4">
               Everything, Everywhere, All at once. Your comprehensive tracking
               dashboard.
@@ -50,7 +52,9 @@ export default function Footer() {
           {/* Developer Info */}
           <div>
             <h4 className="font-semibold mb-4">Developer</h4>
-            <p className="text-muted-foreground mb-2">Built with ❤️ by</p>
+            <p className="text-muted-foreground mb-2 flex items-center gap-1">
+              Built with <FiHeart className="text-red-500" /> by
+            </p>
             <Link
               href="https://3bdulrahmn.vercel.app/"
               target="_blank"
@@ -70,7 +74,8 @@ export default function Footer() {
         {/* Bottom Copyright */}
         <div className="border-t border-border mt-8 pt-8 text-center">
           <p className="text-muted-foreground">
-            &copy; 2025 <span className="text-primary">Track Verse</span>. All
+            &copy; 2025{' '}
+            <span className="text-primary font-bold">Track Verse</span>. All
             rights reserved.
           </p>
         </div>

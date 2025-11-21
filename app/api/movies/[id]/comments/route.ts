@@ -127,7 +127,14 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     const { id } = await params;
     const movieId = parseInt(id);
-    const body = await request.json();
+
+    let body: any = {};
+    try {
+      body = await request.json();
+    } catch (e) {
+      // Body is empty or invalid JSON
+    }
+
     const { commentId } = body;
 
     if (!commentId) {

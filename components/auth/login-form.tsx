@@ -17,12 +17,15 @@ import { FiMail, FiLock } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { validateIdentifier, validateLoginPassword } from '@/lib/validation';
 
 export default function LoginForm() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [formData, setFormData] = useState({
     identifier: '', // Can be email or username
     password: '',
@@ -30,6 +33,13 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Redirect authenticated users to portal
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      router.push('/portal');
+    }
+  }, [status, session, router]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -173,7 +183,7 @@ export default function LoginForm() {
               onChange={(e) => handleInputChange('identifier', e.target.value)}
               error={errors.identifier}
               disabled={isLoading}
-              autoComplete="username"
+              autoComplete="email"
               aria-required="true"
               aria-invalid={!!errors.identifier}
               aria-describedby={

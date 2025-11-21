@@ -9,17 +9,23 @@ export default auth((req) => {
   const publicPaths = ['/', '/login', '/register', '/terms', '/privacy'];
   const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
 
-  // Define auth paths
+  // Define auth paths (login/register)
   const authPaths = ['/login', '/register'];
   const isAuthPath = authPaths.some((path) => pathname.startsWith(path));
 
-  // If user is logged in and trying to access auth pages, redirect to portal
-  if (isLoggedIn && isAuthPath) {
+  // Define protected paths
+  const protectedPaths = ['/portal'];
+  const isProtectedPath = protectedPaths.some((path) =>
+    pathname.startsWith(path)
+  );
+
+  // If user is logged in and trying to access auth pages or landing page, redirect to portal
+  if (isLoggedIn && (isAuthPath || pathname === '/')) {
     return NextResponse.redirect(new URL('/portal', req.url));
   }
 
   // If user is not logged in and trying to access protected routes
-  if (!isLoggedIn && !isPublicPath) {
+  if (!isLoggedIn && isProtectedPath) {
     return NextResponse.redirect(new URL('/login', req.url));
   }
 
