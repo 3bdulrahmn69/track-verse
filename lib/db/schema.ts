@@ -46,9 +46,11 @@ export const userMovies = pgTable('user_movies', {
   movieReleaseDate: varchar('movie_release_date', { length: 50 }),
   status: movieStatusEnum('status').notNull(),
   watchCount: integer('watch_count').notNull().default(0),
+  runtime: integer('runtime'), // Duration in minutes
   userRating: integer('user_rating'), // 1-5 star rating
   userComment: text('user_comment'), // User's comment/review
   tmdbRating: integer('tmdb_rating'), // Store TMDB rating for reference
+  imdbId: varchar('imdb_id', { length: 20 }), // Store IMDb ID for reference
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -75,8 +77,6 @@ export const userTvShows = pgTable('user_tv_shows', {
   tvShowPosterPath: varchar('tv_show_poster_path', { length: 500 }),
   tvShowFirstAirDate: varchar('tv_show_first_air_date', { length: 50 }),
   status: tvShowStatusEnum('status').notNull(),
-  userRating: integer('user_rating'), // 1-10 star rating
-  userComment: text('user_comment'), // User's comment/review
   tmdbRating: integer('tmdb_rating'), // Store TMDB rating for reference
   totalSeasons: integer('total_seasons').notNull().default(0),
   totalEpisodes: integer('total_episodes').notNull().default(0),
@@ -101,6 +101,9 @@ export const userEpisodes = pgTable('user_episodes', {
   seasonNumber: integer('season_number').notNull(),
   episodeNumber: integer('episode_number').notNull(),
   episodeName: varchar('episode_name', { length: 500 }),
+  runtime: integer('runtime'), // runtime in minutes
+  userRating: integer('user_rating'), // 1-5 star rating
+  userComment: text('user_comment'), // User's comment/review
   watched: boolean('watched').notNull().default(false),
   watchedAt: timestamp('watched_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),

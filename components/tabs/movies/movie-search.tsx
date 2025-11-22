@@ -42,7 +42,6 @@ export default function MovieSearch({ showResults = true }: MovieSearchProps) {
   // Trigger search when debounced query changes
   useEffect(() => {
     handleSearch(debouncedQuery);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedQuery]);
 
   const handleClear = () => {

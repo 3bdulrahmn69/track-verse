@@ -32,37 +32,44 @@ export function useMovieStatus(
     rating?: number,
     comment?: string
   ) => {
-    try {
-      if (newStatus === null) {
-        // Remove from list
-        await fetch(`/api/movies?movieId=${movieId}`, {
-          method: 'DELETE',
-        });
-      } else {
-        // Add or update status
-        await fetch('/api/movies', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            movieId: movie.id,
-            movieTitle: movie.title,
-            moviePosterPath: movie.poster_path,
-            movieReleaseDate: movie.release_date,
-            status: newStatus,
-            userRating: rating,
-            userComment: comment,
-            tmdbRating: movie.vote_average
-              ? Math.round(movie.vote_average)
-              : null,
-          }),
-        });
+    if (newStatus === null) {
+      // Remove from list
+      const response = await fetch(`/api/movies?movieId=${movieId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to remove movie');
       }
-      setStatus(newStatus);
-      updateMovieStatusCache(movieId, newStatus);
-      onStatusChange?.(newStatus);
-    } catch (error) {
-      console.error('Error updating movie status:', error);
+    } else {
+      // Add or update status
+      const response = await fetch('/api/movies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          movieId: movie.id,
+          movieTitle: movie.title,
+          moviePosterPath: movie.poster_path,
+          movieReleaseDate: movie.release_date,
+          status: newStatus,
+          userRating: rating,
+          userComment: comment,
+          tmdbRating: movie.vote_average
+            ? Math.round(movie.vote_average)
+            : null,
+          runtime: movie.runtime,
+          imdbId: movie.imdb_id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update movie status');
+      }
     }
+
+    setStatus(newStatus);
+    updateMovieStatusCache(movieId, newStatus);
+    onStatusChange?.(newStatus);
   };
 
   useEffect(() => {
@@ -95,22 +102,23 @@ export function useMovieStatus(
   }, [movieId, onStatusChange]);
 
   const rewatch = async (rating?: number, comment?: string) => {
-    try {
-      await fetch('/api/movies/rewatch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          movieId,
-          userRating: rating,
-          userComment: comment,
-        }),
-      });
-      setStatus('watched');
-      updateMovieStatusCache(movieId, 'watched');
-      onStatusChange?.('watched');
-    } catch (error) {
-      console.error('Error rewatching movie:', error);
+    const response = await fetch('/api/movies/rewatch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        movieId,
+        userRating: rating,
+        userComment: comment,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to rewatch movie');
     }
+
+    setStatus('watched');
+    updateMovieStatusCache(movieId, 'watched');
+    onStatusChange?.('watched');
   };
 
   return { status, loading, updateStatus, rewatch };

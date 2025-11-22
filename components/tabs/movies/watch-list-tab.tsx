@@ -55,6 +55,8 @@ export default function WatchListTab() {
                   vote_count: 0,
                   popularity: 0,
                   genre_ids: [],
+                  runtime: movieRecord.runtime || 0,
+                  imdb_id: movieRecord.imdbId,
                 };
                 setWatchListMovies((prev) => [newMovie, ...prev]);
               }

@@ -128,10 +128,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const { id } = await params;
     const movieId = parseInt(id);
 
-    let body: any = {};
+    let body: { commentId?: string } = {};
     try {
       body = await request.json();
-    } catch (e) {
+    } catch {
       // Body is empty or invalid JSON
     }
 
@@ -144,32 +144,19 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Delete the review (set rating and comment to null)
-    const updated = await db
-      .update(userMovies)
-      .set({
-        userRating: null,
-        userComment: null,
-        updatedAt: new Date(),
-      })
+    // Delete the entire movie record (this removes the movie from user's list)
+    await db
+      .delete(userMovies)
       .where(
         and(
           eq(userMovies.id, commentId),
           eq(userMovies.userId, session.user.id),
           eq(userMovies.movieId, movieId)
         )
-      )
-      .returning();
-
-    if (updated.length === 0) {
-      return NextResponse.json(
-        { error: 'Review not found or unauthorized' },
-        { status: 404 }
       );
-    }
 
     return NextResponse.json(
-      { message: 'Review deleted successfully' },
+      { message: 'Review and movie removed successfully' },
       { status: 200 }
     );
   } catch (error) {

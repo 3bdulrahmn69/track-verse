@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
+import { cn } from '@/lib/utils';
 
 interface DialogProps {
   isOpen: boolean;
@@ -54,10 +55,23 @@ export function Dialog({
 
   if (!isOpen) return null;
 
+  const handleBackdropClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    // Only close if clicking on the backdrop itself, not on child elements
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300"
+      onClick={handleBackdropClick}
+    >
       <div
-        className={`bg-card rounded-lg shadow-2xl w-full max-w-md border border-border animate-in zoom-in-95 duration-300 ${className}`}
+        className={cn(
+          'bg-card rounded-lg shadow-2xl w-full max-w-md border border-border animate-in zoom-in-95 duration-300',
+          className
+        )}
       >
         {/* Header */}
         {(title || showCloseButton) && (

@@ -11,7 +11,7 @@ import {
   FiX,
 } from 'react-icons/fi';
 import { TVShow, getImageUrl } from '@/lib/tmdb';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTVShowStatus } from '@/hooks';
 import { Popover } from '@/components/ui/popover';
 
@@ -24,22 +24,14 @@ interface TVShowCardProps {
 }
 
 export function TVShowCard({ tvShow, onStatusChange }: TVShowCardProps) {
-  const { status, watchedEpisodes, totalEpisodes, loading, updateStatus } =
-    useTVShowStatus(
-      tvShow.id,
-      (
-        newStatus:
-          | 'want_to_watch'
-          | 'watching'
-          | 'completed'
-          | 'dropped'
-          | null,
-        watchedEps?: number,
-        totalEps?: number
-      ) => {
-        onStatusChange?.(tvShow.id, newStatus);
-      }
-    );
+  const { status, loading, updateStatus } = useTVShowStatus(
+    tvShow.id,
+    (
+      newStatus: 'want_to_watch' | 'watching' | 'completed' | 'dropped' | null
+    ) => {
+      onStatusChange?.(tvShow.id, newStatus);
+    }
+  );
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleStatusUpdate = async (

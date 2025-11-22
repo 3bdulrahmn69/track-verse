@@ -103,8 +103,6 @@ export async function POST(request: NextRequest) {
       tvShowPosterPath,
       tvShowFirstAirDate,
       status,
-      userRating,
-      userComment,
     } = body;
 
     // Fetch TV show details from TMDB to get total seasons and episodes
@@ -135,8 +133,6 @@ export async function POST(request: NextRequest) {
         .update(userTvShows)
         .set({
           status,
-          userRating: userRating || existingShow.userRating,
-          userComment: userComment || existingShow.userComment,
           tmdbRating,
           totalSeasons,
           totalEpisodes,
@@ -159,8 +155,6 @@ export async function POST(request: NextRequest) {
           tvShowPosterPath,
           tvShowFirstAirDate,
           status,
-          userRating,
-          userComment,
           tmdbRating,
           totalSeasons,
           totalEpisodes,

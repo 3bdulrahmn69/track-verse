@@ -13,6 +13,8 @@ export interface Movie {
   vote_count: number;
   popularity: number;
   genre_ids: number[];
+  runtime: number;
+  imdb_id?: string;
 }
 
 export interface MovieDetails extends Movie {

@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth-config';
 import { db } from '@/lib/db';
 import { userMovies } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { getMovieDetails } from '@/lib/tmdb';
 
 // GET - Get user's movies by status
 export async function GET(request: NextRequest) {
@@ -65,14 +66,27 @@ export async function POST(request: NextRequest) {
       status,
       userRating,
       userComment,
-      tmdbRating,
     } = body;
+    let { runtime, tmdbRating, imdbId } = body;
 
     if (!movieId || !movieTitle || !status) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
+    }
+
+    // If runtime or imdbId are missing, fetch complete movie details from TMDB
+    if (!runtime || !imdbId) {
+      try {
+        const movieDetails = await getMovieDetails(movieId);
+        runtime = runtime || movieDetails.runtime;
+        imdbId = imdbId || movieDetails.imdb_id;
+        tmdbRating = tmdbRating || Math.round(movieDetails.vote_average);
+      } catch (error) {
+        console.warn('Failed to fetch movie details from TMDB:', error);
+        // Continue with the provided data if TMDB fetch fails
+      }
     }
 
     // Check if movie already exists for this user
@@ -92,9 +106,11 @@ export async function POST(request: NextRequest) {
         status: 'want_to_watch' | 'watched';
         updatedAt: Date;
         watchCount?: number;
+        runtime?: number | null;
         userRating?: number | null;
         userComment?: string | null;
         tmdbRating?: number | null;
+        imdbId?: string | null;
       } = {
         status,
         updatedAt: new Date(),
@@ -114,6 +130,14 @@ export async function POST(request: NextRequest) {
       }
       if (tmdbRating !== undefined) {
         updateData.tmdbRating = tmdbRating;
+      }
+
+      // Update missing data if we fetched it from TMDB
+      if (runtime !== undefined && !existingMovie[0].runtime) {
+        updateData.runtime = runtime;
+      }
+      if (imdbId !== undefined && !existingMovie[0].imdbId) {
+        updateData.imdbId = imdbId;
       }
 
       const updated = await db
@@ -143,9 +167,11 @@ export async function POST(request: NextRequest) {
         moviePosterPath,
         movieReleaseDate,
         status,
+        runtime: runtime || null,
         userRating: userRating || null,
         userComment: userComment || null,
         tmdbRating: tmdbRating || null,
+        imdbId: imdbId || null,
       })
       .returning();
 

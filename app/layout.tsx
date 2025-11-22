@@ -5,6 +5,7 @@ import { ThemeProvider } from 'next-themes';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import SessionProvider from '@/components/providers/session-provider';
+import { GoToTopButton } from '@/components/shared/go-to-top-button';
 
 const roboto = Roboto({
   variable: '--font-roboto',
@@ -50,6 +51,7 @@ export default function RootLayout({
               pauseOnHover
               theme="dark"
             />
+            <GoToTopButton />
           </ThemeProvider>
         </SessionProvider>
       </body>

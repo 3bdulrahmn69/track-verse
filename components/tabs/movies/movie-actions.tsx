@@ -9,35 +9,14 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import type { Movie } from '@/lib/tmdb';
 
 interface MovieActionsProps {
-  movieId: number;
-  movieTitle: string;
-  moviePosterPath: string | null;
-  movieReleaseDate: string;
+  movie: Movie;
 }
 
-export default function MovieActions({
-  movieId,
-  movieTitle,
-  moviePosterPath,
-  movieReleaseDate,
-}: MovieActionsProps) {
-  const { status, loading, updateStatus, rewatch } = useMovieStatus(movieId);
+export default function MovieActions({ movie }: MovieActionsProps) {
+  const { status, loading, updateStatus, rewatch } = useMovieStatus(movie.id);
   const [isUpdating, setIsUpdating] = useState(false);
   const [showRatingDialog, setShowRatingDialog] = useState(false);
   const [showUnwatchConfirm, setShowUnwatchConfirm] = useState(false);
-
-  const movie: Movie = {
-    id: movieId,
-    title: movieTitle,
-    poster_path: moviePosterPath,
-    backdrop_path: null,
-    release_date: movieReleaseDate,
-    overview: '',
-    vote_average: 0,
-    vote_count: 0,
-    popularity: 0,
-    genre_ids: [],
-  };
 
   const handleStatusUpdate = async (
     newStatus: 'want_to_watch' | 'watched' | null
@@ -116,7 +95,7 @@ export default function MovieActions({
       <RatingDialog
         isOpen={showRatingDialog}
         onClose={() => setShowRatingDialog(false)}
-        movieTitle={movieTitle}
+        movieTitle={movie.title}
         onSubmit={handleRatingSubmit}
       />
       <ConfirmDialog

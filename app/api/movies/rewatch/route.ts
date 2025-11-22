@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { movieId, userRating, userComment } = body;
+    const { movieId, duration, userRating, userComment } = body;
 
     if (!movieId) {
       return NextResponse.json(
@@ -46,15 +46,19 @@ export async function POST(request: NextRequest) {
       watchCount: number;
       status: 'watched';
       updatedAt: Date;
+      duration?: number | null;
       userRating?: number | null;
       userComment?: string | null;
     } = {
       watchCount: (existingMovie[0].watchCount || 0) + 1,
-      status: 'watched', // Ensure status is watched
+      status: 'watched',
       updatedAt: new Date(),
     };
 
     // Update rating and comment if provided
+    if (duration !== undefined) {
+      updateData.duration = duration;
+    }
     if (userRating !== undefined) {
       updateData.userRating = userRating;
     }

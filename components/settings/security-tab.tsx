@@ -176,7 +176,7 @@ export function SecurityTab() {
           Email Address
         </h2>
         <p className="text-muted-foreground mb-6">
-          Update your email address. You'll need to verify your password.
+          Update your email address. You&apos;ll need to verify your password.
         </p>
 
         <form onSubmit={handleEmailSubmit} className="space-y-6">

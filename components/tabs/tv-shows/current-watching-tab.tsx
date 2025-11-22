@@ -7,18 +7,11 @@ import { FiFilter, FiTv } from 'react-icons/fi';
 import { Dropdown } from '@/components/ui/dropdown';
 import { useTVShowCacheStore } from '@/store/tv-show-cache-store';
 
-interface UserTVShow extends TVShow {
-  status: 'want_to_watch' | 'watching' | 'completed' | 'dropped';
-  watchedEpisodes?: number;
-  totalEpisodes?: number;
-}
-
 export default function CurrentWatchingTab() {
   const [currentWatchingShows, setCurrentWatchingShows] = useState<TVShow[]>(
     []
   );
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const subscribeToStatusChanges = useTVShowCacheStore(
     (state) => state.subscribeToStatusChanges
   );
@@ -46,7 +39,6 @@ export default function CurrentWatchingTab() {
   const fetchCurrentWatching = async () => {
     try {
       setLoading(true);
-      setError(null);
       const response = await fetch(
         '/api/tv-shows?status=watching,completed,dropped',
         {
@@ -56,11 +48,8 @@ export default function CurrentWatchingTab() {
       if (response.ok) {
         const data = await response.json();
         setCurrentWatchingShows(data.shows || []);
-      } else {
-        setError('Failed to load current watching');
       }
     } catch (err) {
-      setError('Failed to load current watching');
       console.error('Error fetching current watching:', err);
     } finally {
       setLoading(false);
@@ -94,17 +83,6 @@ export default function CurrentWatchingTab() {
 
     return unsubscribe;
   }, [subscribeToStatusChanges]);
-
-  const getFilteredShows = () => {
-    if (filter === 'all') return currentWatchingShows;
-    return currentWatchingShows.filter((show) => {
-      // For now, we don't have individual show status in the simplified version
-      // This would need to be enhanced to check individual show status from cache
-      return true;
-    });
-  };
-
-  const filteredShows = getFilteredShows();
 
   if (loading) {
     return (

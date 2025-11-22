@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import Image from 'next/image';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Congratulations } from '@/components/shared/congratulations';
+import { EpisodeDetailsDialog } from './episode-details-dialog';
 
 interface SeasonTrackerProps {
   tvShowId: number;
@@ -16,6 +17,8 @@ interface SeasonTrackerProps {
 
 interface EpisodeWithStatus extends Episode {
   watched: boolean;
+  userRating?: number | null;
+  userComment?: string | null;
 }
 
 export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
@@ -38,6 +41,9 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
     currentStatus: boolean;
     prevEpisodes: number[];
   }>({ open: false, episodeNumber: 0, currentStatus: false, prevEpisodes: [] });
+  const [selectedEpisode, setSelectedEpisode] =
+    useState<EpisodeWithStatus | null>(null);
+  const [episodeDialogOpen, setEpisodeDialogOpen] = useState(false);
 
   // Fetch episodes for the active season
   useEffect(() => {
@@ -96,6 +102,7 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
     setUpdatingEpisodes((prev) => new Set([...prev, ...episodesToUpdate]));
     try {
       for (const epNum of episodesToUpdate) {
+        const episode = episodes.find((ep) => ep.episode_number === epNum);
         const response = await fetch(`/api/tv-shows/${tvShowId}/episodes`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -103,6 +110,8 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
             seasonNumber: activeSeasonNumber,
             episodeNumber: epNum,
             watched: !currentStatus,
+            episodeName: episode?.name,
+            runtime: episode?.runtime,
           }),
         });
         if (!response.ok) throw new Error('Failed to update episode');
@@ -161,6 +170,50 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
   const totalCount = episodes.length;
   const progress = totalCount > 0 ? (watchedCount / totalCount) * 100 : 0;
 
+  const handleEpisodeClick = (episode: EpisodeWithStatus) => {
+    setSelectedEpisode(episode);
+    setEpisodeDialogOpen(true);
+  };
+
+  const handleSubmitReview = async (rating: number, comment: string) => {
+    if (!selectedEpisode) return;
+
+    try {
+      const response = await fetch(`/api/tv-shows/${tvShowId}/episodes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          seasonNumber: activeSeasonNumber,
+          episodeNumber: selectedEpisode.episode_number,
+          watched: true,
+          episodeName: selectedEpisode.name,
+          runtime: selectedEpisode.runtime,
+          userRating: rating,
+          userComment: comment,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to submit review');
+
+      // Update local state
+      setEpisodes((prev) =>
+        prev.map((ep) =>
+          ep.episode_number === selectedEpisode.episode_number
+            ? { ...ep, watched: true, userRating: rating, userComment: comment }
+            : ep
+        )
+      );
+
+      toast.success('Review submitted successfully');
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      toast.error('Failed to submit review');
+      throw error;
+    }
+  };
+
+  console.log(episodes);
+
   return (
     <div className="relative">
       {/* Congratulations Animation */}
@@ -207,7 +260,8 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
           {episodes.map((episode) => (
             <div
               key={episode.id}
-              className={`flex items-start gap-4 p-4 rounded-lg border transition-colors ${
+              onClick={() => handleEpisodeClick(episode)}
+              className={`flex items-start gap-4 p-4 rounded-lg border transition-colors cursor-pointer ${
                 episode.watched
                   ? 'bg-success/10 border-success/30'
                   : 'bg-card border-border hover:border-primary/50'
@@ -252,9 +306,10 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
               </div>
 
               <button
-                onClick={() =>
-                  handleToggleEpisode(episode.episode_number, episode.watched)
-                }
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleToggleEpisode(episode.episode_number, episode.watched);
+                }}
                 disabled={updatingEpisodes.has(episode.episode_number)}
                 className={`shrink-0 mt-1 p-2 rounded-full transition-colors disabled:opacity-50 ${
                   episode.watched
@@ -301,6 +356,29 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
         cancelText="No, just this one"
         confirmVariant="success"
       />
+
+      {selectedEpisode && (
+        <EpisodeDetailsDialog
+          isOpen={episodeDialogOpen}
+          onClose={() => {
+            setEpisodeDialogOpen(false);
+            setSelectedEpisode(null);
+          }}
+          episode={{
+            name: selectedEpisode.name,
+            overview: selectedEpisode.overview,
+            still_path: selectedEpisode.still_path,
+            episode_number: selectedEpisode.episode_number,
+            season_number: activeSeasonNumber,
+            air_date: selectedEpisode.air_date,
+            runtime: selectedEpisode.runtime,
+          }}
+          tvShowId={tvShowId}
+          onSubmitReview={handleSubmitReview}
+          initialRating={selectedEpisode.userRating || 0}
+          initialComment={selectedEpisode.userComment || ''}
+        />
+      )}
     </div>
   );
 }

@@ -185,7 +185,11 @@ export function MovieCard({ movie, onStatusChange }: MovieCardProps) {
                 <>
                   <Popover content="Mark as Unwatched" position="right">
                     <button
-                      onClick={() => setShowUnwatchConfirm(true)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowUnwatchConfirm(true);
+                      }}
                       disabled={isUpdating || loading}
                       className="p-2 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors shadow-lg disabled:opacity-50"
                     >

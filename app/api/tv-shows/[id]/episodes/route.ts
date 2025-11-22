@@ -26,7 +26,15 @@ export async function POST(
       );
     }
     const body = await request.json();
-    const { seasonNumber, episodeNumber, episodeName, watched } = body;
+    const {
+      seasonNumber,
+      episodeNumber,
+      episodeName,
+      runtime,
+      watched,
+      userRating,
+      userComment,
+    } = body;
 
     // Find the user's TV show record
     let show = await db.query.userTvShows.findFirst({
@@ -89,13 +97,39 @@ export async function POST(
 
     if (existingEpisode) {
       // Update existing episode
+      const updateData: {
+        watched: boolean;
+        watchedAt?: Date | null;
+        runtime?: number | null;
+        episodeName?: string;
+        userRating?: number | null;
+        userComment?: string | null;
+        updatedAt: Date;
+      } = {
+        watched,
+        watchedAt: watched ? new Date() : null,
+        updatedAt: new Date(),
+      };
+
+      if (runtime !== undefined) {
+        updateData.runtime = runtime;
+      }
+
+      if (episodeName !== undefined) {
+        updateData.episodeName = episodeName;
+      }
+
+      if (userRating !== undefined) {
+        updateData.userRating = userRating;
+      }
+
+      if (userComment !== undefined) {
+        updateData.userComment = userComment;
+      }
+
       await db
         .update(userEpisodes)
-        .set({
-          watched,
-          watchedAt: watched ? new Date() : null,
-          updatedAt: new Date(),
-        })
+        .set(updateData)
         .where(eq(userEpisodes.id, existingEpisode.id));
     } else {
       // Insert new episode record
@@ -106,18 +140,27 @@ export async function POST(
         seasonNumber,
         episodeNumber,
         episodeName,
+        runtime,
         watched,
         watchedAt: watched ? new Date() : null,
+        userRating: userRating || null,
+        userComment: userComment || null,
       });
     }
 
     // Update watched episode count for the show
-    const watchedCount = await db.query.userEpisodes.findMany({
-      where: and(
-        eq(userEpisodes.userTvShowId, show.id),
-        eq(userEpisodes.watched, true)
-      ),
-    });
+    const watchedCount = await db
+      .select({
+        id: userEpisodes.id,
+        episodeNumber: userEpisodes.episodeNumber,
+      })
+      .from(userEpisodes)
+      .where(
+        and(
+          eq(userEpisodes.userTvShowId, show.id),
+          eq(userEpisodes.watched, true)
+        )
+      );
 
     await db
       .update(userTvShows)
@@ -174,25 +217,44 @@ export async function GET(
       ),
     });
 
-    // Get user's watched episodes for this season
-    let watchedEpisodeNumbers: number[] = [];
+    // Get user's watched episodes and reviews for this season
+    let userEpisodeData: {
+      episodeNumber: number;
+      watched: boolean;
+      userRating?: number | null;
+      userComment?: string | null;
+    }[] = [];
     if (show) {
-      const userWatchedEpisodes = await db.query.userEpisodes.findMany({
-        where: and(
-          eq(userEpisodes.userId, session.user.id),
-          eq(userEpisodes.userTvShowId, show.id),
-          eq(userEpisodes.seasonNumber, seasonNumber),
-          eq(userEpisodes.watched, true)
-        ),
-      });
-      watchedEpisodeNumbers = userWatchedEpisodes.map((ep) => ep.episodeNumber);
+      const userEpisodesData = await db
+        .select({
+          episodeNumber: userEpisodes.episodeNumber,
+          watched: userEpisodes.watched,
+          userRating: userEpisodes.userRating,
+          userComment: userEpisodes.userComment,
+        })
+        .from(userEpisodes)
+        .where(
+          and(
+            eq(userEpisodes.userId, session.user.id),
+            eq(userEpisodes.userTvShowId, show.id),
+            eq(userEpisodes.seasonNumber, seasonNumber)
+          )
+        );
+      userEpisodeData = userEpisodesData;
     }
 
-    // Merge TMDB episodes with user's watched status
-    const episodesWithStatus = seasonDetails.episodes.map((episode) => ({
-      ...episode,
-      watched: watchedEpisodeNumbers.includes(episode.episode_number),
-    }));
+    // Merge TMDB episodes with user's watched status and reviews
+    const episodesWithStatus = seasonDetails.episodes.map((episode) => {
+      const userData = userEpisodeData.find(
+        (data) => data.episodeNumber === episode.episode_number
+      );
+      return {
+        ...episode,
+        watched: userData?.watched || false,
+        userRating: userData?.userRating || null,
+        userComment: userData?.userComment || null,
+      };
+    });
 
     return NextResponse.json({ episodes: episodesWithStatus });
   } catch (error) {

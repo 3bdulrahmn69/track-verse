@@ -57,17 +57,13 @@ export default async function TVShowPage({ params }: TVShowPageProps) {
           />
         )}
         <div className="absolute inset-0 bg-linear-to-t from-background via-background/60 to-transparent" />
-
-        {/* Back Button */}
-        <BackButton
-          href="/portal?tab=tv-shows"
-          variant="outline"
-          className="fixed top-10 left-5 z-50"
-        />
       </div>
 
       {/* Content */}
       <div className="container mx-auto px-4 -mt-32 relative z-10 pb-12">
+        <div className="mb-6">
+          <BackButton href="/portal?tab=tv-shows" variant="outline" />
+        </div>
         <div className="flex flex-col md:flex-row gap-8">
           {/* Poster */}
           <div className="shrink-0">
@@ -313,19 +309,13 @@ export default async function TVShowPage({ params }: TVShowPageProps) {
             <h2 className="text-2xl font-semibold text-foreground mb-6">
               Episodes
             </h2>
-            <SeasonTracker
-              tvShowId={tvShow.id}
-              seasons={tvShow.seasons}
-            />
+            <SeasonTracker tvShowId={tvShow.id} seasons={tvShow.seasons} />
           </section>
         )}
 
-        {/* Similar Shows and Reviews Tabs */}
+        {/* Similar Shows */}
         <section className="mt-12">
-          <TVShowDetailsTabs
-            tvShowName={tvShow.name}
-            similarShows={similarShows.results}
-          />
+          <TVShowDetailsTabs similarShows={similarShows.results} />
         </section>
       </div>
     </div>

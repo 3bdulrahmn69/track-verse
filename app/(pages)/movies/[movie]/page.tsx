@@ -56,13 +56,13 @@ export default async function MoviePage({ params }: MoviePageProps) {
           />
         )}
         <div className="absolute inset-0 bg-linear-to-t from-background via-background/60 to-transparent" />
-
-        {/* Back Button */}
-        <BackButton variant="outline" className="fixed top-10 left-5 z-50" />
       </div>
 
       {/* Content */}
       <div className="container mx-auto px-4 -mt-32 relative z-10 pb-12">
+        <div className="mb-6">
+          <BackButton variant="outline" />
+        </div>
         <div className="flex flex-col md:flex-row gap-8">
           {/* Poster */}
           <div className="shrink-0">
@@ -134,12 +134,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
 
             {/* Action Buttons */}
             <div className="mb-6">
-              <MovieActions
-                movieId={movie.id}
-                movieTitle={movie.title}
-                moviePosterPath={movie.poster_path}
-                movieReleaseDate={movie.release_date}
-              />
+              <MovieActions movie={movie} />
             </div>
 
             {/* Director and Trailer */}

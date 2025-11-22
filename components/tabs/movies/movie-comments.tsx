@@ -283,9 +283,6 @@ export function MovieComments({ movieId, movieTitle }: MovieCommentsProps) {
                                 }`}
                               />
                             ))}
-                            <span className="ml-2 text-sm font-semibold text-foreground">
-                              {comment.userRating}/5
-                            </span>
                           </div>
                         </div>
 

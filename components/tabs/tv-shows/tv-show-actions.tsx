@@ -17,8 +17,7 @@ export default function TVShowActions({
   tvShowPosterPath,
   tvShowFirstAirDate,
 }: TVShowActionsProps) {
-  const { status, watchedEpisodes, totalEpisodes, loading, updateStatus } =
-    useTVShowStatus(tvShowId);
+  const { status, loading, updateStatus } = useTVShowStatus(tvShowId);
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleStatusUpdate = async (
