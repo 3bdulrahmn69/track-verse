@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { FiBookmark, FiAlertCircle } from 'react-icons/fi';
 import { MovieCard } from './movie-card';
-import MovieSearch from './movie-search';
 import type { Movie } from '@/lib/tmdb';
 import type { UserMovie } from '@/lib/db/schema';
 import { useMovieCacheStore } from '@/store/movie-cache-store';
@@ -119,7 +118,6 @@ export default function WatchListTab() {
   if (loading) {
     return (
       <div>
-        <MovieSearch />
         <div className="text-center py-16">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading your watch list...</p>
@@ -131,7 +129,6 @@ export default function WatchListTab() {
   if (error) {
     return (
       <div>
-        <MovieSearch />
         <div className="text-center py-16">
           <FiAlertCircle className="w-16 h-16 mx-auto mb-4 text-destructive" />
           <h3 className="text-2xl font-semibold text-foreground mb-2">
@@ -145,8 +142,6 @@ export default function WatchListTab() {
 
   return (
     <div>
-      <MovieSearch />
-
       {watchListMovies.length === 0 ? (
         <div className="text-center py-16">
           <FiBookmark className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />

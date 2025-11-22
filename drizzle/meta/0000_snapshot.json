@@ -1,6 +1,6 @@
 {
-  "id": "4463c953-9a94-4ae4-ba48-7365d2b2cc75",
-  "prevId": "15452853-7057-42d0-9172-2b696df85228",
+  "id": "15452853-7057-42d0-9172-2b696df85228",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -682,8 +682,7 @@
       "schema": "public",
       "values": [
         "follow_request",
-        "follow_accepted",
-        "follow"
+        "follow_accepted"
       ]
     },
     "public.tv_show_status": {

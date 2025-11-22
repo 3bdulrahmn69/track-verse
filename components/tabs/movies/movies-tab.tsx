@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import DiscoverTab from './discover-tab';
 import WatchListTab from './watch-list-tab';
+import FeedTab from './feed-tab';
 import { Tabs } from '@/components/ui/tabs';
 import type { Movie } from '@/lib/tmdb';
 
@@ -15,20 +16,21 @@ export default function MoviesTab({
   popularMovies,
   nowPlayingMovies,
 }: MoviesTabProps) {
-  const [activeTab, setActiveTab] = useState<'discover' | 'watchlist'>(
-    'discover'
+  const [activeTab, setActiveTab] = useState<'feed' | 'discover' | 'watchlist'>(
+    'feed'
   );
   const [mountedTabs, setMountedTabs] = useState<Set<string>>(
-    new Set(['discover'])
+    new Set(['feed'])
   );
 
   const handleTabChange = (tabId: string) => {
-    setActiveTab(tabId as 'discover' | 'watchlist');
+    setActiveTab(tabId as 'feed' | 'discover' | 'watchlist');
     setMountedTabs((prev) => new Set(prev).add(tabId));
   };
 
   const tabs = [
     { id: 'discover', label: 'Discover' },
+    { id: 'feed', label: 'Feed' },
     { id: 'watchlist', label: 'Watch List' },
   ];
 
@@ -42,6 +44,9 @@ export default function MoviesTab({
           className="mb-8"
         />
 
+        <div style={{ display: activeTab === 'feed' ? 'block' : 'none' }}>
+          {mountedTabs.has('feed') && <FeedTab />}
+        </div>
         <div style={{ display: activeTab === 'discover' ? 'block' : 'none' }}>
           {mountedTabs.has('discover') && (
             <DiscoverTab

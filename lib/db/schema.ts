@@ -112,3 +112,54 @@ export const userEpisodes = pgTable('user_episodes', {
 
 export type UserEpisode = typeof userEpisodes.$inferSelect;
 export type NewUserEpisode = typeof userEpisodes.$inferInsert;
+
+// Follow status enum
+export const followStatusEnum = pgEnum('follow_status', [
+  'pending',
+  'accepted',
+  'rejected',
+]);
+
+// User Follows table (for follow relationships)
+export const userFollows = pgTable('user_follows', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  followerId: uuid('follower_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }), // User who is following
+  followingId: uuid('following_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }), // User being followed
+  status: followStatusEnum('status').notNull().default('pending'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type UserFollow = typeof userFollows.$inferSelect;
+export type NewUserFollow = typeof userFollows.$inferInsert;
+
+// Notification type enum
+export const notificationTypeEnum = pgEnum('notification_type', [
+  'follow_request',
+  'follow_accepted',
+  'follow',
+]);
+
+// Notifications table
+export const notifications = pgTable('notifications', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }), // Recipient of notification
+  fromUserId: uuid('from_user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }), // User who triggered the notification
+  type: notificationTypeEnum('type').notNull(),
+  followId: uuid('follow_id').references(() => userFollows.id, {
+    onDelete: 'cascade',
+  }), // Reference to follow request (for follow-related notifications)
+  read: boolean('read').notNull().default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = typeof notifications.$inferInsert;

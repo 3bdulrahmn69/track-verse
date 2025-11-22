@@ -4,23 +4,25 @@ import { useState } from 'react';
 import DiscoverTab from './discover-tab';
 import CurrentWatchingTab from './current-watching-tab';
 import WatchListTab from './watch-list-tab';
+import FeedTab from './feed-tab';
 import { Tabs } from '@/components/ui/tabs';
 
 export default function TvShowsTab() {
   const [activeTab, setActiveTab] = useState<
-    'discover' | 'watching' | 'watchlist'
-  >('discover');
+    'feed' | 'discover' | 'watching' | 'watchlist'
+  >('feed');
   const [mountedTabs, setMountedTabs] = useState<Set<string>>(
-    new Set(['discover'])
+    new Set(['feed'])
   );
 
   const handleTabChange = (tabId: string) => {
-    setActiveTab(tabId as 'discover' | 'watching' | 'watchlist');
+    setActiveTab(tabId as 'feed' | 'discover' | 'watching' | 'watchlist');
     setMountedTabs((prev) => new Set(prev).add(tabId));
   };
 
   const tabs = [
     { id: 'discover', label: 'Discover' },
+    { id: 'feed', label: 'Feed' },
     { id: 'watching', label: 'Current Watching' },
     { id: 'watchlist', label: 'Watch List' },
   ];
@@ -35,6 +37,9 @@ export default function TvShowsTab() {
           className="mb-8"
         />
 
+        <div style={{ display: activeTab === 'feed' ? 'block' : 'none' }}>
+          {mountedTabs.has('feed') && <FeedTab />}
+        </div>
         <div style={{ display: activeTab === 'discover' ? 'block' : 'none' }}>
           {mountedTabs.has('discover') && <DiscoverTab />}
         </div>

@@ -1,7 +1,13 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { FiSettings, FiLogOut, FiChevronDown, FiUser } from 'react-icons/fi';
+import {
+  FiSettings,
+  FiLogOut,
+  FiChevronDown,
+  FiUser,
+  FiBell,
+} from 'react-icons/fi';
 import ThemeToggle from '@/components/shared/theme-toggle';
 import { signOut, useSession } from 'next-auth/react';
 import { Avatar } from '@/components/ui/avatar';
@@ -13,6 +19,7 @@ interface UserMenuProps {
 
 export function UserMenu({ openUp = false }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const menuRef = useRef<HTMLDivElement>(null);
   const { data: session } = useSession();
 
@@ -27,27 +34,64 @@ export function UserMenu({ openUp = false }: UserMenuProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    // Fetch unread notifications count
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await fetch('/api/notifications?unreadOnly=true');
+        if (response.ok) {
+          const data = await response.json();
+          setUnreadCount(data.unreadCount || 0);
+        }
+      } catch (error) {
+        console.error('Error fetching unread count:', error);
+      }
+    };
+
+    fetchUnreadCount();
+
+    // Poll for new notifications every 60 seconds
+    const interval = setInterval(fetchUnreadCount, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/login' });
   };
 
   return (
     <div className="relative" ref={menuRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 p-2 rounded-full hover:bg-muted transition-colors duration-200"
-      >
-        <Avatar
-          src={session?.user?.image}
-          alt={session?.user?.name || 'User'}
-          size="sm"
-        />
-        <FiChevronDown
-          className={`w-4 h-4 transition-transform duration-200 hidden md:block ${
-            isOpen ? 'rotate-180' : ''
-          }`}
-        />
-      </button>
+      <div className="flex items-center gap-2">
+        {/* Notifications Bell - Hidden on small screens, shown on md+ */}
+        <Link
+          href="/notifications"
+          className="relative p-2 rounded-full hover:bg-muted transition-colors duration-200 hidden md:flex"
+        >
+          <FiBell className="w-5 h-5 text-foreground" />
+          {unreadCount > 0 && (
+            <span className="absolute top-0 right-0 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </Link>
+
+        {/* User Menu Button */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center gap-2 p-2 rounded-full hover:bg-muted transition-colors duration-200"
+        >
+          <Avatar
+            src={session?.user?.image}
+            alt={session?.user?.name || 'User'}
+            size="sm"
+          />
+          <FiChevronDown
+            className={`w-4 h-4 transition-transform duration-200 hidden md:block ${
+              isOpen ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
+      </div>
 
       {isOpen && (
         <div
@@ -76,6 +120,28 @@ export function UserMenu({ openUp = false }: UserMenuProps) {
 
           {/* Menu Items */}
           <div className="py-2">
+            {/* Notifications - Only shown on small screens */}
+            <Link
+              href="/notifications"
+              onClick={() => setIsOpen(false)}
+              className="w-full flex items-center gap-3 px-4 py-2 text-foreground hover:bg-muted transition-colors duration-200 md:hidden"
+            >
+              <div className="relative">
+                <FiBell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-red-500 rounded-full">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </div>
+              <span>Notifications</span>
+              {unreadCount > 0 && (
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {unreadCount} new
+                </span>
+              )}
+            </Link>
+
             <Link
               href="/profile"
               onClick={() => setIsOpen(false)}

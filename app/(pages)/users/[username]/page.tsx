@@ -1,13 +1,21 @@
 import { notFound } from 'next/navigation';
 import { FiCalendar, FiFilm, FiStar, FiClock, FiTv } from 'react-icons/fi';
 import { db } from '@/lib/db';
-import { users, userMovies, userTvShows, userEpisodes } from '@/lib/db/schema';
+import {
+  users,
+  userMovies,
+  userTvShows,
+  userEpisodes,
+  userFollows,
+} from '@/lib/db/schema';
 import { eq, and, isNotNull, ne } from 'drizzle-orm';
 import { MovieCard } from '@/components/tabs/movies/movie-card';
 import { TVShowCard } from '@/components/tabs/tv-shows/tv-show-card';
 import BackButton from '@/components/shared/back-button';
 import { Avatar } from '@/components/ui/avatar';
 import { UserStats } from '@/components/user/user-stats';
+import { UserFollowInfo } from '@/components/user/user-follow-info';
+import { auth } from '@/lib/auth-config';
 import type { Movie } from '@/lib/tmdb';
 import type { TVShow } from '@/lib/tmdb';
 import {
@@ -26,6 +34,9 @@ interface UserPageProps {
 export default async function UserPage({ params }: UserPageProps) {
   const { username } = await params;
 
+  // Get current user session
+  const session = await auth();
+
   // Fetch user data
   const [user] = await db
     .select()
@@ -35,6 +46,24 @@ export default async function UserPage({ params }: UserPageProps) {
 
   if (!user) {
     notFound();
+  }
+
+  // Check if current user is following this user with accepted status
+  let canViewPrivateContent = user.isPublic;
+  if (session?.user && session.user.id !== user.id) {
+    const [followRelationship] = await db
+      .select()
+      .from(userFollows)
+      .where(
+        and(
+          eq(userFollows.followerId, session.user.id),
+          eq(userFollows.followingId, user.id),
+          eq(userFollows.status, 'accepted')
+        )
+      )
+      .limit(1);
+
+    canViewPrivateContent = user.isPublic || !!followRelationship;
   }
 
   // Fetch user's watched movies with ratings
@@ -138,6 +167,15 @@ export default async function UserPage({ params }: UserPageProps) {
               </h1>
               <p className="text-muted-foreground mb-4">@{user.username}</p>
 
+              {/* Follower Stats and Follow Button */}
+              <div className="mb-4 flex justify-center md:justify-start">
+                <UserFollowInfo
+                  userId={user.id}
+                  currentUserId={session?.user?.id}
+                  showFollowButton={true}
+                />
+              </div>
+
               <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4 justify-center md:justify-start">
                 <div className="flex items-center gap-1">
                   <FiCalendar className="w-4 h-4" />
@@ -151,7 +189,7 @@ export default async function UserPage({ params }: UserPageProps) {
                 </div>
               </div>
 
-              {user.isPublic ? (
+              {canViewPrivateContent ? (
                 <>
                   {/* Stats */}
                   <UserStats
@@ -211,7 +249,7 @@ export default async function UserPage({ params }: UserPageProps) {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
-        {user.isPublic ? (
+        {canViewPrivateContent ? (
           <>
             {/* Watched Movies */}
             {movies.length > 0 && (
@@ -256,8 +294,8 @@ export default async function UserPage({ params }: UserPageProps) {
                 Private Account
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                This user&apos;s profile is private. Only they can view their
-                watch history and statistics.
+                This user&apos;s profile is private. Only their followers can
+                view their watch history and statistics.
               </p>
             </div>
           </div>
@@ -265,7 +303,7 @@ export default async function UserPage({ params }: UserPageProps) {
       </div>
 
       {/* Reviews Section */}
-      {user.isPublic && (
+      {canViewPrivateContent && (
         <div className="container mx-auto px-4 py-12">
           {watchedMovies.length > 0 && (
             <section>
