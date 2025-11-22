@@ -170,13 +170,9 @@ export function TVShowCard({ tvShow, onStatusChange }: TVShowCardProps) {
 
               {status === 'completed' && (
                 <Popover content="Completed" position="right">
-                  <button
-                    onClick={handleRemove}
-                    disabled={isUpdating || loading}
-                    className="p-2 rounded-full bg-purple-600 text-white hover:bg-purple-700 transition-colors shadow-lg disabled:opacity-50"
-                  >
+                  <div className="p-2 rounded-full bg-purple-600 text-white shadow-lg">
                     <FiCheck className="w-4 h-4" />
-                  </button>
+                  </div>
                 </Popover>
               )}
 

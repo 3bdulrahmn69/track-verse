@@ -3,18 +3,31 @@
 import { useState, useEffect } from 'react';
 import { TVShow } from '@/lib/tmdb';
 import { TVShowCard } from './tv-show-card';
-import { FiCalendar, FiGrid, FiList, FiTv } from 'react-icons/fi';
+import { TVShowCardList } from './tv-show-card-list';
+import {
+  FiCalendar,
+  FiGrid,
+  FiList,
+  FiTv,
+  FiChevronUp,
+  FiChevronDown,
+} from 'react-icons/fi';
 import { Dropdown } from '@/components/ui/dropdown';
 import { useTVShowCacheStore } from '@/store/tv-show-cache-store';
 
+interface TVShowWithStatus extends TVShow {
+  status?: 'want_to_watch' | 'watching' | 'completed' | 'stopped_watching';
+}
+
 export default function WatchListTab() {
-  const [watchListShows, setWatchListShows] = useState<TVShow[]>([]);
+  const [watchListShows, setWatchListShows] = useState<TVShowWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const subscribeToStatusChanges = useTVShowCacheStore(
     (state) => state.subscribeToStatusChanges
   );
 
   const [sortBy, setSortBy] = useState<'added' | 'name' | 'rating'>('added');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const handleStatusChange = (
@@ -78,18 +91,24 @@ export default function WatchListTab() {
   }, [subscribeToStatusChanges]);
 
   const getSortedShows = () => {
-    return [...watchListShows].sort((a, b) => {
+    const shows = [...watchListShows];
+
+    return shows.sort((a, b) => {
+      let comparison = 0;
       switch (sortBy) {
         case 'added':
-          // For now, sort by name since we don't have addedAt in the simplified version
-          return a.name.localeCompare(b.name);
+          comparison = a.name.localeCompare(b.name);
+          break;
         case 'name':
-          return a.name.localeCompare(b.name);
+          comparison = a.name.localeCompare(b.name);
+          break;
         case 'rating':
-          return (b.vote_average || 0) - (a.vote_average || 0);
+          comparison = (b.vote_average || 0) - (a.vote_average || 0);
+          break;
         default:
-          return 0;
+          comparison = 0;
       }
+      return sortOrder === 'asc' ? comparison : -comparison;
     });
   };
 
@@ -130,6 +149,17 @@ export default function WatchListTab() {
               onChange={(value) => setSortBy(value as typeof sortBy)}
               className="w-44"
             />
+            <button
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="p-2 rounded transition-colors text-muted-foreground hover:text-foreground"
+              title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
+            >
+              {sortOrder === 'asc' ? (
+                <FiChevronUp className="w-4 h-4" />
+              ) : (
+                <FiChevronDown className="w-4 h-4" />
+              )}
+            </button>
           </div>
 
           {/* View Mode Toggle */}
@@ -175,34 +205,11 @@ export default function WatchListTab() {
         ) : (
           <div className="space-y-4">
             {sortedShows.map((show) => (
-              <div
+              <TVShowCardList
                 key={show.id}
-                className="flex items-center gap-4 p-4 bg-card rounded-lg border border-border hover:border-primary transition-colors"
-              >
-                <div className="w-24 shrink-0">
-                  <TVShowCard
-                    tvShow={show}
-                    onStatusChange={handleStatusChange}
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-foreground mb-1 truncate">
-                    {show.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {show.overview}
-                  </p>
-                  <div className="flex items-center gap-4 mt-2 text-sm">
-                    <span className="text-muted-foreground">
-                      {show.first_air_date?.split('-')[0] || 'N/A'}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <FiCalendar className="w-3 h-3" />
-                      {show.vote_average.toFixed(1)}
-                    </span>
-                  </div>
-                </div>
-              </div>
+                tvShow={show}
+                onStatusChange={handleStatusChange}
+              />
             ))}
           </div>
         )

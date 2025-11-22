@@ -3,14 +3,19 @@
 import { useState, useEffect } from 'react';
 import { TVShow } from '@/lib/tmdb';
 import { TVShowCard } from './tv-show-card';
-import { FiFilter, FiTv } from 'react-icons/fi';
+import { TVShowCardList } from './tv-show-card-list';
+import { FiFilter, FiGrid, FiList, FiTv } from 'react-icons/fi';
 import { Dropdown } from '@/components/ui/dropdown';
 import { useTVShowCacheStore } from '@/store/tv-show-cache-store';
 
+interface TVShowWithStatus extends TVShow {
+  status?: 'want_to_watch' | 'watching' | 'completed' | 'stopped_watching';
+}
+
 export default function CurrentWatchingTab() {
-  const [currentWatchingShows, setCurrentWatchingShows] = useState<TVShow[]>(
-    []
-  );
+  const [currentWatchingShows, setCurrentWatchingShows] = useState<
+    TVShowWithStatus[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const subscribeToStatusChanges = useTVShowCacheStore(
     (state) => state.subscribeToStatusChanges
@@ -19,6 +24,7 @@ export default function CurrentWatchingTab() {
   const [filter, setFilter] = useState<
     'all' | 'watching' | 'completed' | 'stopped_watching'
   >('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const handleStatusChange = (
     tvShowId: number,
@@ -89,6 +95,13 @@ export default function CurrentWatchingTab() {
     return unsubscribe;
   }, [subscribeToStatusChanges]);
 
+  const getFilteredShows = () => {
+    if (filter === 'all') return currentWatchingShows;
+    return currentWatchingShows.filter((show) => show.status === filter);
+  };
+
+  const filteredShows = getFilteredShows();
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -113,30 +126,70 @@ export default function CurrentWatchingTab() {
             Current Watching
           </h2>
           <p className="text-muted-foreground mt-1">
-            {currentWatchingShows.length} show
-            {currentWatchingShows.length !== 1 ? 's' : ''}
+            {filteredShows.length} show{filteredShows.length !== 1 ? 's' : ''}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <FiFilter className="text-muted-foreground" />
-          <Dropdown
-            options={filterOptions}
-            value={filter}
-            onChange={(value) => setFilter(value as typeof filter)}
-            className="w-40"
-          />
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <FiFilter className="text-muted-foreground" />
+            <Dropdown
+              options={filterOptions}
+              value={filter}
+              onChange={(value) => setFilter(value as typeof filter)}
+              className="w-40"
+            />
+          </div>
+
+          {/* View Mode Toggle */}
+          <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-2 rounded transition-colors ${
+                viewMode === 'grid'
+                  ? 'bg-background text-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Grid View"
+            >
+              <FiGrid className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-2 rounded transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-background text-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="List View"
+            >
+              <FiList className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* TV Shows Grid */}
-      {currentWatchingShows.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-          {currentWatchingShows.map((show) => (
-            <div key={show.id} className="relative">
-              <TVShowCard tvShow={show} onStatusChange={handleStatusChange} />
-            </div>
-          ))}
-        </div>
+      {/* TV Shows Display */}
+      {filteredShows.length > 0 ? (
+        viewMode === 'grid' ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+            {filteredShows.map((show) => (
+              <div key={show.id} className="relative">
+                <TVShowCard tvShow={show} onStatusChange={handleStatusChange} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredShows.map((show) => (
+              <TVShowCardList
+                key={show.id}
+                tvShow={show}
+                onStatusChange={handleStatusChange}
+                showEpisodeCount={true}
+              />
+            ))}
+          </div>
+        )
       ) : (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <FiTv className="text-6xl mb-4 text-muted-foreground" />

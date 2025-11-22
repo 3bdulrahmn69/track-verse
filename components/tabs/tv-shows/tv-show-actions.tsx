@@ -106,14 +106,10 @@ export default function TVShowActions({
       )}
 
       {status === 'completed' && (
-        <button
-          onClick={() => handleStatusUpdate(null)}
-          disabled={loading || isUpdating}
-          className="flex items-center gap-2 px-6 py-3 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors disabled:opacity-50 font-medium"
-        >
+        <div className="flex items-center gap-2 px-6 py-3 rounded-lg bg-purple-600 text-white font-medium">
           <FiCheck className="w-5 h-5" />
-          Completed • Remove
-        </button>
+          Completed
+        </div>
       )}
 
       {status === 'stopped_watching' && (

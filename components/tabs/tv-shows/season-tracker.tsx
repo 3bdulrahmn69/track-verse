@@ -5,10 +5,11 @@ import { FiCheck, FiCircle } from 'react-icons/fi';
 import { Tabs } from '@/components/ui/tabs';
 import type { Season, Episode } from '@/lib/tmdb';
 import { toast } from 'react-toastify';
-import Image from 'next/image';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Congratulations } from '@/components/shared/congratulations';
 import { EpisodeDetailsDialog } from './episode-details-dialog';
+import { EpisodeCard } from './episode-card';
+import { Popover } from '@/components/ui/popover';
 
 interface SeasonTrackerProps {
   tvShowId: number;
@@ -42,6 +43,7 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
     currentStatus: boolean;
     prevEpisodes: number[];
   }>({ open: false, episodeNumber: 0, currentStatus: false, prevEpisodes: [] });
+  const [markAllUnwatchedDialog, setMarkAllUnwatchedDialog] = useState(false);
   const [selectedEpisode, setSelectedEpisode] =
     useState<EpisodeWithStatus | null>(null);
   const [episodeDialogOpen, setEpisodeDialogOpen] = useState(false);
@@ -117,14 +119,8 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
         });
         if (!response.ok) throw new Error('Failed to update episode');
 
-        const data = await response.json();
-
-        // Check if show was completed
-        if (data.showCompleted) {
-          toast.success('🎉 Congratulations! You completed the entire show!', {
-            autoClose: 5000,
-          });
-        }
+        // Show completion handled by backend
+        await response.json();
       }
       setEpisodes((prev) =>
         prev.map((ep) =>
@@ -175,6 +171,17 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
     const allWatched = watchedCount === totalCount;
     const newWatchedStatus = !allWatched;
 
+    // Show confirmation dialog when marking all as unwatched
+    if (allWatched) {
+      setMarkAllUnwatchedDialog(true);
+      return;
+    }
+
+    // Proceed with marking all as watched
+    await performMarkAllEpisodes(newWatchedStatus);
+  };
+
+  const performMarkAllEpisodes = async (newWatchedStatus: boolean) => {
     setUpdatingAllEpisodes(true);
     setUpdatingEpisodes(new Set(episodes.map((ep) => ep.episode_number)));
 
@@ -197,17 +204,7 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
         return response.json();
       });
 
-      const results = await Promise.all(updatePromises);
-
-      // Check if show was completed (only when marking as watched)
-      if (newWatchedStatus) {
-        const completionResult = results.find((result) => result.showCompleted);
-        if (completionResult) {
-          toast.success('🎉 Congratulations! You completed the entire show!', {
-            autoClose: 5000,
-          });
-        }
-      }
+      await Promise.all(updatePromises);
 
       // Update local state
       setEpisodes((prev) =>
@@ -269,14 +266,8 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
 
       if (!response.ok) throw new Error('Failed to submit review');
 
-      const data = await response.json();
-
-      // Check if show was completed
-      if (data.showCompleted) {
-        toast.success('🎉 Congratulations! You completed the entire show!', {
-          autoClose: 5000,
-        });
-      }
+      // Show completion handled by backend
+      await response.json();
 
       // Update local state
       setEpisodes((prev) =>
@@ -295,8 +286,6 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
     }
   };
 
-  console.log(episodes);
-
   return (
     <div className="relative">
       {/* Congratulations Animation */}
@@ -314,11 +303,41 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
 
       {/* Progress Bar */}
       <div className="mb-6">
-        <div className="flex justify-between text-sm text-muted-foreground mb-2">
+        <div className="flex justify-between items-center text-sm text-muted-foreground mb-2">
           <span>Progress</span>
-          <span>
-            {watchedCount} / {totalCount} episodes
-          </span>
+          <div className="flex items-center gap-3">
+            <span>
+              {watchedCount} / {totalCount} episodes
+            </span>
+            {episodes.length > 0 && (
+              <Popover
+                content={
+                  watchedCount === totalCount
+                    ? 'Mark All as Unwatched'
+                    : 'Mark All as Watched'
+                }
+                position="left"
+              >
+                <button
+                  onClick={handleMarkAllEpisodes}
+                  disabled={updatingAllEpisodes || updatingEpisodes.size > 0}
+                  className={`shrink-0 p-2 rounded-full transition-colors disabled:opacity-50 ${
+                    watchedCount === totalCount
+                      ? 'bg-success text-success-foreground hover:bg-success/90'
+                      : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                  }`}
+                >
+                  {updatingAllEpisodes ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current"></div>
+                  ) : watchedCount === totalCount ? (
+                    <FiCircle className="w-5 h-5" />
+                  ) : (
+                    <FiCheck className="w-5 h-5" />
+                  )}
+                </button>
+              </Popover>
+            )}
+          </div>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">
           <div
@@ -327,34 +346,6 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
           />
         </div>
       </div>
-
-      {/* Mark All Button */}
-      {episodes.length > 0 && (
-        <div className="mb-6">
-          <button
-            onClick={handleMarkAllEpisodes}
-            disabled={updatingAllEpisodes || updatingEpisodes.size > 0}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 font-medium"
-          >
-            {updatingAllEpisodes ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
-                Updating...
-              </>
-            ) : watchedCount === totalCount ? (
-              <>
-                <FiCircle className="w-4 h-4" />
-                Mark All as Unwatched
-              </>
-            ) : (
-              <>
-                <FiCheck className="w-4 h-4" />
-                Mark All as Watched
-              </>
-            )}
-          </button>
-        </div>
-      )}
 
       {/* Episodes List */}
       {loading ? (
@@ -369,72 +360,13 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
       ) : (
         <div className="space-y-3">
           {episodes.map((episode) => (
-            <div
+            <EpisodeCard
               key={episode.id}
-              onClick={() => handleEpisodeClick(episode)}
-              className={`flex items-start gap-4 p-4 rounded-lg border transition-colors cursor-pointer ${
-                episode.watched
-                  ? 'bg-success/10 border-success/30'
-                  : 'bg-card border-border hover:border-primary/50'
-              }`}
-            >
-              {episode.still_path && (
-                <Image
-                  src={`https://image.tmdb.org/t/p/w300${episode.still_path}`}
-                  alt={episode.name}
-                  width={120}
-                  height={68}
-                  className="rounded shrink-0"
-                  sizes="120px"
-                />
-              )}
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <h3 className="font-semibold text-foreground">
-                    {episode.episode_number}. {episode.name}
-                  </h3>
-                  {episode.runtime && (
-                    <span className="text-sm text-muted-foreground shrink-0">
-                      {episode.runtime} min
-                    </span>
-                  )}
-                </div>
-                {episode.air_date && (
-                  <p className="text-sm text-muted-foreground mb-2">
-                    {new Date(episode.air_date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </p>
-                )}
-                {episode.overview && (
-                  <p className="text-sm text-foreground line-clamp-2">
-                    {episode.overview}
-                  </p>
-                )}
-              </div>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleToggleEpisode(episode.episode_number, episode.watched);
-                }}
-                disabled={updatingEpisodes.has(episode.episode_number)}
-                className={`shrink-0 mt-1 p-2 rounded-full transition-colors disabled:opacity-50 ${
-                  episode.watched
-                    ? 'bg-success text-success-foreground hover:bg-success/90'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}
-              >
-                {episode.watched ? (
-                  <FiCheck className="w-5 h-5" />
-                ) : (
-                  <FiCircle className="w-5 h-5" />
-                )}
-              </button>
-            </div>
+              episode={episode}
+              onToggle={handleToggleEpisode}
+              onClick={handleEpisodeClick}
+              isUpdating={updatingEpisodes.has(episode.episode_number)}
+            />
           ))}
         </div>
       )}
@@ -466,6 +398,19 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
         confirmText="Yes, mark all"
         cancelText="No, just this one"
         confirmVariant="success"
+      />
+      <ConfirmDialog
+        isOpen={markAllUnwatchedDialog}
+        onClose={() => setMarkAllUnwatchedDialog(false)}
+        onConfirm={() => {
+          performMarkAllEpisodes(false);
+          setMarkAllUnwatchedDialog(false);
+        }}
+        title="Mark All as Unwatched"
+        message="Are you sure you want to mark all episodes in this season as unwatched? This will reset your progress."
+        confirmText="Yes"
+        cancelText="Cancel"
+        confirmVariant="destructive"
       />
 
       {selectedEpisode && (
