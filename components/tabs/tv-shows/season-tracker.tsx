@@ -176,7 +176,7 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
     const newWatchedStatus = !allWatched;
 
     setUpdatingAllEpisodes(true);
-    setUpdatingEpisodes(new Set(episodes.map(ep => ep.episode_number)));
+    setUpdatingEpisodes(new Set(episodes.map((ep) => ep.episode_number)));
 
     try {
       // Update all episodes
@@ -201,7 +201,7 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
 
       // Check if show was completed (only when marking as watched)
       if (newWatchedStatus) {
-        const completionResult = results.find(result => result.showCompleted);
+        const completionResult = results.find((result) => result.showCompleted);
         if (completionResult) {
           toast.success('🎉 Congratulations! You completed the entire show!', {
             autoClose: 5000,
@@ -222,7 +222,9 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
       }
 
       toast.success(
-        newWatchedStatus ? 'Marked all episodes as watched' : 'Marked all episodes as unwatched'
+        newWatchedStatus
+          ? 'Marked all episodes as watched'
+          : 'Marked all episodes as unwatched'
       );
     } catch (error) {
       console.error('Error updating all episodes:', error);
