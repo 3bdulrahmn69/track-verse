@@ -72,12 +72,6 @@ export function TVShowCard({ tvShow, onStatusChange }: TVShowCardProps) {
     await handleStatusUpdate('watching');
   };
 
-  const handleMarkAsCompleted = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    await handleStatusUpdate('completed');
-  };
-
   const handleMarkAsStoppedWatching = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -163,34 +157,15 @@ export function TVShowCard({ tvShow, onStatusChange }: TVShowCardProps) {
               )}
 
               {status === 'watching' && (
-                <>
-                  <Popover content="Watching" position="right">
-                    <button
-                      disabled
-                      className="p-2 rounded-full bg-green-600 text-white transition-colors shadow-lg opacity-90"
-                    >
-                      <FiPlay className="w-4 h-4" />
-                    </button>
-                  </Popover>
-                  <Popover content="Mark as Completed" position="right">
-                    <button
-                      onClick={handleMarkAsCompleted}
-                      disabled={isUpdating || loading}
-                      className="p-2 rounded-full bg-purple-600 text-white hover:bg-purple-700 transition-colors shadow-lg disabled:opacity-50"
-                    >
-                      <FiCheck className="w-4 h-4" />
-                    </button>
-                  </Popover>
-                  <Popover content="Stop Watching" position="right">
-                    <button
-                      onClick={handleMarkAsStoppedWatching}
-                      disabled={isUpdating || loading}
-                      className="p-2 rounded-full bg-yellow-600 text-white hover:bg-yellow-700 transition-colors shadow-lg disabled:opacity-50"
-                    >
-                      <FiX className="w-4 h-4" />
-                    </button>
-                  </Popover>
-                </>
+                <Popover content="Stop Watching" position="right">
+                  <button
+                    onClick={handleMarkAsStoppedWatching}
+                    disabled={isUpdating || loading}
+                    className="p-2 rounded-full bg-yellow-600 text-white hover:bg-yellow-700 transition-colors shadow-lg disabled:opacity-50"
+                  >
+                    <FiX className="w-4 h-4" />
+                  </button>
+                </Popover>
               )}
 
               {status === 'completed' && (

@@ -95,31 +95,14 @@ export default function TVShowActions({
       )}
 
       {status === 'watching' && (
-        <>
-          <button
-            disabled
-            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-green-600 text-white transition-colors font-medium opacity-90"
-          >
-            <FiPlay className="w-5 h-5" />
-            Watching
-          </button>
-          <button
-            onClick={() => handleStatusUpdate('completed')}
-            disabled={loading || isUpdating}
-            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors disabled:opacity-50 font-medium"
-          >
-            <FiCheck className="w-5 h-5" />
-            Mark as Completed
-          </button>
-          <button
-            onClick={() => handleStatusUpdate('stopped_watching')}
-            disabled={loading || isUpdating}
-            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-yellow-600 text-white hover:bg-yellow-700 transition-colors disabled:opacity-50 font-medium"
-          >
-            <FiX className="w-5 h-5" />
-            Stop Watching
-          </button>
-        </>
+        <button
+          onClick={() => handleStatusUpdate('stopped_watching')}
+          disabled={loading || isUpdating}
+          className="flex items-center gap-2 px-6 py-3 rounded-lg bg-yellow-600 text-white hover:bg-yellow-700 transition-colors disabled:opacity-50 font-medium"
+        >
+          <FiX className="w-5 h-5" />
+          Stop Watching
+        </button>
       )}
 
       {status === 'completed' && (

@@ -162,17 +162,42 @@ export async function POST(
         )
       );
 
-    await db
-      .update(userTvShows)
-      .set({
-        watchedEpisodes: watchedCount.length,
-        updatedAt: new Date(),
-      })
-      .where(eq(userTvShows.id, show.id));
+    const newWatchedCount = watchedCount.length;
+
+    // Check if all episodes are now watched (automatic completion)
+    let showCompleted = false;
+    if (
+      watched &&
+      show.totalEpisodes &&
+      newWatchedCount === show.totalEpisodes
+    ) {
+      // All episodes are watched, mark show as completed
+      await db
+        .update(userTvShows)
+        .set({
+          status: 'completed',
+          watchedEpisodes: newWatchedCount,
+          updatedAt: new Date(),
+        })
+        .where(eq(userTvShows.id, show.id));
+      showCompleted = true;
+    } else {
+      // Just update the watched count
+      await db
+        .update(userTvShows)
+        .set({
+          watchedEpisodes: newWatchedCount,
+          updatedAt: new Date(),
+        })
+        .where(eq(userTvShows.id, show.id));
+    }
 
     return NextResponse.json({
-      message: 'Episode updated successfully',
-      watchedEpisodes: watchedCount.length,
+      message: showCompleted
+        ? 'Episode updated successfully. Show marked as completed!'
+        : 'Episode updated successfully',
+      watchedEpisodes: newWatchedCount,
+      showCompleted,
     });
   } catch (error) {
     console.error('Error updating episode:', error);

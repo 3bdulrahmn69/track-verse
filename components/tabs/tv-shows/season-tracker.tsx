@@ -31,6 +31,7 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
   const [updatingEpisodes, setUpdatingEpisodes] = useState<Set<number>>(
     new Set()
   );
+  const [updatingAllEpisodes, setUpdatingAllEpisodes] = useState(false);
   const [showCongratulations, setShowCongratulations] = useState(false);
   const [congratulationsSeason, setCongratulationsSeason] = useState<
     number | null
@@ -115,6 +116,15 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
           }),
         });
         if (!response.ok) throw new Error('Failed to update episode');
+
+        const data = await response.json();
+
+        // Check if show was completed
+        if (data.showCompleted) {
+          toast.success('🎉 Congratulations! You completed the entire show!', {
+            autoClose: 5000,
+          });
+        }
       }
       setEpisodes((prev) =>
         prev.map((ep) =>
@@ -161,6 +171,68 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
     }
   };
 
+  const handleMarkAllEpisodes = async () => {
+    const allWatched = watchedCount === totalCount;
+    const newWatchedStatus = !allWatched;
+
+    setUpdatingAllEpisodes(true);
+    setUpdatingEpisodes(new Set(episodes.map(ep => ep.episode_number)));
+
+    try {
+      // Update all episodes
+      const updatePromises = episodes.map(async (episode) => {
+        const response = await fetch(`/api/tv-shows/${tvShowId}/episodes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            seasonNumber: activeSeasonNumber,
+            episodeNumber: episode.episode_number,
+            watched: newWatchedStatus,
+            episodeName: episode.name,
+            runtime: episode.runtime,
+          }),
+        });
+
+        if (!response.ok) throw new Error('Failed to update episode');
+        return response.json();
+      });
+
+      const results = await Promise.all(updatePromises);
+
+      // Check if show was completed (only when marking as watched)
+      if (newWatchedStatus) {
+        const completionResult = results.find(result => result.showCompleted);
+        if (completionResult) {
+          toast.success('🎉 Congratulations! You completed the entire show!', {
+            autoClose: 5000,
+          });
+        }
+      }
+
+      // Update local state
+      setEpisodes((prev) =>
+        prev.map((ep) => ({ ...ep, watched: newWatchedStatus }))
+      );
+
+      // Check if season completion congratulations should be shown
+      if (newWatchedStatus && congratulationsSeason !== activeSeasonNumber) {
+        setShowCongratulations(true);
+        setCongratulationsSeason(activeSeasonNumber);
+        setTimeout(() => setShowCongratulations(false), 3000);
+      }
+
+      toast.success(
+        newWatchedStatus ? 'Marked all episodes as watched' : 'Marked all episodes as unwatched'
+      );
+    } catch (error) {
+      console.error('Error updating all episodes:', error);
+      toast.error('Failed to update episodes');
+    } finally {
+      setUpdatingAllEpisodes(false);
+      setUpdatingEpisodes(new Set());
+    }
+  };
+
   const tabs = validSeasons.map((season) => ({
     id: season.season_number.toString(),
     label: `Season ${season.season_number}`,
@@ -194,6 +266,15 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
       });
 
       if (!response.ok) throw new Error('Failed to submit review');
+
+      const data = await response.json();
+
+      // Check if show was completed
+      if (data.showCompleted) {
+        toast.success('🎉 Congratulations! You completed the entire show!', {
+          autoClose: 5000,
+        });
+      }
 
       // Update local state
       setEpisodes((prev) =>
@@ -244,6 +325,34 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
           />
         </div>
       </div>
+
+      {/* Mark All Button */}
+      {episodes.length > 0 && (
+        <div className="mb-6">
+          <button
+            onClick={handleMarkAllEpisodes}
+            disabled={updatingAllEpisodes || updatingEpisodes.size > 0}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 font-medium"
+          >
+            {updatingAllEpisodes ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                Updating...
+              </>
+            ) : watchedCount === totalCount ? (
+              <>
+                <FiCircle className="w-4 h-4" />
+                Mark All as Unwatched
+              </>
+            ) : (
+              <>
+                <FiCheck className="w-4 h-4" />
+                Mark All as Watched
+              </>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Episodes List */}
       {loading ? (
