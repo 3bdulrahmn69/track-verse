@@ -17,10 +17,10 @@ export default function MoviesTab({
   nowPlayingMovies,
 }: MoviesTabProps) {
   const [activeTab, setActiveTab] = useState<'feed' | 'discover' | 'watchlist'>(
-    'feed'
+    'discover'
   );
   const [mountedTabs, setMountedTabs] = useState<Set<string>>(
-    new Set(['feed'])
+    new Set(['discover'])
   );
 
   const handleTabChange = (tabId: string) => {

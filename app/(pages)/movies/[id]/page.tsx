@@ -14,12 +14,12 @@ import { MovieDetailsTabs } from '@/components/tabs/movies/movie-details-tabs';
 
 interface MoviePageProps {
   params: Promise<{
-    movie: string;
+    id: string;
   }>;
 }
 
 export default async function MoviePage({ params }: MoviePageProps) {
-  const { movie: movieParam } = await params;
+  const { id: movieParam } = await params;
   const movieId = parseInt(movieParam);
 
   if (isNaN(movieId)) {
@@ -44,7 +44,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Backdrop Image */}
-      <div className="relative h-[50vh] md:h-[60vh] w-full">
+      <div className="relative h-[50vh] md:h-[70vh] w-full">
         {movie.backdrop_path && (
           <Image
             src={getImageUrl(movie.backdrop_path, 'original')}

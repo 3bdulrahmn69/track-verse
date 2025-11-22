@@ -10,9 +10,9 @@ import { Tabs } from '@/components/ui/tabs';
 export default function TvShowsTab() {
   const [activeTab, setActiveTab] = useState<
     'feed' | 'discover' | 'watching' | 'watchlist'
-  >('feed');
+  >('discover');
   const [mountedTabs, setMountedTabs] = useState<Set<string>>(
-    new Set(['feed'])
+    new Set(['discover'])
   );
 
   const handleTabChange = (tabId: string) => {

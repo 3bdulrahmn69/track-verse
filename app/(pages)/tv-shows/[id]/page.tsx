@@ -45,7 +45,7 @@ export default async function TVShowPage({ params }: TVShowPageProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Backdrop Image */}
-      <div className="relative h-[50vh] md:h-[60vh] w-full">
+      <div className="relative h-[50vh] md:h-[70vh] w-full">
         {tvShow.backdrop_path && (
           <Image
             src={getImageUrl(tvShow.backdrop_path, 'original')}
