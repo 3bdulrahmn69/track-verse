@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
               | 'want_to_watch'
               | 'watching'
               | 'completed'
-              | 'dropped'
+              | 'stopped_watching'
           )
         )!;
       } else if (statuses.length > 1) {
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
               | 'want_to_watch'
               | 'watching'
               | 'completed'
-              | 'dropped'
+              | 'stopped_watching'
             )[]
           )
         )!;

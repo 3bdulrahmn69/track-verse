@@ -21,7 +21,12 @@ export default function TVShowActions({
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleStatusUpdate = async (
-    newStatus: 'want_to_watch' | 'watching' | 'completed' | 'dropped' | null
+    newStatus:
+      | 'want_to_watch'
+      | 'watching'
+      | 'completed'
+      | 'stopped_watching'
+      | null
   ) => {
     setIsUpdating(true);
     try {
@@ -48,14 +53,24 @@ export default function TVShowActions({
   return (
     <div className="flex flex-wrap gap-3">
       {!status && (
-        <button
-          onClick={() => handleStatusUpdate('want_to_watch')}
-          disabled={loading || isUpdating}
-          className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 font-medium"
-        >
-          <FiBookmark className="w-5 h-5" />
-          Add to Watch List
-        </button>
+        <>
+          <button
+            onClick={() => handleStatusUpdate('want_to_watch')}
+            disabled={loading || isUpdating}
+            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 font-medium"
+          >
+            <FiBookmark className="w-5 h-5" />
+            Add to Watch List
+          </button>
+          <button
+            onClick={() => handleStatusUpdate('watching')}
+            disabled={loading || isUpdating}
+            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50 font-medium"
+          >
+            <FiPlay className="w-5 h-5" />
+            Start Watching
+          </button>
+        </>
       )}
 
       {status === 'want_to_watch' && (
@@ -97,12 +112,12 @@ export default function TVShowActions({
             Mark as Completed
           </button>
           <button
-            onClick={() => handleStatusUpdate('dropped')}
+            onClick={() => handleStatusUpdate('stopped_watching')}
             disabled={loading || isUpdating}
             className="flex items-center gap-2 px-6 py-3 rounded-lg bg-yellow-600 text-white hover:bg-yellow-700 transition-colors disabled:opacity-50 font-medium"
           >
             <FiX className="w-5 h-5" />
-            Drop Show
+            Stop Watching
           </button>
         </>
       )}
@@ -118,15 +133,25 @@ export default function TVShowActions({
         </button>
       )}
 
-      {status === 'dropped' && (
-        <button
-          onClick={() => handleStatusUpdate(null)}
-          disabled={loading || isUpdating}
-          className="flex items-center gap-2 px-6 py-3 rounded-lg bg-yellow-600 text-white hover:bg-yellow-700 transition-colors disabled:opacity-50 font-medium"
-        >
-          <FiX className="w-5 h-5" />
-          Dropped • Remove
-        </button>
+      {status === 'stopped_watching' && (
+        <>
+          <button
+            onClick={() => handleStatusUpdate('watching')}
+            disabled={loading || isUpdating}
+            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50 font-medium"
+          >
+            <FiPlay className="w-5 h-5" />
+            Continue Watching
+          </button>
+          <button
+            onClick={() => handleStatusUpdate(null)}
+            disabled={loading || isUpdating}
+            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-yellow-600 text-white hover:bg-yellow-700 transition-colors disabled:opacity-50 font-medium"
+          >
+            <FiX className="w-5 h-5" />
+            Stopped Watching • Remove
+          </button>
+        </>
       )}
     </div>
   );

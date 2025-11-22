@@ -67,7 +67,12 @@ export default function DiscoverTab() {
 
   const handleStatusChange = (
     tvShowId: number,
-    newStatus: 'want_to_watch' | 'watching' | 'completed' | 'dropped' | null
+    newStatus:
+      | 'want_to_watch'
+      | 'watching'
+      | 'completed'
+      | 'stopped_watching'
+      | null
   ) => {
     // Update local state if needed
     console.log(`TV Show ${tvShowId} status changed to ${newStatus}`);

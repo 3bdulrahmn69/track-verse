@@ -1,6 +1,6 @@
 {
-  "id": "cd6c8df1-6180-43d7-a30a-7d68553a6fce",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "16125ec8-ef03-433e-bb7a-c6b0fdb78f60",
+  "prevId": "cd6c8df1-6180-43d7-a30a-7d68553a6fce",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -495,7 +495,7 @@
         "want_to_watch",
         "watching",
         "completed",
-        "dropped"
+        "stopped_watching"
       ]
     }
   },

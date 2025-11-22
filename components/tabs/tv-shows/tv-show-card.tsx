@@ -19,7 +19,12 @@ interface TVShowCardProps {
   tvShow: TVShow;
   onStatusChange?: (
     tvShowId: number,
-    newStatus: 'want_to_watch' | 'watching' | 'completed' | 'dropped' | null
+    newStatus:
+      | 'want_to_watch'
+      | 'watching'
+      | 'completed'
+      | 'stopped_watching'
+      | null
   ) => void;
 }
 
@@ -27,7 +32,12 @@ export function TVShowCard({ tvShow, onStatusChange }: TVShowCardProps) {
   const { status, loading, updateStatus } = useTVShowStatus(
     tvShow.id,
     (
-      newStatus: 'want_to_watch' | 'watching' | 'completed' | 'dropped' | null
+      newStatus:
+        | 'want_to_watch'
+        | 'watching'
+        | 'completed'
+        | 'stopped_watching'
+        | null
     ) => {
       onStatusChange?.(tvShow.id, newStatus);
     }
@@ -35,7 +45,12 @@ export function TVShowCard({ tvShow, onStatusChange }: TVShowCardProps) {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleStatusUpdate = async (
-    newStatus: 'want_to_watch' | 'watching' | 'completed' | 'dropped' | null
+    newStatus:
+      | 'want_to_watch'
+      | 'watching'
+      | 'completed'
+      | 'stopped_watching'
+      | null
   ) => {
     setIsUpdating(true);
     try {
@@ -63,10 +78,10 @@ export function TVShowCard({ tvShow, onStatusChange }: TVShowCardProps) {
     await handleStatusUpdate('completed');
   };
 
-  const handleMarkAsDropped = async (e: React.MouseEvent) => {
+  const handleMarkAsStoppedWatching = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    await handleStatusUpdate('dropped');
+    await handleStatusUpdate('stopped_watching');
   };
 
   const handleRemove = async (e: React.MouseEvent) => {
@@ -102,15 +117,26 @@ export function TVShowCard({ tvShow, onStatusChange }: TVShowCardProps) {
             <div className="absolute top-2 left-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
               {/* Watch List Button */}
               {!status && (
-                <Popover content="Add to Watch List" position="right">
-                  <button
-                    onClick={handleAddToWatchList}
-                    disabled={isUpdating || loading}
-                    className="p-2 rounded-full bg-primary/20 text-primary hover:bg-primary/30 border-2 border-primary transition-colors shadow-lg disabled:opacity-50"
-                  >
-                    <FiBookmark className="w-4 h-4" />
-                  </button>
-                </Popover>
+                <>
+                  <Popover content="Add to Watch List" position="right">
+                    <button
+                      onClick={handleAddToWatchList}
+                      disabled={isUpdating || loading}
+                      className="p-2 rounded-full bg-primary/20 text-primary hover:bg-primary/30 border-2 border-primary transition-colors shadow-lg disabled:opacity-50"
+                    >
+                      <FiBookmark className="w-4 h-4" />
+                    </button>
+                  </Popover>
+                  <Popover content="Start Watching" position="right">
+                    <button
+                      onClick={handleMarkAsWatching}
+                      disabled={isUpdating || loading}
+                      className="p-2 rounded-full bg-green-600 text-white hover:bg-green-700 transition-colors shadow-lg disabled:opacity-50"
+                    >
+                      <FiPlay className="w-4 h-4" />
+                    </button>
+                  </Popover>
+                </>
               )}
 
               {status === 'want_to_watch' && (
@@ -155,9 +181,9 @@ export function TVShowCard({ tvShow, onStatusChange }: TVShowCardProps) {
                       <FiCheck className="w-4 h-4" />
                     </button>
                   </Popover>
-                  <Popover content="Drop Show" position="right">
+                  <Popover content="Stop Watching" position="right">
                     <button
-                      onClick={handleMarkAsDropped}
+                      onClick={handleMarkAsStoppedWatching}
                       disabled={isUpdating || loading}
                       className="p-2 rounded-full bg-yellow-600 text-white hover:bg-yellow-700 transition-colors shadow-lg disabled:opacity-50"
                     >
@@ -179,16 +205,27 @@ export function TVShowCard({ tvShow, onStatusChange }: TVShowCardProps) {
                 </Popover>
               )}
 
-              {status === 'dropped' && (
-                <Popover content="Dropped" position="right">
-                  <button
-                    onClick={handleRemove}
-                    disabled={isUpdating || loading}
-                    className="p-2 rounded-full bg-yellow-600 text-white hover:bg-yellow-700 transition-colors shadow-lg disabled:opacity-50"
-                  >
-                    <FiX className="w-4 h-4" />
-                  </button>
-                </Popover>
+              {status === 'stopped_watching' && (
+                <>
+                  <Popover content="Continue Watching" position="right">
+                    <button
+                      onClick={handleMarkAsWatching}
+                      disabled={isUpdating || loading}
+                      className="p-2 rounded-full bg-green-600 text-white hover:bg-green-700 transition-colors shadow-lg disabled:opacity-50"
+                    >
+                      <FiPlay className="w-4 h-4" />
+                    </button>
+                  </Popover>
+                  <Popover content="Remove" position="right">
+                    <button
+                      onClick={handleRemove}
+                      disabled={isUpdating || loading}
+                      className="p-2 rounded-full bg-yellow-600 text-white hover:bg-yellow-700 transition-colors shadow-lg disabled:opacity-50"
+                    >
+                      <FiX className="w-4 h-4" />
+                    </button>
+                  </Popover>
+                </>
               )}
             </div>
 

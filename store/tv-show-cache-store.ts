@@ -4,7 +4,7 @@ export type TVShowStatus =
   | 'want_to_watch'
   | 'watching'
   | 'completed'
-  | 'dropped'
+  | 'stopped_watching'
   | null;
 
 interface TVShowStatusCache {

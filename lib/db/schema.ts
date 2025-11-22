@@ -63,7 +63,7 @@ export const tvShowStatusEnum = pgEnum('tv_show_status', [
   'want_to_watch',
   'watching',
   'completed',
-  'dropped',
+  'stopped_watching',
 ]);
 
 // User TV Shows table

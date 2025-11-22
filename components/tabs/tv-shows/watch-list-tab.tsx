@@ -19,7 +19,12 @@ export default function WatchListTab() {
 
   const handleStatusChange = (
     tvShowId: number,
-    newStatus: 'want_to_watch' | 'watching' | 'completed' | 'dropped' | null
+    newStatus:
+      | 'want_to_watch'
+      | 'watching'
+      | 'completed'
+      | 'stopped_watching'
+      | null
   ) => {
     // Remove TV show from watch list if it's no longer in want_to_watch status
     if (newStatus !== 'want_to_watch') {

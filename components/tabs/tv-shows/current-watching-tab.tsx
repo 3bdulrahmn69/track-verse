@@ -17,18 +17,23 @@ export default function CurrentWatchingTab() {
   );
 
   const [filter, setFilter] = useState<
-    'all' | 'watching' | 'completed' | 'dropped'
+    'all' | 'watching' | 'completed' | 'stopped_watching'
   >('all');
 
   const handleStatusChange = (
     tvShowId: number,
-    newStatus: 'want_to_watch' | 'watching' | 'completed' | 'dropped' | null
+    newStatus:
+      | 'want_to_watch'
+      | 'watching'
+      | 'completed'
+      | 'stopped_watching'
+      | null
   ) => {
-    // Remove TV show from current watching if it's no longer in watching/completed/dropped status
+    // Remove TV show from current watching if it's no longer in watching/completed/stopped_watching status
     if (
       newStatus !== 'watching' &&
       newStatus !== 'completed' &&
-      newStatus !== 'dropped'
+      newStatus !== 'stopped_watching'
     ) {
       setCurrentWatchingShows((prev) =>
         prev.filter((show) => show.id !== tvShowId)
@@ -40,7 +45,7 @@ export default function CurrentWatchingTab() {
     try {
       setLoading(true);
       const response = await fetch(
-        '/api/tv-shows?status=watching,completed,dropped',
+        '/api/tv-shows?status=watching,completed,stopped_watching',
         {
           cache: 'no-store',
         }
@@ -96,7 +101,7 @@ export default function CurrentWatchingTab() {
     { value: 'all', label: 'All' },
     { value: 'watching', label: 'Watching' },
     { value: 'completed', label: 'Completed' },
-    { value: 'dropped', label: 'Dropped' },
+    { value: 'stopped_watching', label: 'Stopped Watching' },
   ];
 
   return (
