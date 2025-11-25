@@ -14,6 +14,7 @@ import {
 } from 'react-icons/fi';
 import { Dropdown } from '@/components/ui/dropdown';
 import { useTVShowCacheStore } from '@/store/tv-show-cache-store';
+import { Loading } from '@/components/ui/loading';
 
 interface TVShowWithStatus extends TVShow {
   status?: 'want_to_watch' | 'watching' | 'completed' | 'stopped_watching';
@@ -115,11 +116,7 @@ export default function WatchListTab() {
   const sortedShows = getSortedShows();
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <Loading text="Loading your watch list..." />;
   }
 
   const sortOptions = [

@@ -1,5 +1,12 @@
 import { notFound } from 'next/navigation';
-import { FiCalendar, FiFilm, FiStar, FiClock, FiTv } from 'react-icons/fi';
+import {
+  FiCalendar,
+  FiFilm,
+  FiStar,
+  FiClock,
+  FiTv,
+  FiBookOpen,
+} from 'react-icons/fi';
 import { db } from '@/lib/db';
 import {
   users,
@@ -7,10 +14,11 @@ import {
   userTvShows,
   userEpisodes,
   userFollows,
+  userBooks,
+  reviews,
 } from '@/lib/db/schema';
 import { eq, and, isNotNull, ne } from 'drizzle-orm';
-import { MovieCard } from '@/components/tabs/movies/movie-card';
-import { TVShowCard } from '@/components/tabs/tv-shows/tv-show-card';
+import { MediaCarousel } from '@/components/ui/media-carousel';
 import BackButton from '@/components/shared/back-button';
 import { Avatar } from '@/components/ui/avatar';
 import { UserStats } from '@/components/user/user-stats';
@@ -18,6 +26,7 @@ import { UserFollowInfo } from '@/components/user/user-follow-info';
 import { auth } from '@/lib/auth-config';
 import type { Movie } from '@/lib/tmdb';
 import type { TVShow } from '@/lib/tmdb';
+import type { Book } from '@/lib/books';
 import {
   formatWatchTime,
   calculateTotalMovieWatchCount,
@@ -66,16 +75,12 @@ export default async function UserPage({ params }: UserPageProps) {
     canViewPrivateContent = user.isPublic || !!followRelationship;
   }
 
-  // Fetch user's watched movies with ratings
+  // Fetch user's watched movies
   const watchedMovies = await db
     .select()
     .from(userMovies)
     .where(
-      and(
-        eq(userMovies.userId, user.id),
-        eq(userMovies.status, 'watched'),
-        isNotNull(userMovies.userRating)
-      )
+      and(eq(userMovies.userId, user.id), eq(userMovies.status, 'watched'))
     )
     .orderBy(userMovies.updatedAt);
 
@@ -90,6 +95,12 @@ export default async function UserPage({ params }: UserPageProps) {
       )
     );
 
+  // Fetch user's read books
+  const readBooks = await db
+    .select()
+    .from(userBooks)
+    .where(and(eq(userBooks.userId, user.id), eq(userBooks.status, 'read')));
+
   // Get watched episodes count
   const watchedEpisodes = await db
     .select()
@@ -97,6 +108,13 @@ export default async function UserPage({ params }: UserPageProps) {
     .where(
       and(eq(userEpisodes.userId, user.id), eq(userEpisodes.watched, true))
     );
+
+  // Fetch movie reviews
+  const movieReviews = await db
+    .select()
+    .from(reviews)
+    .where(and(eq(reviews.userId, user.id), eq(reviews.itemType, 'movie')))
+    .orderBy(reviews.updatedAt);
 
   // Calculate stats
   const totalWatched = await db
@@ -111,6 +129,16 @@ export default async function UserPage({ params }: UserPageProps) {
   const movieWatchHours = calculateMovieWatchHours(totalWatched);
   const episodeWatchHours = calculateEpisodeWatchHours(watchedEpisodes);
   const totalWatchHours = movieWatchHours + episodeWatchHours;
+
+  // Join movie reviews with watched movies data
+  const moviesWithReviews = movieReviews
+    .map((review) => {
+      const movie = watchedMovies.find(
+        (m) => m.movieId.toString() === review.itemId
+      );
+      return movie ? { ...movie, review } : null;
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null);
 
   // Transform movies to Movie objects
   const movies: Movie[] = totalWatched.map((record) => ({
@@ -142,6 +170,16 @@ export default async function UserPage({ params }: UserPageProps) {
     origin_country: [],
     original_language: '',
     original_name: record.tvShowName,
+  }));
+
+  const books: Book[] = readBooks.map((record) => ({
+    key: record.bookId,
+    title: record.bookTitle,
+    author_name: record.bookAuthors
+      ? JSON.parse(record.bookAuthors)
+      : undefined,
+    first_publish_year: record.bookFirstPublishYear || undefined,
+    cover_i: record.bookCoverId || undefined,
   }));
 
   return (
@@ -224,6 +262,21 @@ export default async function UserPage({ params }: UserPageProps) {
                           tertiaryValue: formatWatchTime(episodeWatchHours),
                         },
                       },
+                      {
+                        label: 'Books',
+                        description: 'Reading History',
+                        icon: <FiBookOpen className="w-8 h-8 text-accent" />,
+                        bgColor: 'from-accent/20 to-accent/5',
+                        textColor: 'text-accent',
+                        value: {
+                          primary: 'Books Read',
+                          primaryValue: books.length,
+                          secondary: 'Reading Progress',
+                          secondaryValue: books.length, // Could be enhanced with reading progress later
+                          tertiary: 'Library Size',
+                          tertiaryValue: books.length,
+                        },
+                      },
                     ]}
                     className="mt-4"
                   />
@@ -260,11 +313,12 @@ export default async function UserPage({ params }: UserPageProps) {
                     Watched Movies
                   </h2>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                  {movies.slice(0, 10).map((movie) => (
-                    <MovieCard key={movie.id} movie={movie} />
-                  ))}
-                </div>
+                <MediaCarousel
+                  items={movies}
+                  type="movies"
+                  title="Watched Movies"
+                  emptyState={<p>No movies watched yet.</p>}
+                />
               </section>
             )}
 
@@ -277,11 +331,30 @@ export default async function UserPage({ params }: UserPageProps) {
                     TV Shows
                   </h2>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                  {tvShows.slice(0, 10).map((tvShow) => (
-                    <TVShowCard key={tvShow.id} tvShow={tvShow} />
-                  ))}
+                <MediaCarousel
+                  items={tvShows}
+                  type="tvshows"
+                  title="TV Shows"
+                  emptyState={<p>No TV shows tracked yet.</p>}
+                />
+              </section>
+            )}
+
+            {/* Books */}
+            {books.length > 0 && (
+              <section className="mb-12">
+                <div className="flex items-center gap-2 mb-6">
+                  <FiBookOpen className="w-6 h-6 text-primary" />
+                  <h2 className="text-2xl font-semibold text-foreground">
+                    Read Books
+                  </h2>
                 </div>
+                <MediaCarousel
+                  items={books}
+                  type="books"
+                  title="Read Books"
+                  emptyState={<p>No books read yet.</p>}
+                />
               </section>
             )}
           </>
@@ -305,52 +378,55 @@ export default async function UserPage({ params }: UserPageProps) {
       {/* Reviews Section */}
       {canViewPrivateContent && (
         <div className="container mx-auto px-4 py-12">
-          {watchedMovies.length > 0 && (
+          {moviesWithReviews.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-6">
                 <FiStar className="w-6 h-6 text-primary" />
                 <h2 className="text-2xl font-semibold text-foreground">
-                  Movie Reviews ({watchedMovies.length})
+                  Movie Reviews ({moviesWithReviews.length})
                 </h2>
               </div>
               <div className="space-y-4">
-                {watchedMovies.slice(0, 10).map((movie) => (
+                {moviesWithReviews.slice(0, 10).map((item) => (
                   <div
-                    key={movie.id}
+                    key={item.id}
                     className="bg-card rounded-lg p-6 border border-border"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-foreground mb-2">
-                          {movie.movieTitle}
+                          {item.movieTitle}
                         </h3>
                         <div className="flex items-center gap-2 mb-3">
                           {Array.from({ length: 5 }).map((_, index) => (
                             <FiStar
                               key={index}
                               className={`w-4 h-4 ${
-                                index < (movie.userRating || 0)
+                                index < (item.review.rating || 0)
                                   ? 'text-warning fill-warning'
                                   : 'text-muted'
                               }`}
                             />
                           ))}
                           <span className="text-sm font-semibold text-foreground ml-1">
-                            {movie.userRating}/5
+                            {item.review.rating}/5
                           </span>
                         </div>
-                        {movie.userComment && (
+                        {item.review.comment && (
                           <p className="text-muted-foreground leading-relaxed">
-                            {movie.userComment}
+                            {item.review.comment}
                           </p>
                         )}
                       </div>
                       <div className="text-sm text-muted-foreground whitespace-nowrap">
-                        {new Date(movie.updatedAt).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
+                        {new Date(item.review.updatedAt).toLocaleDateString(
+                          'en-US',
+                          {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          }
+                        )}
                       </div>
                     </div>
                   </div>

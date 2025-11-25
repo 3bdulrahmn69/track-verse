@@ -6,6 +6,7 @@ import CurrentWatchingTab from './current-watching-tab';
 import WatchListTab from './watch-list-tab';
 import FeedTab from './feed-tab';
 import { Tabs } from '@/components/ui/tabs';
+import { FiCompass, FiRss, FiEye, FiBookmark } from 'react-icons/fi';
 
 export default function TvShowsTab() {
   const [activeTab, setActiveTab] = useState<
@@ -21,10 +22,22 @@ export default function TvShowsTab() {
   };
 
   const tabs = [
-    { id: 'discover', label: 'Discover' },
-    { id: 'feed', label: 'Feed' },
-    { id: 'watching', label: 'Current Watching' },
-    { id: 'watchlist', label: 'Watch List' },
+    {
+      id: 'discover',
+      label: 'Discover',
+      icon: <FiCompass className="w-5 h-5" />,
+    },
+    { id: 'feed', label: 'Feed', icon: <FiRss className="w-5 h-5" /> },
+    {
+      id: 'watching',
+      label: 'Current Watching',
+      icon: <FiEye className="w-5 h-5" />,
+    },
+    {
+      id: 'watchlist',
+      label: 'Watch List',
+      icon: <FiBookmark className="w-5 h-5" />,
+    },
   ];
 
   return (

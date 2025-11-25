@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-config';
 import { db } from '@/lib/db';
-import { userTvShows, userEpisodes } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { userTvShows, userEpisodes, reviews } from '@/lib/db/schema';
+import { eq, and, like } from 'drizzle-orm';
 
 // GET - Get status of a specific TV show
 export async function GET(
@@ -78,6 +78,17 @@ export async function DELETE(
     if (!show) {
       return NextResponse.json({ error: 'TV show not found' }, { status: 404 });
     }
+
+    // Delete all reviews for episodes of this TV show
+    await db
+      .delete(reviews)
+      .where(
+        and(
+          eq(reviews.userId, session.user.id),
+          eq(reviews.itemType, 'tv_episode'),
+          like(reviews.itemId, `${tvShowId}-%`)
+        )
+      );
 
     // Delete all episodes for this show (cascade will handle this, but being explicit)
     await db.delete(userEpisodes).where(eq(userEpisodes.userTvShowId, show.id));

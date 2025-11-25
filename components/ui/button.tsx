@@ -13,12 +13,16 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     | 'info'
     | 'accent'
     | 'muted'
-    | 'orange';
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    | 'orange'
+    | 'icon'
+    | 'custom';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'custom';
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', ...props }, ref) => {
+  ({ className, variant = 'primary', size, ...props }, ref) => {
+    // If variant is custom, automatically set size to custom for full control
+    const effectiveSize = variant === 'custom' ? 'custom' : size ?? 'md';
     return (
       <button
         className={cn(
@@ -57,13 +61,16 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             // New Orange (using orange-500)
             'bg-orange-500 text-white hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/25':
               variant === 'orange',
+            // Custom variant (no default styles)
+            '': variant === 'custom',
           },
           {
-            'h-7 px-2 text-xs': size === 'xs',
-            'h-9 px-3 text-sm': size === 'sm',
-            'h-10 px-4 py-2': size === 'md',
-            'h-11 px-8': size === 'lg',
-            'h-12 px-10 text-lg': size === 'xl',
+            'h-7 px-2 text-xs': effectiveSize === 'xs',
+            'h-9 px-3 text-sm': effectiveSize === 'sm',
+            'h-10 px-4 py-2': effectiveSize === 'md',
+            'h-11 px-8': effectiveSize === 'lg',
+            'h-12 px-10 text-lg': effectiveSize === 'xl',
+            '': effectiveSize === 'custom',
           },
           className
         )}

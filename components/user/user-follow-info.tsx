@@ -118,6 +118,7 @@ export function UserFollowInfo({
         onClose={() => setDialogOpen(false)}
         userId={userId}
         initialTab={dialogTab}
+        isOwnProfile={userId === currentUserId}
       />
     </div>
   );

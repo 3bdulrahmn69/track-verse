@@ -8,6 +8,7 @@ import {
   pgEnum,
   boolean,
   text,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
@@ -47,8 +48,6 @@ export const userMovies = pgTable('user_movies', {
   status: movieStatusEnum('status').notNull(),
   watchCount: integer('watch_count').notNull().default(0),
   runtime: integer('runtime'), // Duration in minutes
-  userRating: integer('user_rating'), // 1-5 star rating
-  userComment: text('user_comment'), // User's comment/review
   tmdbRating: integer('tmdb_rating'), // Store TMDB rating for reference
   imdbId: varchar('imdb_id', { length: 20 }), // Store IMDb ID for reference
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -67,23 +66,32 @@ export const tvShowStatusEnum = pgEnum('tv_show_status', [
 ]);
 
 // User TV Shows table
-export const userTvShows = pgTable('user_tv_shows', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  tvShowId: integer('tv_show_id').notNull(), // TMDB TV show ID
-  tvShowName: varchar('tv_show_name', { length: 500 }).notNull(),
-  tvShowPosterPath: varchar('tv_show_poster_path', { length: 500 }),
-  tvShowFirstAirDate: varchar('tv_show_first_air_date', { length: 50 }),
-  status: tvShowStatusEnum('status').notNull(),
-  tmdbRating: integer('tmdb_rating'), // Store TMDB rating for reference
-  totalSeasons: integer('total_seasons').notNull().default(0),
-  totalEpisodes: integer('total_episodes').notNull().default(0),
-  watchedEpisodes: integer('watched_episodes').notNull().default(0),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+export const userTvShows = pgTable(
+  'user_tv_shows',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    tvShowId: integer('tv_show_id').notNull(), // TMDB TV show ID
+    tvShowName: varchar('tv_show_name', { length: 500 }).notNull(),
+    tvShowPosterPath: varchar('tv_show_poster_path', { length: 500 }),
+    tvShowFirstAirDate: varchar('tv_show_first_air_date', { length: 50 }),
+    status: tvShowStatusEnum('status').notNull(),
+    tmdbRating: integer('tmdb_rating'), // Store TMDB rating for reference
+    totalSeasons: integer('total_seasons').notNull().default(0),
+    totalEpisodes: integer('total_episodes').notNull().default(0),
+    watchedEpisodes: integer('watched_episodes').notNull().default(0),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    userTvShowUnique: uniqueIndex('user_tv_show_unique').on(
+      table.userId,
+      table.tvShowId
+    ),
+  })
+);
 
 export type UserTvShow = typeof userTvShows.$inferSelect;
 export type NewUserTvShow = typeof userTvShows.$inferInsert;
@@ -102,8 +110,6 @@ export const userEpisodes = pgTable('user_episodes', {
   episodeNumber: integer('episode_number').notNull(),
   episodeName: varchar('episode_name', { length: 500 }),
   runtime: integer('runtime'), // runtime in minutes
-  userRating: integer('user_rating'), // 1-5 star rating
-  userComment: text('user_comment'), // User's comment/review
   watched: boolean('watched').notNull().default(false),
   watchedAt: timestamp('watched_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -112,6 +118,55 @@ export const userEpisodes = pgTable('user_episodes', {
 
 export type UserEpisode = typeof userEpisodes.$inferSelect;
 export type NewUserEpisode = typeof userEpisodes.$inferInsert;
+
+// Book status enum
+export const bookStatusEnum = pgEnum('book_status', ['want_to_read', 'read']);
+
+// User Books table
+export const userBooks = pgTable('user_books', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  bookId: varchar('book_id', { length: 255 }).notNull(), // Open Library work ID
+  bookTitle: varchar('book_title', { length: 500 }).notNull(),
+  bookCoverId: integer('book_cover_id'), // Open Library cover ID
+  bookAuthors: text('book_authors'), // JSON array of author names
+  bookFirstPublishYear: integer('book_first_publish_year'),
+  status: bookStatusEnum('status').notNull(),
+  pagesRead: integer('pages_read'), // For reading progress
+  totalPages: integer('total_pages'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type UserBook = typeof userBooks.$inferSelect;
+export type NewUserBook = typeof userBooks.$inferInsert;
+
+// Item type enum for reviews (supports multiple media types)
+export const reviewItemTypeEnum = pgEnum('review_item_type', [
+  'movie',
+  'tv_episode',
+  'book',
+  'game', // For future use
+]);
+
+// Global Reviews table (for all media types)
+export const reviews = pgTable('reviews', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  itemId: varchar('item_id', { length: 255 }).notNull(), // Can be movieId, bookId, episodeId, etc.
+  itemType: reviewItemTypeEnum('item_type').notNull(),
+  rating: integer('rating').notNull(), // 1-5 star rating
+  comment: text('comment'), // User's review text (optional)
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type Review = typeof reviews.$inferSelect;
+export type NewReview = typeof reviews.$inferInsert;
 
 // Follow status enum
 export const followStatusEnum = pgEnum('follow_status', [

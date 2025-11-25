@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-config';
 import { db } from '@/lib/db';
-import { userEpisodes, userTvShows } from '@/lib/db/schema';
+import { userEpisodes, userTvShows, reviews } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { getSeasonDetails, getTVShowDetails } from '@/lib/tmdb';
 
@@ -26,15 +26,7 @@ export async function POST(
       );
     }
     const body = await request.json();
-    const {
-      seasonNumber,
-      episodeNumber,
-      episodeName,
-      runtime,
-      watched,
-      userRating,
-      userComment,
-    } = body;
+    const { seasonNumber, episodeNumber, episodeName, runtime, watched } = body;
 
     // Find the user's TV show record
     let show = await db.query.userTvShows.findFirst({
@@ -102,8 +94,6 @@ export async function POST(
         watchedAt?: Date | null;
         runtime?: number | null;
         episodeName?: string;
-        userRating?: number | null;
-        userComment?: string | null;
         updatedAt: Date;
       } = {
         watched,
@@ -111,20 +101,26 @@ export async function POST(
         updatedAt: new Date(),
       };
 
+      // If marking as unwatched, delete any existing review
+      if (!watched) {
+        const episodeId = `${tvShowId}-S${seasonNumber}E${episodeNumber}`;
+        await db
+          .delete(reviews)
+          .where(
+            and(
+              eq(reviews.userId, session.user.id),
+              eq(reviews.itemId, episodeId),
+              eq(reviews.itemType, 'tv_episode')
+            )
+          );
+      }
+
       if (runtime !== undefined) {
         updateData.runtime = runtime;
       }
 
       if (episodeName !== undefined) {
         updateData.episodeName = episodeName;
-      }
-
-      if (userRating !== undefined) {
-        updateData.userRating = userRating;
-      }
-
-      if (userComment !== undefined) {
-        updateData.userComment = userComment;
       }
 
       await db
@@ -143,8 +139,6 @@ export async function POST(
         runtime,
         watched,
         watchedAt: watched ? new Date() : null,
-        userRating: userRating || null,
-        userComment: userComment || null,
       });
     }
 
@@ -166,6 +160,7 @@ export async function POST(
 
     // Check if all episodes are now watched (automatic completion)
     let showCompleted = false;
+    let showStatusChanged = false;
     if (
       watched &&
       show.totalEpisodes &&
@@ -181,6 +176,17 @@ export async function POST(
         })
         .where(eq(userTvShows.id, show.id));
       showCompleted = true;
+    } else if (!watched && show.status === 'completed') {
+      // Episode marked as unwatched and show was completed, change status to watching
+      await db
+        .update(userTvShows)
+        .set({
+          status: 'watching',
+          watchedEpisodes: newWatchedCount,
+          updatedAt: new Date(),
+        })
+        .where(eq(userTvShows.id, show.id));
+      showStatusChanged = true;
     } else {
       // Just update the watched count
       await db
@@ -195,9 +201,12 @@ export async function POST(
     return NextResponse.json({
       message: showCompleted
         ? 'Episode updated successfully. Show marked as completed!'
+        : showStatusChanged
+        ? 'Episode updated successfully. Show status changed to watching.'
         : 'Episode updated successfully',
       watchedEpisodes: newWatchedCount,
       showCompleted,
+      showStatusChanged,
     });
   } catch (error) {
     console.error('Error updating episode:', error);
@@ -242,20 +251,16 @@ export async function GET(
       ),
     });
 
-    // Get user's watched episodes and reviews for this season
+    // Get user's watched episodes for this season
     let userEpisodeData: {
       episodeNumber: number;
       watched: boolean;
-      userRating?: number | null;
-      userComment?: string | null;
     }[] = [];
     if (show) {
       const userEpisodesData = await db
         .select({
           episodeNumber: userEpisodes.episodeNumber,
           watched: userEpisodes.watched,
-          userRating: userEpisodes.userRating,
-          userComment: userEpisodes.userComment,
         })
         .from(userEpisodes)
         .where(
@@ -268,7 +273,7 @@ export async function GET(
       userEpisodeData = userEpisodesData;
     }
 
-    // Merge TMDB episodes with user's watched status and reviews
+    // Merge TMDB episodes with user's watched status
     const episodesWithStatus = seasonDetails.episodes.map((episode) => {
       const userData = userEpisodeData.find(
         (data) => data.episodeNumber === episode.episode_number
@@ -276,8 +281,6 @@ export async function GET(
       return {
         ...episode,
         watched: userData?.watched || false,
-        userRating: userData?.userRating || null,
-        userComment: userData?.userComment || null,
       };
     });
 

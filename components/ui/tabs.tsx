@@ -95,7 +95,11 @@ export function Tabs({ tabs, activeTab, onTabChange, className }: TabsProps) {
         ref={scrollRef}
         className={cn(
           'overflow-x-auto custom-scrollbar select-none',
-          isDragging ? 'cursor-grabbing' : 'cursor-grab'
+          canScrollLeft || canScrollRight
+            ? isDragging
+              ? 'cursor-grabbing'
+              : 'cursor-grab'
+            : ''
         )}
         onScroll={handleScroll}
         onMouseDown={handleMouseDown}

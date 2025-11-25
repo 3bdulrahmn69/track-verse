@@ -1,0 +1,1 @@
+-- This migration is already applied in the database

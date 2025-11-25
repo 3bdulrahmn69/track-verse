@@ -17,6 +17,7 @@ export default function MovieActions({ movie }: MovieActionsProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [showRatingDialog, setShowRatingDialog] = useState(false);
   const [showUnwatchConfirm, setShowUnwatchConfirm] = useState(false);
+  const [rewatchLoading, setRewatchLoading] = useState(false);
 
   const handleStatusUpdate = async (
     newStatus: 'want_to_watch' | 'watched' | null
@@ -45,11 +46,14 @@ export default function MovieActions({ movie }: MovieActionsProps) {
   };
 
   const handleRewatch = async () => {
-    setIsUpdating(true);
+    setRewatchLoading(true);
     try {
       await rewatch();
     } finally {
-      setIsUpdating(false);
+      // Keep button disabled for 500ms after completion
+      setTimeout(() => {
+        setRewatchLoading(false);
+      }, 500);
     }
   };
 
@@ -95,7 +99,8 @@ export default function MovieActions({ movie }: MovieActionsProps) {
       <RatingDialog
         isOpen={showRatingDialog}
         onClose={() => setShowRatingDialog(false)}
-        movieTitle={movie.title}
+        title="Rate this movie"
+        itemTitle={movie.title}
         onSubmit={handleRatingSubmit}
       />
       <ConfirmDialog
@@ -169,11 +174,13 @@ export default function MovieActions({ movie }: MovieActionsProps) {
               variant="info"
               size="md"
               onClick={handleRewatch}
-              disabled={isUpdating}
+              disabled={isUpdating || rewatchLoading}
               className="flex items-center gap-2"
             >
-              <FiRefreshCw className="w-5 h-5" />
-              <span>{isUpdating ? 'Rewatching...' : 'Rewatch'}</span>
+              <FiRefreshCw
+                className={`w-5 h-5 ${rewatchLoading ? 'animate-spin' : ''}`}
+              />
+              <span>{rewatchLoading ? 'Rewatching...' : 'Rewatch'}</span>
             </Button>
           </>
         )}

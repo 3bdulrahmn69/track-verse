@@ -13,7 +13,10 @@ interface DetailedStatItem {
     secondary?: string;
     secondaryValue?: string | number;
     tertiary?: string;
-    tertiaryValue?: string | number;
+    tertiaryValue?:
+      | string
+      | number
+      | { months: number; days: number; hours: number };
   };
   label: string;
   icon?: ReactNode;
@@ -35,75 +38,90 @@ export function UserStats({
 }: UserStatsProps) {
   if (variant === 'detailed') {
     return (
-      <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${className}`}>
+      <div
+        className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ${className}`}
+      >
         {stats.map((stat, index) => {
           const detailedStat = stat as DetailedStatItem;
           return (
             <div
               key={index}
-              className={`relative bg-linear-to-br ${
-                detailedStat.bgColor || 'from-primary/20 to-primary/5'
-              } rounded-2xl p-6 border ${
-                detailedStat.bgColor?.replace('from-', 'border-') ||
-                'border-primary/20'
-              } overflow-hidden`}
+              className="relative bg-background text-foreground rounded-lg p-4 border border-border overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-full -translate-y-6 translate-x-6"></div>
               <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-4">
-                  <div
-                    className={`p-3 ${
-                      detailedStat.bgColor
-                        ?.replace('from-', '')
-                        ?.replace('/20', '/20') || 'bg-primary/20'
-                    } rounded-xl`}
-                  >
-                    {detailedStat.icon}
+                <div className="flex flex-row items-center text-center gap-3">
+                  {/* Icon */}
+                  <div className="p-2 bg-card rounded-lg border border-border">
+                    <div className="text-primary">{detailedStat.icon}</div>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-foreground">
+
+                  {/* Title and Subtitle */}
+                  <div className="text-start">
+                    <h3 className="text-lg font-bold text-primary">
                       {detailedStat.label}
                     </h3>
                     {detailedStat.description && (
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {detailedStat.description}
                       </p>
                     )}
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                {/* Statistics */}
+                <div className="flex flex-row justify-between items-center mt-4">
                   {detailedStat.value.primary && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">
+                    <div className="flex flex-col items-center text-center gap-1">
+                      <span className="text-xs text-muted-foreground">
                         {detailedStat.value.primary}
                       </span>
-                      <span className="text-2xl font-bold text-foreground">
+                      <span className="text-lg font-bold text-foreground">
                         {detailedStat.value.primaryValue}
                       </span>
                     </div>
                   )}
                   {detailedStat.value.secondary && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">
+                    <div className="flex flex-col items-center text-center gap-1">
+                      <span className="text-xs text-muted-foreground">
                         {detailedStat.value.secondary}
                       </span>
-                      <span className="text-2xl font-bold text-foreground">
+                      <span className="text-lg font-bold text-foreground">
                         {detailedStat.value.secondaryValue}
                       </span>
                     </div>
                   )}
                   {detailedStat.value.tertiary && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">
+                    <div className="flex flex-col items-center text-center gap-1">
+                      <span className="text-xs text-muted-foreground">
                         {detailedStat.value.tertiary}
                       </span>
-                      <span
-                        className={`text-lg font-semibold ${
-                          detailedStat.textColor || 'text-primary'
-                        }`}
-                      >
-                        {detailedStat.value.tertiaryValue}
+                      <span className="text-lg font-bold text-foreground">
+                        {typeof detailedStat.value.tertiaryValue === 'object' &&
+                        'months' in detailedStat.value.tertiaryValue ? (
+                          <div className="flex items-center justify-center gap-1">
+                            <div className="flex items-center gap-0.5">
+                              <span className="text-lg font-medium">
+                                {detailedStat.value.tertiaryValue.months}
+                              </span>
+                              <span className="text-sm text-primary">M</span>
+                            </div>
+                            <div className="flex items-center gap-0.5">
+                              <span className="text-lg font-medium">
+                                {detailedStat.value.tertiaryValue.days}
+                              </span>
+                              <span className="text-sm text-primary">D</span>
+                            </div>
+                            <div className="flex items-center gap-0.5">
+                              <span className="text-lg font-medium">
+                                {detailedStat.value.tertiaryValue.hours}
+                              </span>
+                              <span className="text-sm text-primary">H</span>
+                            </div>
+                          </div>
+                        ) : (
+                          detailedStat.value.tertiaryValue
+                        )}
                       </span>
                     </div>
                   )}

@@ -4,8 +4,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { Avatar } from '@/components/ui/avatar';
 import { Tabs } from '@/components/ui/tabs';
-import { FiUser } from 'react-icons/fi';
+import { Popover } from '@/components/ui/popover';
+import { FiUser, FiUserMinus, FiUserX } from 'react-icons/fi';
 import Link from 'next/link';
+import { toast } from 'react-toastify';
 
 interface User {
   id: string;
@@ -19,6 +21,7 @@ interface FollowersDialogProps {
   onClose: () => void;
   userId: string;
   initialTab?: 'followers' | 'following';
+  isOwnProfile?: boolean;
 }
 
 export function FollowersDialog({
@@ -26,6 +29,7 @@ export function FollowersDialog({
   onClose,
   userId,
   initialTab = 'followers',
+  isOwnProfile = false,
 }: FollowersDialogProps) {
   const [activeTab, setActiveTab] = useState<'followers' | 'following'>(
     initialTab
@@ -34,6 +38,7 @@ export function FollowersDialog({
   const [following, setFollowing] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [processingUserId, setProcessingUserId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -63,6 +68,60 @@ export function FollowersDialog({
       setLoading(false);
     }
   }, [userId]);
+
+  const handleUnfollow = async (
+    targetUserId: string,
+    targetUsername: string
+  ) => {
+    setProcessingUserId(targetUserId);
+    try {
+      const response = await fetch(`/api/follow?userId=${targetUserId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // Remove from following list
+        setFollowing((prev) => prev.filter((user) => user.id !== targetUserId));
+        toast.success(`Unfollowed ${targetUsername}`);
+      } else {
+        toast.error('Failed to unfollow user');
+      }
+    } catch (error) {
+      console.error('Error unfollowing user:', error);
+      toast.error('Failed to unfollow user');
+    } finally {
+      setProcessingUserId(null);
+    }
+  };
+
+  const handleRemoveFollower = async (
+    followerUserId: string,
+    followerUsername: string
+  ) => {
+    setProcessingUserId(followerUserId);
+    try {
+      const response = await fetch(`/api/follow/${followerUserId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reject' }),
+      });
+
+      if (response.ok) {
+        // Remove from followers list
+        setFollowers((prev) =>
+          prev.filter((user) => user.id !== followerUserId)
+        );
+        toast.success(`Removed ${followerUsername} from followers`);
+      } else {
+        toast.error('Failed to remove follower');
+      }
+    } catch (error) {
+      console.error('Error removing follower:', error);
+      toast.error('Failed to remove follower');
+    } finally {
+      setProcessingUserId(null);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -124,27 +183,60 @@ export function FollowersDialog({
         ) : (
           <div className="space-y-2">
             {currentUsers.map((user) => (
-              <Link
+              <div
                 key={user.id}
-                href={`/users/${user.username}`}
-                onClick={onClose}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
+                className="flex items-center gap-3 p-3 rounded-lg transition-colors"
               >
-                <Avatar
-                  src={user.image}
-                  alt={user.name || user.username}
-                  size="sm"
-                  className="w-10 h-10"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-foreground truncate">
-                    {user.name || user.username}
-                  </p>
-                  <p className="text-sm text-muted-foreground truncate">
-                    @{user.username}
-                  </p>
-                </div>
-              </Link>
+                <Link
+                  href={`/users/${user.username}`}
+                  onClick={onClose}
+                  className="flex items-center gap-3 flex-1 min-w-0"
+                >
+                  <Avatar
+                    src={user.image}
+                    alt={user.name || user.username}
+                    size="sm"
+                    className="w-10 h-10"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-foreground truncate">
+                      {user.name || user.username}
+                    </p>
+                    <p className="text-sm text-muted-foreground truncate">
+                      @{user.username}
+                    </p>
+                  </div>
+                </Link>
+                {activeTab === 'following' && (
+                  <Popover content="Unfollow" position="left">
+                    <button
+                      onClick={() =>
+                        handleUnfollow(user.id, user.name || user.username)
+                      }
+                      disabled={processingUserId === user.id}
+                      className="flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors disabled:opacity-50"
+                    >
+                      <FiUserMinus className="w-4 h-4" />
+                    </button>
+                  </Popover>
+                )}
+                {activeTab === 'followers' && isOwnProfile && (
+                  <Popover content="Remove follower" position="left">
+                    <button
+                      onClick={() =>
+                        handleRemoveFollower(
+                          user.id,
+                          user.name || user.username
+                        )
+                      }
+                      disabled={processingUserId === user.id}
+                      className="flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors disabled:opacity-50"
+                    >
+                      <FiUserX className="w-4 h-4" />
+                    </button>
+                  </Popover>
+                )}
+              </div>
             ))}
           </div>
         )}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-config';
 import { db } from '@/lib/db';
-import { userMovies } from '@/lib/db/schema';
+import { userMovies, reviews } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { getMovieDetails } from '@/lib/tmdb';
 
@@ -58,15 +58,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const {
-      movieId,
-      movieTitle,
-      moviePosterPath,
-      movieReleaseDate,
-      status,
-      userRating,
-      userComment,
-    } = body;
+    const { movieId, movieTitle, moviePosterPath, movieReleaseDate, status } =
+      body;
     let { runtime, tmdbRating, imdbId } = body;
 
     if (!movieId || !movieTitle || !status) {
@@ -107,8 +100,6 @@ export async function POST(request: NextRequest) {
         updatedAt: Date;
         watchCount?: number;
         runtime?: number | null;
-        userRating?: number | null;
-        userComment?: string | null;
         tmdbRating?: number | null;
         imdbId?: string | null;
       } = {
@@ -116,18 +107,25 @@ export async function POST(request: NextRequest) {
         updatedAt: new Date(),
       };
 
+      // If marking as unwatched (want_to_watch), delete any existing review
+      if (status === 'want_to_watch') {
+        await db
+          .delete(reviews)
+          .where(
+            and(
+              eq(reviews.userId, session.user.id),
+              eq(reviews.itemId, movieId.toString()),
+              eq(reviews.itemType, 'movie')
+            )
+          );
+      }
+
       // If marking as watched, increment watch count
       if (status === 'watched' && existingMovie[0].status !== 'watched') {
         updateData.watchCount = (existingMovie[0].watchCount || 0) + 1;
       }
 
-      // Update rating and comment if provided
-      if (userRating !== undefined) {
-        updateData.userRating = userRating;
-      }
-      if (userComment !== undefined) {
-        updateData.userComment = userComment;
-      }
+      // Update TMDB data if provided
       if (tmdbRating !== undefined) {
         updateData.tmdbRating = tmdbRating;
       }
@@ -168,8 +166,6 @@ export async function POST(request: NextRequest) {
         movieReleaseDate,
         status,
         runtime: runtime || null,
-        userRating: userRating || null,
-        userComment: userComment || null,
         tmdbRating: tmdbRating || null,
         imdbId: imdbId || null,
       })
@@ -204,8 +200,18 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Delete the movie (this will automatically delete associated reviews
-    // since they're stored in the same record)
+    // Delete associated review first
+    await db
+      .delete(reviews)
+      .where(
+        and(
+          eq(reviews.userId, session.user.id),
+          eq(reviews.itemId, movieId),
+          eq(reviews.itemType, 'movie')
+        )
+      );
+
+    // Delete the movie
     await db
       .delete(userMovies)
       .where(

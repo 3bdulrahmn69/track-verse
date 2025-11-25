@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { FiStar, FiUser, FiClock } from 'react-icons/fi';
 import { getImageUrl } from '@/lib/tmdb';
+import { Loading } from '@/components/ui/loading';
 
 interface MovieActivity {
   id: string;
@@ -65,11 +66,7 @@ export default function FeedTab() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <Loading text="Loading feed..." />;
   }
 
   if (activities.length === 0) {

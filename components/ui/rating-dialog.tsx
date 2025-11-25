@@ -9,7 +9,8 @@ import { toast } from 'react-toastify';
 interface RatingDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  movieTitle: string;
+  title?: string;
+  itemTitle: string;
   onSubmit: (rating: number, comment: string) => Promise<void>;
   initialRating?: number;
   initialComment?: string;
@@ -18,7 +19,8 @@ interface RatingDialogProps {
 export function RatingDialog({
   isOpen,
   onClose,
-  movieTitle,
+  title = 'Rate',
+  itemTitle,
   onSubmit,
   initialRating = 0,
   initialComment = '',
@@ -60,7 +62,7 @@ export function RatingDialog({
     <Dialog
       isOpen={isOpen}
       onClose={onClose}
-      title="Rate this movie"
+      title={title}
       footer={
         <>
           <Button
@@ -85,7 +87,7 @@ export function RatingDialog({
         {/* Movie Title */}
         <div>
           <p className="text-foreground font-medium text-center mb-4">
-            {movieTitle}
+            {itemTitle}
           </p>
         </div>
 

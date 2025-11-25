@@ -3,31 +3,18 @@
 import { useState, useEffect } from 'react';
 import { TVShow } from '@/lib/tmdb';
 import { TVShowCard } from './tv-show-card';
-import { Input } from '@/components/ui/input';
-import { FiSearch } from 'react-icons/fi';
-import { useDebounce } from '@/hooks/useDebounce';
+import { SearchComponent } from '@/components/ui/search-component';
 
 export default function DiscoverTab() {
   const [popularShows, setPopularShows] = useState<TVShow[]>([]);
   const [topRatedShows, setTopRatedShows] = useState<TVShow[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<TVShow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searching, setSearching] = useState(false);
-  const debouncedSearch = useDebounce(searchQuery, 500);
+  const [hasActiveSearch, setHasActiveSearch] = useState(false);
 
   useEffect(() => {
     fetchInitialShows();
   }, []);
-
-  useEffect(() => {
-    if (debouncedSearch) {
-      searchTVShows();
-    } else {
-      setSearchResults([]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch]);
 
   const fetchInitialShows = async () => {
     try {
@@ -49,19 +36,23 @@ export default function DiscoverTab() {
     }
   };
 
-  const searchTVShows = async () => {
+  const handleSearchSubmit = async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setHasActiveSearch(false);
+      return;
+    }
+
+    setHasActiveSearch(true);
     try {
-      setSearching(true);
       const response = await fetch(
-        `/api/tv-shows/search?query=${encodeURIComponent(debouncedSearch)}`
+        `/api/tv-shows/search?query=${encodeURIComponent(query)}`
       );
       const data = await response.json();
       setSearchResults(data.results || []);
     } catch (error) {
       console.error('Error searching TV shows:', error);
       setSearchResults([]);
-    } finally {
-      setSearching(false);
     }
   };
 
@@ -89,24 +80,18 @@ export default function DiscoverTab() {
   return (
     <div className="space-y-8">
       {/* Search Bar */}
-      <div className="relative max-w-2xl mx-auto">
-        <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
-        <Input
-          type="text"
+      <div className="max-w-2xl mx-auto">
+        <SearchComponent
           placeholder="Search for TV shows..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-12 h-12 text-base"
+          onSearch={handleSearchSubmit}
         />
       </div>
 
       {/* Search Results */}
-      {searchQuery && (
+      {hasActiveSearch && (
         <div>
           <h2 className="text-2xl font-bold mb-6 text-foreground">
-            {searching
-              ? 'Searching...'
-              : `Search Results (${searchResults.length})`}
+            Search Results ({searchResults.length})
           </h2>
           {searchResults.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
@@ -119,17 +104,15 @@ export default function DiscoverTab() {
               ))}
             </div>
           ) : (
-            !searching && (
-              <p className="text-center text-muted-foreground py-8">
-                No TV shows found for &quot;{searchQuery}&quot;
-              </p>
-            )
+            <p className="text-center text-muted-foreground py-8">
+              No TV shows found
+            </p>
           )}
         </div>
       )}
 
       {/* Popular TV Shows */}
-      {!searchQuery && (
+      {!hasActiveSearch && (
         <>
           <div>
             <h2 className="text-2xl font-bold mb-6 text-foreground">

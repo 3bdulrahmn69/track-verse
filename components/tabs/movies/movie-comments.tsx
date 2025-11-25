@@ -48,7 +48,9 @@ export function MovieComments({ movieId, movieTitle }: MovieCommentsProps) {
   const fetchComments = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/movies/${movieId}/comments`);
+      const response = await fetch(
+        `/api/reviews?itemId=${movieId}&itemType=movie`
+      );
 
       if (!response.ok) {
         throw new Error('Failed to fetch comments');
@@ -72,13 +74,13 @@ export function MovieComments({ movieId, movieTitle }: MovieCommentsProps) {
 
   const handleUpdateReview = async (rating: number, comment: string) => {
     try {
-      const response = await fetch(`/api/movies/${movieId}/comments`, {
+      const response = await fetch('/api/reviews', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          commentId: editingCommentId,
-          userRating: rating,
-          userComment: comment,
+          reviewId: editingCommentId,
+          rating,
+          comment,
         }),
       });
 
@@ -97,13 +99,14 @@ export function MovieComments({ movieId, movieTitle }: MovieCommentsProps) {
 
   const handleAddReview = async (rating: number, comment: string) => {
     try {
-      // Backend will handle marking as watched automatically
-      const response = await fetch(`/api/movies/${movieId}/review`, {
+      const response = await fetch('/api/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userRating: rating,
-          userComment: comment,
+          itemId: movieId.toString(),
+          itemType: 'movie',
+          rating,
+          comment,
         }),
       });
 
@@ -133,10 +136,10 @@ export function MovieComments({ movieId, movieTitle }: MovieCommentsProps) {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/movies/${movieId}/comments`, {
+      const response = await fetch('/api/reviews', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ commentId: deletingCommentId }),
+        body: JSON.stringify({ reviewId: deletingCommentId }),
       });
 
       if (!response.ok) {
@@ -181,7 +184,8 @@ export function MovieComments({ movieId, movieTitle }: MovieCommentsProps) {
       <RatingDialog
         isOpen={!!editingCommentId}
         onClose={() => setEditingCommentId(null)}
-        movieTitle="Update Your Review"
+        title="Update Your Review"
+        itemTitle="Update Your Review"
         onSubmit={handleUpdateReview}
         initialRating={editRating}
         initialComment={editComment}
@@ -189,7 +193,8 @@ export function MovieComments({ movieId, movieTitle }: MovieCommentsProps) {
       <RatingDialog
         isOpen={showAddReview}
         onClose={() => setShowAddReview(false)}
-        movieTitle={movieTitle}
+        title="Rate this movie"
+        itemTitle={movieTitle}
         onSubmit={handleAddReview}
       />
       <ConfirmDialog

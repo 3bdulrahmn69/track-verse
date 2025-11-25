@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "user_tv_show_unique" ON "user_tv_shows" USING btree ("user_id","tv_show_id");

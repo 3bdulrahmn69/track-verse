@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { FiBell, FiCheck } from 'react-icons/fi';
+import { FiBell, FiCheck, FiTrash2 } from 'react-icons/fi';
 import { FollowRequestCard } from '@/components/notifications/follow-request-card';
+import { Popover } from '@/components/ui/popover';
 import BackButton from '@/components/shared/back-button';
 import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
+import { toast } from 'react-toastify';
 
 interface Notification {
   id: string;
@@ -63,7 +65,10 @@ export default function NotificationsPage() {
         .filter((n) => !n.read)
         .map((n) => n.id);
 
-      if (unreadNotificationIds.length === 0) return;
+      if (unreadNotificationIds.length === 0) {
+        toast.info('No unread notifications to mark as read');
+        return;
+      }
 
       const response = await fetch('/api/notifications', {
         method: 'PATCH',
@@ -78,9 +83,48 @@ export default function NotificationsPage() {
             unreadNotificationIds.includes(n.id) ? { ...n, read: true } : n
           )
         );
+        toast.success(
+          `Marked ${unreadNotificationIds.length} notification${
+            unreadNotificationIds.length === 1 ? '' : 's'
+          } as read`
+        );
+      } else {
+        toast.error('Failed to mark notifications as read');
       }
     } catch (error) {
       console.error('Error marking notifications as read:', error);
+      toast.error('Failed to mark notifications as read');
+    }
+  };
+
+  const deleteAllRead = async () => {
+    try {
+      const readNotificationIds = notifications
+        .filter((n) => n.read)
+        .map((n) => n.id);
+
+      if (readNotificationIds.length === 0) {
+        toast.info('No read notifications to delete');
+        return;
+      }
+
+      // Delete each read notification
+      for (const id of readNotificationIds) {
+        await fetch(`/api/notifications?id=${id}`, {
+          method: 'DELETE',
+        });
+      }
+
+      // Update local state
+      setNotifications((prev) => prev.filter((n) => !n.read));
+      toast.success(
+        `Deleted ${readNotificationIds.length} read notification${
+          readNotificationIds.length === 1 ? '' : 's'
+        }`
+      );
+    } catch (error) {
+      console.error('Error deleting read notifications:', error);
+      toast.error('Failed to delete read notifications');
     }
   };
 
@@ -114,15 +158,24 @@ export default function NotificationsPage() {
                 </p>
               )}
             </div>
-            {unreadCount > 0 && (
-              <button
-                onClick={markAllAsRead}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
-              >
-                <FiCheck className="w-4 h-4" />
-                Mark all as read
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              <Popover content="Mark all as read" position="left">
+                <button
+                  onClick={markAllAsRead}
+                  className="flex items-center justify-center w-10 h-10 text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                >
+                  <FiCheck className="w-5 h-5" />
+                </button>
+              </Popover>
+              <Popover content="Delete all read" position="left">
+                <button
+                  onClick={deleteAllRead}
+                  className="flex items-center justify-center w-10 h-10 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                >
+                  <FiTrash2 className="w-5 h-5" />
+                </button>
+              </Popover>
+            </div>
           </div>
         </div>
 

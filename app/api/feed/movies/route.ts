@@ -39,8 +39,6 @@ export async function GET() {
         movieReleaseDate: userMovies.movieReleaseDate,
         status: userMovies.status,
         watchCount: userMovies.watchCount,
-        userRating: userMovies.userRating,
-        userComment: userMovies.userComment,
         createdAt: userMovies.createdAt,
         updatedAt: userMovies.updatedAt,
         user: {

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { FiCheck, FiX, FiUserPlus } from 'react-icons/fi';
 import { Avatar } from '@/components/ui/avatar';
+import { Popover } from '@/components/ui/popover';
 import Link from 'next/link';
 
 interface Notification {
@@ -49,6 +50,29 @@ export function FollowRequestCard({
       }
     } catch (error) {
       console.error('Error accepting follow request:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleMarkAsRead = async () => {
+    if (notification.read) return;
+
+    setIsProcessing(true);
+    try {
+      const response = await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notificationIds: [notification.id] }),
+      });
+
+      if (response.ok) {
+        onUpdate();
+      } else {
+        console.error('Failed to mark notification as read');
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
     } finally {
       setIsProcessing(false);
     }
@@ -121,9 +145,22 @@ export function FollowRequestCard({
                 started following you
               </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {formatDate(notification.createdAt)}
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                {formatDate(notification.createdAt)}
+              </p>
+              {!notification.read && (
+                <Popover content="Mark as read" position="left">
+                  <button
+                    onClick={handleMarkAsRead}
+                    disabled={isProcessing}
+                    className="flex items-center justify-center w-8 h-8 text-primary hover:bg-primary/10 rounded transition-colors disabled:opacity-50"
+                  >
+                    <FiCheck className="w-4 h-4" />
+                  </button>
+                </Popover>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -158,9 +195,22 @@ export function FollowRequestCard({
                 accepted your follow request
               </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {formatDate(notification.createdAt)}
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                {formatDate(notification.createdAt)}
+              </p>
+              {!notification.read && (
+                <Popover content="Mark as read" position="left">
+                  <button
+                    onClick={handleMarkAsRead}
+                    disabled={isProcessing}
+                    className="flex items-center justify-center w-8 h-8 text-primary hover:bg-primary/10 rounded transition-colors disabled:opacity-50"
+                  >
+                    <FiCheck className="w-4 h-4" />
+                  </button>
+                </Popover>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -199,14 +249,29 @@ export function FollowRequestCard({
                 wants to follow you
               </p>
             </div>
-            <p className="text-xs text-muted-foreground mb-2">
-              {formatDate(notification.createdAt)}
-            </p>
-            <p className="text-xs font-medium text-muted-foreground">
-              {notification.followStatus === 'accepted'
-                ? 'Request accepted'
-                : 'Request rejected'}
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">
+                  {formatDate(notification.createdAt)}
+                </p>
+                <p className="text-xs font-medium text-muted-foreground">
+                  {notification.followStatus === 'accepted'
+                    ? 'Request accepted'
+                    : 'Request rejected'}
+                </p>
+              </div>
+              {!notification.read && (
+                <Popover content="Mark as read" position="left">
+                  <button
+                    onClick={handleMarkAsRead}
+                    disabled={isProcessing}
+                    className="flex items-center justify-center w-8 h-8 text-primary hover:bg-primary/10 rounded transition-colors disabled:opacity-50"
+                  >
+                    <FiCheck className="w-4 h-4" />
+                  </button>
+                </Popover>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -229,39 +294,55 @@ export function FollowRequestCard({
           />
         </Link>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <FiUserPlus className="w-5 h-5 text-primary shrink-0" />
-            <p className="text-sm text-foreground">
-              <Link
-                href={`/users/${notification.fromUser.username}`}
-                className="font-semibold hover:underline"
-              >
-                {notification.fromUser.fullname}
-              </Link>{' '}
-              wants to follow you
-            </p>
-          </div>
-          <p className="text-xs text-muted-foreground mb-3">
-            {formatDate(notification.createdAt)}
-          </p>
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <FiUserPlus className="w-5 h-5 text-primary shrink-0" />
+                <p className="text-sm text-foreground">
+                  <Link
+                    href={`/users/${notification.fromUser.username}`}
+                    className="font-semibold hover:underline"
+                  >
+                    {notification.fromUser.fullname}
+                  </Link>{' '}
+                  wants to follow you
+                </p>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">
+                {formatDate(notification.createdAt)}
+              </p>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleAccept}
-              disabled={isProcessing}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
-            >
-              <FiCheck className="w-4 h-4" />
-              Accept
-            </button>
-            <button
-              onClick={handleReject}
-              disabled={isProcessing}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-foreground bg-muted rounded-lg hover:bg-muted/80 transition-colors disabled:opacity-50"
-            >
-              <FiX className="w-4 h-4" />
-              Reject
-            </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleAccept}
+                  disabled={isProcessing}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+                >
+                  <FiCheck className="w-4 h-4" />
+                  Accept
+                </button>
+                <button
+                  onClick={handleReject}
+                  disabled={isProcessing}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-foreground bg-muted rounded-lg hover:bg-muted/80 transition-colors disabled:opacity-50"
+                >
+                  <FiX className="w-4 h-4" />
+                  Reject
+                </button>
+              </div>
+            </div>
+
+            {!notification.read && (
+              <Popover content="Mark as read" position="left">
+                <button
+                  onClick={handleMarkAsRead}
+                  disabled={isProcessing}
+                  className="flex items-center justify-center w-8 h-8 text-primary hover:bg-primary/10 rounded transition-colors disabled:opacity-50 ml-4"
+                >
+                  <FiCheck className="w-4 h-4" />
+                </button>
+              </Popover>
+            )}
           </div>
         </div>
       </div>

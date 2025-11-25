@@ -1,11 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiBookmark, FiAlertCircle } from 'react-icons/fi';
+import {
+  FiBookmark,
+  FiAlertCircle,
+  FiCalendar,
+  FiChevronUp,
+  FiChevronDown,
+} from 'react-icons/fi';
 import { MovieCard } from './movie-card';
 import type { Movie } from '@/lib/tmdb';
 import type { UserMovie } from '@/lib/db/schema';
 import { useMovieCacheStore } from '@/store/movie-cache-store';
+import { Dropdown } from '@/components/ui/dropdown';
+import { Loading } from '@/components/ui/loading';
 
 export default function WatchListTab() {
   const [watchListMovies, setWatchListMovies] = useState<Movie[]>([]);
@@ -14,6 +22,9 @@ export default function WatchListTab() {
   const subscribeToStatusChanges = useMovieCacheStore(
     (state) => state.subscribeToStatusChanges
   );
+
+  const [sortBy, setSortBy] = useState<'added' | 'name' | 'rating'>('added');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const handleStatusChange = (
     movieId: number,
@@ -115,15 +126,32 @@ export default function WatchListTab() {
     fetchWatchList();
   }, []);
 
+  const getSortedMovies = () => {
+    const movies = [...watchListMovies];
+
+    return movies.sort((a, b) => {
+      let comparison = 0;
+      switch (sortBy) {
+        case 'added':
+          comparison = a.title.localeCompare(b.title);
+          break;
+        case 'name':
+          comparison = a.title.localeCompare(b.title);
+          break;
+        case 'rating':
+          comparison = (b.vote_average || 0) - (a.vote_average || 0);
+          break;
+        default:
+          comparison = 0;
+      }
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+  };
+
+  const sortedMovies = getSortedMovies();
+
   if (loading) {
-    return (
-      <div>
-        <div className="text-center py-16">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading your watch list...</p>
-        </div>
-      </div>
-    );
+    return <Loading text="Loading your watch list..." />;
   }
 
   if (error) {
@@ -140,33 +168,70 @@ export default function WatchListTab() {
     );
   }
 
+  const sortOptions = [
+    { value: 'added', label: 'Recently Added' },
+    { value: 'name', label: 'Name (A-Z)' },
+    { value: 'rating', label: 'Rating' },
+  ];
+
   return (
-    <div>
-      {watchListMovies.length === 0 ? (
-        <div className="text-center py-16">
-          <FiBookmark className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-2xl font-semibold text-foreground mb-2">
-            Your Watch List is Empty
-          </h3>
-          <p className="text-muted-foreground">
-            Start adding movies you want to watch!
+    <div className="space-y-6">
+      {/* Header with Controls */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Watch List</h2>
+          <p className="text-muted-foreground mt-1">
+            {sortedMovies.length} movie{sortedMovies.length !== 1 ? 's' : ''} to
+            watch
           </p>
         </div>
-      ) : (
-        <section className="mb-12">
-          <h2 className="text-2xl font-semibold mb-6 text-foreground">
-            My Watch List ({watchListMovies.length})
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {watchListMovies.map((movie) => (
-              <MovieCard
-                key={movie.id}
-                movie={movie}
-                onStatusChange={handleStatusChange}
-              />
-            ))}
+        <div className="flex items-center gap-3">
+          {/* Sort Dropdown */}
+          <div className="flex items-center gap-2">
+            <FiCalendar className="text-muted-foreground" />
+            <Dropdown
+              options={sortOptions}
+              value={sortBy}
+              onChange={(value) => setSortBy(value as typeof sortBy)}
+              className="w-44"
+            />
+            <button
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="p-2 rounded transition-colors text-muted-foreground hover:text-foreground"
+              title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
+            >
+              {sortOrder === 'asc' ? (
+                <FiChevronUp className="w-4 h-4" />
+              ) : (
+                <FiChevronDown className="w-4 h-4" />
+              )}
+            </button>
           </div>
-        </section>
+        </div>
+      </div>
+
+      {/* Movies Display */}
+      {sortedMovies.length > 0 ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          {sortedMovies.map((movie) => (
+            <MovieCard
+              key={movie.id}
+              movie={movie}
+              onStatusChange={handleStatusChange}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <FiBookmark className="text-6xl mb-4 text-muted-foreground" />
+          <h3 className="text-xl font-semibold text-foreground mb-2">
+            Your watch list is empty
+          </h3>
+          <p className="text-muted-foreground max-w-md">
+            Add movies you want to watch from the Discover tab to keep track of
+            them here!
+          </p>
+        </div>
       )}
     </div>
   );

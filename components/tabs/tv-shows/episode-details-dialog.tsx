@@ -13,16 +13,12 @@ import { toast } from 'react-toastify';
 interface EpisodeReview {
   id: string;
   userId: string;
+  userName: string;
+  username: string | null;
+  userImage: string | null;
   userRating: number | null;
   userComment: string | null;
-  watchedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-  user: {
-    name: string | null;
-    username: string | null;
-    image: string | null;
-  };
+  createdAt: string;
 }
 
 interface EpisodeDetailsDialogProps {
@@ -67,12 +63,13 @@ export function EpisodeDetailsDialog({
   const loadReviews = useCallback(async () => {
     setLoadingReviews(true);
     try {
+      const episodeId = `${tvShowId}-S${episode.season_number}E${episode.episode_number}`;
       const response = await fetch(
-        `/api/tv-shows/${tvShowId}/episodes/reviews?seasonNumber=${episode.season_number}&episodeNumber=${episode.episode_number}`
+        `/api/reviews?itemId=${episodeId}&itemType=tv_episode`
       );
       if (response.ok) {
         const data = await response.json();
-        const allReviews = data.reviews || [];
+        const allReviews = data.comments || [];
         setReviews(allReviews);
 
         // Check if user has a review
@@ -141,12 +138,21 @@ export function EpisodeDetailsDialog({
     }
 
     try {
-      const response = await fetch(
-        `/api/tv-shows/${tvShowId}/episodes/reviews?seasonNumber=${episode.season_number}&episodeNumber=${episode.episode_number}`,
-        {
-          method: 'DELETE',
-        }
+      // Find user's review to get the reviewId
+      const userReview = reviews.find(
+        (review) => review.userId === session?.user?.id
       );
+
+      if (!userReview) {
+        toast.error('Review not found');
+        return;
+      }
+
+      const response = await fetch('/api/reviews', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reviewId: userReview.id }),
+      });
 
       if (response.ok) {
         setHasUserReviewed(false);
@@ -333,19 +339,19 @@ export function EpisodeDetailsDialog({
                   <div className="flex items-start gap-3 mb-3">
                     <div className="shrink-0">
                       <Avatar
-                        src={review.user.image}
-                        alt={review.user.name || 'User'}
+                        src={review.userImage}
+                        alt={review.userName || 'User'}
                         size="sm"
                       />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2 mb-2">
-                        {review.user.username ? (
+                        {review.username ? (
                           <Link
-                            href={`/users/${review.user.username}`}
+                            href={`/users/${review.username}`}
                             className="font-medium text-foreground hover:text-primary transition-colors"
                           >
-                            {review.user.name || 'Anonymous'}
+                            {review.userName || 'Anonymous'}
                             {isCurrentUser && (
                               <span className="text-xs text-primary ml-2">
                                 (You)
@@ -354,7 +360,7 @@ export function EpisodeDetailsDialog({
                           </Link>
                         ) : (
                           <span className="font-medium text-foreground">
-                            {review.user.name || 'Anonymous'}
+                            {review.userName || 'Anonymous'}
                             {isCurrentUser && (
                               <span className="text-xs text-primary ml-2">
                                 (You)

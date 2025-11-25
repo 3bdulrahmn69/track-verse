@@ -6,6 +6,7 @@ import WatchListTab from './watch-list-tab';
 import FeedTab from './feed-tab';
 import { Tabs } from '@/components/ui/tabs';
 import type { Movie } from '@/lib/tmdb';
+import { FiCompass, FiRss, FiBookmark } from 'react-icons/fi';
 
 interface MoviesTabProps {
   popularMovies: Movie[];
@@ -29,9 +30,17 @@ export default function MoviesTab({
   };
 
   const tabs = [
-    { id: 'discover', label: 'Discover' },
-    { id: 'feed', label: 'Feed' },
-    { id: 'watchlist', label: 'Watch List' },
+    {
+      id: 'discover',
+      label: 'Discover',
+      icon: <FiCompass className="w-5 h-5" />,
+    },
+    { id: 'feed', label: 'Feed', icon: <FiRss className="w-5 h-5" /> },
+    {
+      id: 'watchlist',
+      label: 'Watch List',
+      icon: <FiBookmark className="w-5 h-5" />,
+    },
   ];
 
   return (

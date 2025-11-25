@@ -30,6 +30,24 @@ export function formatWatchTime(totalHours: number) {
   return parts.length > 0 ? parts.join(', ') : '0 hours';
 }
 
+// Helper function to convert hours to months/days/hours counter format
+export function formatWatchTimeCounter(totalHours: number) {
+  const hoursPerDay = 24;
+  const daysPerMonth = 30; // Approximate
+
+  const totalDays = Math.floor(totalHours / hoursPerDay);
+  const remainingHours = Math.floor(totalHours % hoursPerDay);
+
+  const months = Math.floor(totalDays / daysPerMonth);
+  const remainingDays = totalDays % daysPerMonth;
+
+  return {
+    months,
+    days: remainingDays,
+    hours: remainingHours,
+  };
+}
+
 // Types for calculation functions
 interface WatchedMovie {
   watchCount?: number | null;

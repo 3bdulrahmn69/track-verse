@@ -250,6 +250,22 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
     if (!selectedEpisode) return;
 
     try {
+      // First, add the review using the unified API
+      const episodeId = `${tvShowId}-S${activeSeasonNumber}E${selectedEpisode.episode_number}`;
+      const reviewResponse = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemId: episodeId,
+          itemType: 'tv_episode',
+          rating,
+          comment,
+        }),
+      });
+
+      if (!reviewResponse.ok) throw new Error('Failed to submit review');
+
+      // Then update the episode watch status
       const response = await fetch(`/api/tv-shows/${tvShowId}/episodes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -259,14 +275,11 @@ export function SeasonTracker({ tvShowId, seasons }: SeasonTrackerProps) {
           watched: true,
           episodeName: selectedEpisode.name,
           runtime: selectedEpisode.runtime,
-          userRating: rating,
-          userComment: comment,
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to submit review');
+      if (!response.ok) throw new Error('Failed to update episode status');
 
-      // Show completion handled by backend
       await response.json();
 
       // Update local state

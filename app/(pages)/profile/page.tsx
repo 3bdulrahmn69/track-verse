@@ -1,10 +1,15 @@
 import { auth } from '@/lib/auth-config';
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
-import { userMovies, userTvShows, userEpisodes } from '@/lib/db/schema';
+import {
+  userMovies,
+  userTvShows,
+  userEpisodes,
+  userBooks,
+  reviews,
+} from '@/lib/db/schema';
 import { eq, and, ne } from 'drizzle-orm';
-import { MovieCard } from '@/components/tabs/movies/movie-card';
-import { TVShowCard } from '@/components/tabs/tv-shows/tv-show-card';
+import { MediaCarousel } from '@/components/ui/media-carousel';
 import Link from 'next/link';
 import BackButton from '@/components/shared/back-button';
 import { Avatar } from '@/components/ui/avatar';
@@ -12,13 +17,21 @@ import { UserStats } from '@/components/user/user-stats';
 import { UserFollowInfo } from '@/components/user/user-follow-info';
 import type { Movie } from '@/lib/tmdb';
 import type { TVShow } from '@/lib/tmdb';
+import type { Book } from '@/lib/books';
 import {
-  formatWatchTime,
   calculateTotalMovieWatchCount,
   calculateMovieWatchHours,
   calculateEpisodeWatchHours,
+  formatWatchTimeCounter,
 } from '@/lib/utils';
-import { FiUser, FiFilm, FiClock, FiEdit2, FiTv } from 'react-icons/fi';
+import {
+  FiUser,
+  FiFilm,
+  FiClock,
+  FiEdit2,
+  FiTv,
+  FiBookOpen,
+} from 'react-icons/fi';
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -71,6 +84,36 @@ export default async function ProfilePage() {
       )
     );
 
+  // Fetch user's read books
+  const readBooks = await db
+    .select()
+    .from(userBooks)
+    .where(
+      and(eq(userBooks.userId, session.user.id), eq(userBooks.status, 'read'))
+    );
+
+  // Fetch book reviews for average rating calculation
+  const bookReviews = await db
+    .select()
+    .from(reviews)
+    .where(
+      and(eq(reviews.userId, session.user.id), eq(reviews.itemType, 'book'))
+    );
+
+  // Calculate average book rating
+  const avgBookRating =
+    bookReviews.length > 0
+      ? (
+          bookReviews.reduce((sum, review) => sum + review.rating, 0) /
+          bookReviews.length
+        ).toFixed(1)
+      : 'N/A';
+
+  // Calculate total pages read
+  const totalPagesRead = readBooks.reduce((total, book) => {
+    return total + (book.totalPages || 0);
+  }, 0);
+
   // Transform movies to Movie objects
   const movies: Movie[] = watchedMovies.map((record) => ({
     id: record.movieId,
@@ -103,6 +146,16 @@ export default async function ProfilePage() {
     original_name: record.tvShowName,
   }));
 
+  // Transform books to Book objects
+  const books: Book[] = readBooks.map((record) => ({
+    key: record.bookId,
+    title: record.bookTitle,
+    author_name: record.bookAuthors ? JSON.parse(record.bookAuthors) : [],
+    first_publish_year: record.bookFirstPublishYear || undefined,
+    cover_i: record.bookCoverId || undefined,
+    subject: [],
+  }));
+
   // Calculate statistics
   const totalMovieWatchCount = calculateTotalMovieWatchCount(watchedMovies);
 
@@ -117,22 +170,22 @@ export default async function ProfilePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
-        <div className="mb-4 sm:mb-6">
+        <nav className="mb-4 sm:mb-6">
           <BackButton />
-        </div>
+        </nav>
 
-        {/* Profile Header */}
-        <div className="bg-card rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 mb-6 lg:mb-8">
+        {/* Profile Header Section */}
+        <header className="bg-card rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 mb-8 lg:mb-12">
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-start sm:gap-6">
             {/* Avatar */}
-            <div className="shrink-0">
+            <figure className="shrink-0">
               <Avatar
                 src={session.user.image}
                 alt={session.user.name || 'User'}
                 size="xl"
                 className="w-24 h-24 sm:w-32 sm:h-32"
               />
-            </div>
+            </figure>
 
             {/* User Info */}
             <div className="flex-1 text-center sm:text-left min-w-0 w-full sm:w-auto">
@@ -176,7 +229,7 @@ export default async function ProfilePage() {
               {
                 label: 'Movies',
                 description: 'Watch History',
-                icon: <FiFilm className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />,
+                icon: <FiFilm className="w-5 h-5 sm:w-6 sm:h-6" />,
                 bgColor: 'from-primary/20 to-primary/5',
                 value: {
                   primary: 'Movies Watched',
@@ -184,13 +237,13 @@ export default async function ProfilePage() {
                   secondary: 'Total Views',
                   secondaryValue: totalMovieWatchCount,
                   tertiary: 'Watch Time',
-                  tertiaryValue: formatWatchTime(movieWatchHours),
+                  tertiaryValue: formatWatchTimeCounter(movieWatchHours),
                 },
               },
               {
                 label: 'TV Shows',
                 description: 'Episode Tracker',
-                icon: <FiTv className="w-6 h-6 sm:w-8 sm:h-8 text-secondary" />,
+                icon: <FiTv className="w-5 h-5 sm:w-6 sm:h-6" />,
                 bgColor: 'from-secondary/20 to-secondary/5',
                 textColor: 'text-secondary',
                 value: {
@@ -199,7 +252,23 @@ export default async function ProfilePage() {
                   secondary: 'Episodes Watched',
                   secondaryValue: watchedEpisodes.length,
                   tertiary: 'Watch Time',
-                  tertiaryValue: formatWatchTime(episodeWatchHours),
+                  tertiaryValue: formatWatchTimeCounter(episodeWatchHours),
+                },
+              },
+              {
+                label: 'Books',
+                description: 'Reading Journey',
+                icon: <FiBookOpen className="w-5 h-5 sm:w-6 sm:h-6" />,
+                bgColor: 'from-accent/20 to-accent/5',
+                textColor: 'text-accent',
+                value: {
+                  primary: 'Books Read',
+                  primaryValue: books.length,
+                  secondary: 'Pages Read',
+                  secondaryValue: totalPagesRead,
+                  tertiary: 'Avg. Rating',
+                  tertiaryValue:
+                    avgBookRating !== 'N/A' ? avgBookRating + ' ★' : 'N/A',
                 },
               },
             ]}
@@ -207,68 +276,118 @@ export default async function ProfilePage() {
           />
 
           {/* Total Watch Time Summary */}
-          <div className="mt-6 p-4 sm:p-6 bg-muted/50 rounded-xl border border-border">
+          <div className="mt-6 p-4 sm:p-6 bg-muted/50 rounded-lg border border-border">
             <div className="flex items-center justify-center gap-2 mb-2">
               <FiClock className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
               <span className="text-sm font-medium text-muted-foreground">
                 Total Watch Time
               </span>
             </div>
-            <p className="text-center text-xl sm:text-2xl font-bold text-foreground">
-              {formatWatchTime(totalWatchHours)}
-            </p>
+            <div className="flex items-center justify-center gap-4">
+              {(() => {
+                const timeCounter = formatWatchTimeCounter(totalWatchHours);
+                return (
+                  <>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xl sm:text-2xl font-bold text-primary">
+                        {timeCounter.months}
+                      </span>
+                      <span className="text-xs text-muted-foreground">M</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xl sm:text-2xl font-bold text-primary">
+                        {timeCounter.days}
+                      </span>
+                      <span className="text-xs text-muted-foreground">D</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xl sm:text-2xl font-bold text-primary">
+                        {timeCounter.hours}
+                      </span>
+                      <span className="text-xs text-muted-foreground">H</span>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
           </div>
-        </div>
+        </header>
 
-        {/* Watched Movies */}
-        <div className="bg-card rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 mb-6 lg:mb-8">
-          <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 sm:mb-6">
-            Watched Movies
-          </h2>
+        {/* Watched Movies Section */}
+        <section className="mb-12">
+          <div className="flex items-center gap-2 mb-6">
+            <FiFilm className="w-6 h-6 text-primary" />
+            <h2 className="text-2xl font-semibold text-foreground">
+              Watched Movies
+            </h2>
+          </div>
+          <MediaCarousel
+            items={movies}
+            type="movies"
+            title="Watched Movies"
+            emptyState={
+              <div className="text-center py-12 sm:py-16">
+                <FiFilm className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
+                  No Movies Watched Yet
+                </h3>
+                <p className="text-sm sm:text-base text-muted-foreground">
+                  Start watching movies and they&apos;ll appear here!
+                </p>
+              </div>
+            }
+          />
+        </section>
 
-          {movies.length === 0 ? (
-            <div className="text-center py-12 sm:py-16">
-              <FiFilm className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
-                No Movies Watched Yet
-              </h3>
-              <p className="text-sm sm:text-base text-muted-foreground">
-                Start watching movies and they&apos;ll appear here!
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
-              {movies.map((movie) => (
-                <MovieCard key={movie.id} movie={movie} />
-              ))}
-            </div>
-          )}
-        </div>
+        {/* TV Shows Section */}
+        <section className="mb-12">
+          <div className="flex items-center gap-2 mb-6">
+            <FiTv className="w-6 h-6 text-primary" />
+            <h2 className="text-2xl font-semibold text-foreground">TV Shows</h2>
+          </div>
+          <MediaCarousel
+            items={tvShows}
+            type="tvshows"
+            title="TV Shows"
+            emptyState={
+              <div className="text-center py-12 sm:py-16">
+                <FiTv className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
+                  No TV Shows Added Yet
+                </h3>
+                <p className="text-sm sm:text-base text-muted-foreground">
+                  Add TV shows to your watchlist and they&apos;ll appear here!
+                </p>
+              </div>
+            }
+          />
+        </section>
 
-        {/* TV Shows */}
-        <div className="bg-card rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
-          <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 sm:mb-6">
-            TV Shows
-          </h2>
-
-          {tvShows.length === 0 ? (
-            <div className="text-center py-12 sm:py-16">
-              <FiTv className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
-                No TV Shows Added Yet
-              </h3>
-              <p className="text-sm sm:text-base text-muted-foreground">
-                Add TV shows to your watchlist and they&apos;ll appear here!
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
-              {tvShows.map((tvShow) => (
-                <TVShowCard key={tvShow.id} tvShow={tvShow} />
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Read Books Section */}
+        <section className="mb-12">
+          <div className="flex items-center gap-2 mb-6">
+            <FiBookOpen className="w-6 h-6 text-primary" />
+            <h2 className="text-2xl font-semibold text-foreground">
+              Read Books
+            </h2>
+          </div>
+          <MediaCarousel
+            items={books}
+            type="books"
+            title="Read Books"
+            emptyState={
+              <div className="text-center py-12 sm:py-16">
+                <FiBookOpen className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
+                  No Books Read Yet
+                </h3>
+                <p className="text-sm sm:text-base text-muted-foreground">
+                  Start reading books and they&apos;ll appear here!
+                </p>
+              </div>
+            }
+          />
+        </section>
       </div>
     </div>
   );
