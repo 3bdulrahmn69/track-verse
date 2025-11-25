@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { FiCalendar, FiClock, FiStar, FiPlay } from 'react-icons/fi';
+import { FiCalendar, FiClock, FiStar } from 'react-icons/fi';
 import {
   getMovieDetails,
   getImageUrl,
@@ -11,6 +11,7 @@ import { notFound } from 'next/navigation';
 import BackButton from '@/components/shared/back-button';
 import MovieActions from '@/components/tabs/movies/movie-actions';
 import { MovieDetailsTabs } from '@/components/tabs/movies/movie-details-tabs';
+import { TrailerPlayer } from '@/components/shared/trailer-player';
 
 interface MoviePageProps {
   params: Promise<{
@@ -149,15 +150,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
               )}
 
               {trailer && (
-                <a
-                  href={`https://www.youtube.com/watch?v=${trailer.key}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
-                >
-                  <FiPlay className="w-5 h-5" />
-                  <span className="font-medium">Watch Trailer</span>
-                </a>
+                <TrailerPlayer videoKey={trailer.key} title={movie.title} />
               )}
             </div>
 

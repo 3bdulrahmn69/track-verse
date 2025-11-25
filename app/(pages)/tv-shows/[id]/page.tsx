@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { FiCalendar, FiStar, FiPlay, FiTv } from 'react-icons/fi';
+import { FiCalendar, FiStar, FiTv } from 'react-icons/fi';
 import {
   getTVShowDetails,
   getImageUrl,
@@ -12,6 +12,7 @@ import BackButton from '@/components/shared/back-button';
 import TVShowActions from '@/components/tabs/tv-shows/tv-show-actions';
 import { TVShowDetailsTabs } from '@/components/tabs/tv-shows/tv-show-details-tabs';
 import { SeasonTracker } from '@/components/tabs/tv-shows/season-tracker';
+import { TrailerPlayer } from '@/components/shared/trailer-player';
 
 interface TVShowPageProps {
   params: Promise<{
@@ -164,15 +165,7 @@ export default async function TVShowPage({ params }: TVShowPageProps) {
               )}
 
               {trailer && (
-                <a
-                  href={`https://www.youtube.com/watch?v=${trailer.key}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
-                >
-                  <FiPlay className="w-5 h-5" />
-                  <span className="font-medium">Watch Trailer</span>
-                </a>
+                <TrailerPlayer videoKey={trailer.key} title={tvShow.name} />
               )}
             </div>
 

@@ -12,6 +12,7 @@ interface DialogProps {
   footer?: ReactNode;
   showCloseButton?: boolean;
   className?: string;
+  fullScreen?: boolean;
 }
 
 export function Dialog({
@@ -22,6 +23,7 @@ export function Dialog({
   footer,
   showCloseButton = true,
   className = '',
+  fullScreen = false,
 }: DialogProps) {
   // Handle Escape key to close dialog
   useEffect(() => {
@@ -74,7 +76,7 @@ export function Dialog({
         )}
       >
         {/* Header */}
-        {(title || showCloseButton) && (
+        {!fullScreen && (title || showCloseButton) && (
           <div className="flex items-center justify-between p-6 border-b border-border">
             {title && (
               <h2 className="text-xl font-bold text-foreground">{title}</h2>
@@ -90,8 +92,18 @@ export function Dialog({
           </div>
         )}
 
+        {/* Full Screen Close Button */}
+        {fullScreen && showCloseButton && (
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 z-10 text-white hover:text-gray-300 transition-colors bg-black/50 rounded-full p-2"
+          >
+            <FiX className="w-6 h-6" />
+          </button>
+        )}
+
         {/* Content */}
-        <div className="p-6">{children}</div>
+        <div className={fullScreen ? 'h-full' : 'p-6'}>{children}</div>
 
         {/* Footer */}
         {footer && (
