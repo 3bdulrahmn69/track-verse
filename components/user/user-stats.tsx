@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { getUserStats, formatWatchTimeCounter } from '@/lib/server-utils';
-import { FiFilm, FiTv, FiBookOpen, FiPlay } from 'react-icons/fi';
+import { FiFilm, FiTv, FiBookOpen } from 'react-icons/fi';
+import { IoGameController } from 'react-icons/io5';
 
 interface DetailedStatItem {
   value: {
@@ -94,7 +95,7 @@ export async function UserStats({
     {
       label: 'Games',
       description: 'Gaming Library',
-      icon: <FiPlay className="w-5 h-5 sm:w-6 sm:h-6" />,
+      icon: <IoGameController className="w-5 h-5 sm:w-6 sm:h-6" />,
       bgColor: 'from-purple-500/20 to-purple-500/5',
       textColor: 'text-purple-500',
       value: {
@@ -272,7 +273,7 @@ export async function UserStats({
           {stats.games.count}
         </div>
         <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
-          <FiPlay className="w-4 h-4" />
+          <IoGameController className="w-4 h-4" />
           Games
         </div>
       </div>

@@ -13,14 +13,8 @@ import type { Movie } from '@/lib/tmdb';
 import type { TVShow } from '@/lib/tmdb';
 import type { Book } from '@/lib/books';
 import type { Game } from '@/lib/rawg';
-import {
-  FiUser,
-  FiFilm,
-  FiEdit2,
-  FiTv,
-  FiBookOpen,
-  FiPlay,
-} from 'react-icons/fi';
+import { FiUser, FiFilm, FiEdit2, FiTv, FiBookOpen } from 'react-icons/fi';
+import { IoGameController } from 'react-icons/io5';
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -279,7 +273,7 @@ export default async function ProfilePage() {
         {/* Completed Games Section */}
         <section className="mb-12">
           <div className="flex items-center gap-2 mb-6">
-            <FiPlay className="w-6 h-6 text-primary" />
+            <IoGameController className="w-6 h-6 text-primary" />
             <h2 className="text-2xl font-semibold text-foreground">
               Completed Games
             </h2>
@@ -290,7 +284,7 @@ export default async function ProfilePage() {
             title="Completed Games"
             emptyState={
               <div className="text-center py-12 sm:py-16">
-                <FiPlay className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-muted-foreground" />
+                <IoGameController className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
                   No Games Completed Yet
                 </h3>

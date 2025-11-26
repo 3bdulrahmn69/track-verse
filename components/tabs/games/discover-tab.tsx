@@ -1,16 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { GameCard } from './game-card';
-import GameSearch from './game-search';
+import { SearchComponent } from '@/components/ui/search-component';
 import type { Game } from '@/lib/rawg';
 import { Loading } from '@/components/ui/loading';
 
 export default function DiscoverTab() {
   const [popularGames, setPopularGames] = useState<Game[]>([]);
   const [recentGames, setRecentGames] = useState<Game[]>([]);
+  const [searchResults, setSearchResults] = useState<Game[]>([]);
   const [loadingPopular, setLoadingPopular] = useState(false);
   const [loadingRecent, setLoadingRecent] = useState(false);
+  const [hasActiveSearch, setHasActiveSearch] = useState(false);
 
   useEffect(() => {
     fetchPopularGames();
@@ -47,49 +49,101 @@ export default function DiscoverTab() {
     }
   };
 
+  const handleSearchSubmit = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setHasActiveSearch(false);
+      return;
+    }
+
+    setHasActiveSearch(true);
+    try {
+      const response = await fetch(
+        `/api/games/search?query=${encodeURIComponent(query)}`
+      );
+      const data = await response.json();
+      const games = data.results || [];
+      setSearchResults(games);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    }
+  }, []);
+
   return (
-    <div>
-      <GameSearch />
+    <div className="space-y-8">
+      {/* Search Bar */}
+      <div className="max-w-2xl mx-auto">
+        <SearchComponent
+          placeholder="Search for games..."
+          onSearch={handleSearchSubmit}
+        />
+      </div>
 
-      {/* Popular Games Section */}
-      <section>
-        <h2 className="text-2xl font-bold text-foreground mb-6">
-          Popular Games
-        </h2>
-        {loadingPopular ? (
-          <Loading />
-        ) : popularGames.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {popularGames.map((game) => (
-              <GameCard key={game.id} game={game} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 text-muted-foreground">
-            <p>No popular games found</p>
-          </div>
-        )}
-      </section>
+      {/* Search Results */}
+      {hasActiveSearch && (
+        <div>
+          <h2 className="text-2xl font-bold mb-6 text-foreground">
+            Search Results ({searchResults.length})
+          </h2>
+          {searchResults.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {searchResults.map((game) => (
+                <GameCard key={game.id} game={game} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">
+              No games found
+            </p>
+          )}
+        </div>
+      )}
 
-      {/* Recent Games Section */}
-      <section>
-        <h2 className="text-2xl font-bold text-foreground mb-6">
-          Recent Releases
-        </h2>
-        {loadingRecent ? (
-          <Loading />
-        ) : recentGames.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {recentGames.map((game) => (
-              <GameCard key={game.id} game={game} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 text-muted-foreground">
-            <p>No recent games found</p>
-          </div>
-        )}
-      </section>
+      {/* Discover Content */}
+      {!hasActiveSearch && (
+        <>
+          {/* Popular Games Section */}
+          <section>
+            <h2 className="text-2xl font-bold text-foreground mb-6">
+              Popular Games
+            </h2>
+            {loadingPopular ? (
+              <Loading />
+            ) : popularGames.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {popularGames.map((game) => (
+                  <GameCard key={game.id} game={game} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <p>No popular games found</p>
+              </div>
+            )}
+          </section>
+
+          {/* Recent Games Section */}
+          <section>
+            <h2 className="text-2xl font-bold text-foreground mb-6">
+              Recent Releases
+            </h2>
+            {loadingRecent ? (
+              <Loading />
+            ) : recentGames.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {recentGames.map((game) => (
+                  <GameCard key={game.id} game={game} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <p>No recent games found</p>
+              </div>
+            )}
+          </section>
+        </>
+      )}
     </div>
   );
 }

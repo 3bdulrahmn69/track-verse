@@ -22,10 +22,6 @@ export function SearchComponent({
 
   const handleSearch = useCallback(
     async (searchQuery: string) => {
-      if (!searchQuery.trim()) {
-        return;
-      }
-
       // Cancel previous request
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -69,6 +65,9 @@ export function SearchComponent({
 
   const handleClear = () => {
     setQuery('');
+    if (onSearch) {
+      onSearch('');
+    }
   };
 
   return (

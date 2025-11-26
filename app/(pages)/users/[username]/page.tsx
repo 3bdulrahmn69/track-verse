@@ -6,8 +6,8 @@ import {
   FiClock,
   FiTv,
   FiBookOpen,
-  FiPlay,
 } from 'react-icons/fi';
+import { IoGameController } from 'react-icons/io5';
 import { db } from '@/lib/db';
 import {
   users,
@@ -318,7 +318,7 @@ export default async function UserPage({ params }: UserPageProps) {
             {games.length > 0 && (
               <section className="mb-12">
                 <div className="flex items-center gap-2 mb-6">
-                  <FiPlay className="w-6 h-6 text-primary" />
+                  <IoGameController className="w-6 h-6 text-primary" />
                   <h2 className="text-2xl font-semibold text-foreground">
                     Completed Games
                   </h2>

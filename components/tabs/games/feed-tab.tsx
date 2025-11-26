@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FiPlay, FiUser, FiClock } from 'react-icons/fi';
+import { FiUser, FiClock } from 'react-icons/fi';
+import { IoGameController } from 'react-icons/io5';
 import { Loading } from '@/components/ui/loading';
 
 interface GameActivity {
@@ -84,7 +85,7 @@ export default function FeedTab() {
   if (activities.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <FiPlay className="text-6xl mb-4 text-muted-foreground" />
+        <IoGameController className="text-6xl mb-4 text-muted-foreground" />
         <h3 className="text-xl font-semibold text-foreground mb-2">
           No activities yet
         </h3>

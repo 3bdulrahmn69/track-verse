@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { TVShow } from '@/lib/tmdb';
 import { TVShowCard } from './tv-show-card';
 import { SearchComponent } from '@/components/ui/search-component';
@@ -36,7 +36,7 @@ export default function DiscoverTab() {
     }
   };
 
-  const handleSearchSubmit = async (query: string) => {
+  const handleSearchSubmit = useCallback(async (query: string) => {
     if (!query.trim()) {
       setSearchResults([]);
       setHasActiveSearch(false);
@@ -54,7 +54,7 @@ export default function DiscoverTab() {
       console.error('Error searching TV shows:', error);
       setSearchResults([]);
     }
-  };
+  }, []);
 
   const handleStatusChange = (
     tvShowId: number,
