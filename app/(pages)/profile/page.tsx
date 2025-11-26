@@ -1,13 +1,7 @@
 import { auth } from '@/lib/auth-config';
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
-import {
-  userMovies,
-  userTvShows,
-  userEpisodes,
-  userBooks,
-  reviews,
-} from '@/lib/db/schema';
+import { userMovies, userTvShows, userBooks, userGames } from '@/lib/db/schema';
 import { eq, and, ne } from 'drizzle-orm';
 import { MediaCarousel } from '@/components/ui/media-carousel';
 import Link from 'next/link';
@@ -18,19 +12,14 @@ import { UserFollowInfo } from '@/components/user/user-follow-info';
 import type { Movie } from '@/lib/tmdb';
 import type { TVShow } from '@/lib/tmdb';
 import type { Book } from '@/lib/books';
-import {
-  calculateTotalMovieWatchCount,
-  calculateMovieWatchHours,
-  calculateEpisodeWatchHours,
-  formatWatchTimeCounter,
-} from '@/lib/utils';
+import type { Game } from '@/lib/rawg';
 import {
   FiUser,
   FiFilm,
-  FiClock,
   FiEdit2,
   FiTv,
   FiBookOpen,
+  FiPlay,
 } from 'react-icons/fi';
 
 export default async function ProfilePage() {
@@ -51,17 +40,6 @@ export default async function ProfilePage() {
       )
     );
 
-  // Fetch user's completed TV shows
-  const completedTVShows = await db
-    .select()
-    .from(userTvShows)
-    .where(
-      and(
-        eq(userTvShows.userId, session.user.id),
-        eq(userTvShows.status, 'completed')
-      )
-    );
-
   // Fetch all user's TV shows
   const allUserTVShows = await db
     .select()
@@ -73,17 +51,6 @@ export default async function ProfilePage() {
       )
     );
 
-  // Get watched episodes count
-  const watchedEpisodes = await db
-    .select()
-    .from(userEpisodes)
-    .where(
-      and(
-        eq(userEpisodes.userId, session.user.id),
-        eq(userEpisodes.watched, true)
-      )
-    );
-
   // Fetch user's read books
   const readBooks = await db
     .select()
@@ -92,27 +59,16 @@ export default async function ProfilePage() {
       and(eq(userBooks.userId, session.user.id), eq(userBooks.status, 'read'))
     );
 
-  // Fetch book reviews for average rating calculation
-  const bookReviews = await db
+  // Fetch user's completed games
+  const completedGames = await db
     .select()
-    .from(reviews)
+    .from(userGames)
     .where(
-      and(eq(reviews.userId, session.user.id), eq(reviews.itemType, 'book'))
+      and(
+        eq(userGames.userId, session.user.id),
+        eq(userGames.status, 'completed')
+      )
     );
-
-  // Calculate average book rating
-  const avgBookRating =
-    bookReviews.length > 0
-      ? (
-          bookReviews.reduce((sum, review) => sum + review.rating, 0) /
-          bookReviews.length
-        ).toFixed(1)
-      : 'N/A';
-
-  // Calculate total pages read
-  const totalPagesRead = readBooks.reduce((total, book) => {
-    return total + (book.totalPages || 0);
-  }, 0);
 
   // Transform movies to Movie objects
   const movies: Movie[] = watchedMovies.map((record) => ({
@@ -122,7 +78,7 @@ export default async function ProfilePage() {
     backdrop_path: null,
     release_date: record.movieReleaseDate || '',
     overview: '',
-    vote_average: record.tmdbRating || 0,
+    vote_average: Number(record.tmdbRating) || 0,
     vote_count: 0,
     popularity: 0,
     genre_ids: [],
@@ -137,7 +93,7 @@ export default async function ProfilePage() {
     backdrop_path: null,
     first_air_date: record.tvShowFirstAirDate || '',
     overview: '',
-    vote_average: record.tmdbRating || 0,
+    vote_average: Number(record.tmdbRating) || 0,
     vote_count: 0,
     popularity: 0,
     genre_ids: [],
@@ -156,16 +112,30 @@ export default async function ProfilePage() {
     subject: [],
   }));
 
-  // Calculate statistics
-  const totalMovieWatchCount = calculateTotalMovieWatchCount(watchedMovies);
-
-  // Calculate actual movie watch time from DB (runtime in minutes * watchCount)
-  const movieWatchHours = calculateMovieWatchHours(watchedMovies);
-
-  // Calculate actual episode watch time from DB (runtime in minutes for watched episodes)
-  const episodeWatchHours = calculateEpisodeWatchHours(watchedEpisodes);
-
-  const totalWatchHours = movieWatchHours + episodeWatchHours;
+  // Transform games to Game objects
+  const games: Game[] = completedGames.map((record) => ({
+    id: record.gameId,
+    slug: record.gameSlug || '',
+    name: record.gameName,
+    released: record.gameReleased || '',
+    tba: false,
+    background_image: record.gameBackgroundImage,
+    rating: Number(record.rating) || 0,
+    rating_top: 5,
+    ratings: [],
+    ratings_count: 0,
+    reviews_text_count: 0,
+    added: 0,
+    metacritic: record.metacritic,
+    playtime: record.avgPlaytime || 0,
+    suggestions_count: 0,
+    updated: '',
+    esrb_rating: null,
+    platforms: [],
+    genres: [],
+    tags: [],
+    short_screenshots: [],
+  }));
 
   return (
     <div className="min-h-screen bg-background">
@@ -224,93 +194,10 @@ export default async function ProfilePage() {
 
           {/* Stats Cards */}
           <UserStats
+            userId={session.user.id}
             variant="detailed"
-            stats={[
-              {
-                label: 'Movies',
-                description: 'Watch History',
-                icon: <FiFilm className="w-5 h-5 sm:w-6 sm:h-6" />,
-                bgColor: 'from-primary/20 to-primary/5',
-                value: {
-                  primary: 'Movies Watched',
-                  primaryValue: movies.length,
-                  secondary: 'Total Views',
-                  secondaryValue: totalMovieWatchCount,
-                  tertiary: 'Watch Time',
-                  tertiaryValue: formatWatchTimeCounter(movieWatchHours),
-                },
-              },
-              {
-                label: 'TV Shows',
-                description: 'Episode Tracker',
-                icon: <FiTv className="w-5 h-5 sm:w-6 sm:h-6" />,
-                bgColor: 'from-secondary/20 to-secondary/5',
-                textColor: 'text-secondary',
-                value: {
-                  primary: 'Shows Completed',
-                  primaryValue: completedTVShows.length,
-                  secondary: 'Episodes Watched',
-                  secondaryValue: watchedEpisodes.length,
-                  tertiary: 'Watch Time',
-                  tertiaryValue: formatWatchTimeCounter(episodeWatchHours),
-                },
-              },
-              {
-                label: 'Books',
-                description: 'Reading Journey',
-                icon: <FiBookOpen className="w-5 h-5 sm:w-6 sm:h-6" />,
-                bgColor: 'from-accent/20 to-accent/5',
-                textColor: 'text-accent',
-                value: {
-                  primary: 'Books Read',
-                  primaryValue: books.length,
-                  secondary: 'Pages Read',
-                  secondaryValue: totalPagesRead,
-                  tertiary: 'Avg. Rating',
-                  tertiaryValue:
-                    avgBookRating !== 'N/A' ? avgBookRating + ' ★' : 'N/A',
-                },
-              },
-            ]}
             className="mt-6 lg:mt-8"
           />
-
-          {/* Total Watch Time Summary */}
-          <div className="mt-6 p-4 sm:p-6 bg-muted/50 rounded-lg border border-border">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <FiClock className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-              <span className="text-sm font-medium text-muted-foreground">
-                Total Watch Time
-              </span>
-            </div>
-            <div className="flex items-center justify-center gap-4">
-              {(() => {
-                const timeCounter = formatWatchTimeCounter(totalWatchHours);
-                return (
-                  <>
-                    <div className="flex items-center gap-1">
-                      <span className="text-xl sm:text-2xl font-bold text-primary">
-                        {timeCounter.months}
-                      </span>
-                      <span className="text-xs text-muted-foreground">M</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-xl sm:text-2xl font-bold text-primary">
-                        {timeCounter.days}
-                      </span>
-                      <span className="text-xs text-muted-foreground">D</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-xl sm:text-2xl font-bold text-primary">
-                        {timeCounter.hours}
-                      </span>
-                      <span className="text-xs text-muted-foreground">H</span>
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-          </div>
         </header>
 
         {/* Watched Movies Section */}
@@ -383,6 +270,33 @@ export default async function ProfilePage() {
                 </h3>
                 <p className="text-sm sm:text-base text-muted-foreground">
                   Start reading books and they&apos;ll appear here!
+                </p>
+              </div>
+            }
+          />
+        </section>
+
+        {/* Completed Games Section */}
+        <section className="mb-12">
+          <div className="flex items-center gap-2 mb-6">
+            <FiPlay className="w-6 h-6 text-primary" />
+            <h2 className="text-2xl font-semibold text-foreground">
+              Completed Games
+            </h2>
+          </div>
+          <MediaCarousel
+            items={games}
+            type="games"
+            title="Completed Games"
+            emptyState={
+              <div className="text-center py-12 sm:py-16">
+                <FiPlay className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
+                  No Games Completed Yet
+                </h3>
+                <p className="text-sm sm:text-base text-muted-foreground">
+                  Start playing games and mark them as completed to see them
+                  here!
                 </p>
               </div>
             }

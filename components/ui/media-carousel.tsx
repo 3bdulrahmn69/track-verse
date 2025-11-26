@@ -7,12 +7,14 @@ import { Dialog } from '@/components/ui/dialog';
 import { MovieCard } from '@/components/tabs/movies/movie-card';
 import { TVShowCard } from '@/components/tabs/tv-shows/tv-show-card';
 import { BookCard } from '@/components/tabs/books/book-card';
+import { GameCard } from '@/components/tabs/games/game-card';
 import type { Movie } from '@/lib/tmdb';
 import type { TVShow } from '@/lib/tmdb';
 import type { Book } from '@/lib/books';
+import type { Game } from '@/lib/rawg';
 
-type MediaItem = Movie | TVShow | Book;
-type MediaType = 'movies' | 'tvshows' | 'books';
+type MediaItem = Movie | TVShow | Book | Game;
+type MediaType = 'movies' | 'tvshows' | 'books' | 'games';
 
 interface MediaCarouselProps {
   items: MediaItem[];
@@ -95,11 +97,6 @@ export function MediaCarousel({
   if (totalItems === 0) {
     return (
       <section className="bg-card rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
-        <header className="mb-4 sm:mb-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-foreground">
-            {title}
-          </h2>
-        </header>
         {emptyState}
       </section>
     );
@@ -194,6 +191,8 @@ function getItemKey(item: MediaItem, type: MediaType): string {
       return (item as TVShow).id.toString();
     case 'books':
       return (item as Book).key;
+    case 'games':
+      return (item as Game).id.toString();
     default:
       return 'unknown';
   }
@@ -207,6 +206,8 @@ function renderItemCard(item: MediaItem, type: MediaType): React.ReactNode {
       return <TVShowCard tvShow={item as TVShow} />;
     case 'books':
       return <BookCard book={item as Book} />;
+    case 'games':
+      return <GameCard game={item as Game} />;
     default:
       return null;
   }

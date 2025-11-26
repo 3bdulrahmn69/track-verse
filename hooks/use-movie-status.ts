@@ -54,9 +54,7 @@ export function useMovieStatus(
           status: newStatus,
           userRating: rating,
           userComment: comment,
-          tmdbRating: movie.vote_average
-            ? Math.round(movie.vote_average)
-            : null,
+          tmdbRating: movie.vote_average || null,
           runtime: movie.runtime,
           imdbId: movie.imdb_id,
         }),

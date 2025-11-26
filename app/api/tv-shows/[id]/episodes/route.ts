@@ -52,7 +52,7 @@ export async function POST(
             tvShowPosterPath: tvShowDetails.poster_path,
             tvShowFirstAirDate: tvShowDetails.first_air_date,
             status: 'watching',
-            tmdbRating: Math.round(tvShowDetails.vote_average),
+            tmdbRating: tvShowDetails.vote_average.toString(),
             totalSeasons: tvShowDetails.number_of_seasons,
             totalEpisodes: tvShowDetails.number_of_episodes,
             watchedEpisodes: 0,

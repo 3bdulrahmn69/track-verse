@@ -95,7 +95,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
               <div className="flex items-center gap-2 text-foreground">
                 <FiStar className="w-5 h-5 text-warning" />
                 <span className="font-semibold">
-                  {movie.vote_average.toFixed(1)}
+                  {Number(movie.vote_average).toFixed(1)}
                 </span>
                 <span className="text-muted-foreground text-sm">
                   ({movie.vote_count.toLocaleString()} votes)

@@ -96,7 +96,7 @@ export default async function TVShowPage({ params }: TVShowPageProps) {
               <div className="flex items-center gap-2 text-foreground">
                 <FiStar className="w-5 h-5 text-warning" />
                 <span className="font-semibold">
-                  {tvShow.vote_average.toFixed(1)}
+                  {Number(tvShow.vote_average).toFixed(1)}
                 </span>
                 <span className="text-muted-foreground text-sm">
                   ({tvShow.vote_count.toLocaleString()} votes)

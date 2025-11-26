@@ -109,7 +109,7 @@ export function TVShowCardList({
               <div className="flex items-center gap-0.5">
                 <FiStar className="w-3 h-3 text-yellow-400 fill-current" />
                 <span className="text-white font-medium">
-                  {tvShow.vote_average.toFixed(1)}
+                  {Number(tvShow.vote_average).toFixed(1)}
                 </span>
               </div>
             </div>

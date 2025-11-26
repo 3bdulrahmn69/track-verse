@@ -135,7 +135,7 @@ export function MovieCard({ movie, onStatusChange }: MovieCardProps) {
             <div className="flex items-center gap-1">
               <FiStar className="w-4 h-4 text-warning" />
               <span className="text-foreground text-sm font-semibold">
-                {movie.vote_average.toFixed(1)}
+                {Number(movie.vote_average).toFixed(1)}
               </span>
             </div>
           </div>

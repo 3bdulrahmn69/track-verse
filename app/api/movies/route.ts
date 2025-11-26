@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
         updatedAt: Date;
         watchCount?: number;
         runtime?: number | null;
-        tmdbRating?: number | null;
+        tmdbRating?: string | null;
         imdbId?: string | null;
       } = {
         status,
@@ -127,7 +127,9 @@ export async function POST(request: NextRequest) {
 
       // Update TMDB data if provided
       if (tmdbRating !== undefined) {
-        updateData.tmdbRating = tmdbRating;
+        updateData.tmdbRating = tmdbRating
+          ? Number(tmdbRating).toString()
+          : null;
       }
 
       // Update missing data if we fetched it from TMDB
@@ -166,7 +168,7 @@ export async function POST(request: NextRequest) {
         movieReleaseDate,
         status,
         runtime: runtime || null,
-        tmdbRating: tmdbRating || null,
+        tmdbRating: tmdbRating ? Number(tmdbRating).toString() : null,
         imdbId: imdbId || null,
       })
       .returning();

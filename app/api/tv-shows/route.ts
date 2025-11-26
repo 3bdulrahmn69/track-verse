@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
       const tvShowDetails = await getTVShowDetails(tvShowId);
       totalSeasons = tvShowDetails.number_of_seasons;
       totalEpisodes = tvShowDetails.number_of_episodes;
-      tmdbRating = Math.round(tvShowDetails.vote_average);
+      tmdbRating = tvShowDetails.vote_average;
     } catch (error) {
       console.error('Error fetching TV show details:', error);
     }
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
         .update(userTvShows)
         .set({
           status,
-          tmdbRating,
+          tmdbRating: tmdbRating.toString(),
           totalSeasons,
           totalEpisodes,
           updatedAt: new Date(),
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
         tvShow: existingShow,
       });
     } else {
-      // Insert new TV show
+      // Add new TV show
       const [newShow] = await db
         .insert(userTvShows)
         .values({
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
           tvShowPosterPath,
           tvShowFirstAirDate,
           status,
-          tmdbRating,
+          tmdbRating: tmdbRating.toString(),
           totalSeasons,
           totalEpisodes,
           watchedEpisodes: 0,

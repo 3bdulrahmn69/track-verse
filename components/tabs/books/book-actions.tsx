@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FiBookmark, FiCheck, FiStar } from 'react-icons/fi';
+import { FiBookmark, FiCheck } from 'react-icons/fi';
 import { Button } from '@/components/ui/button';
 import { useBookStatus } from '@/hooks/use-book-status';
 import { RatingDialog } from '@/components/ui/rating-dialog';

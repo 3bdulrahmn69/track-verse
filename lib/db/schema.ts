@@ -5,6 +5,7 @@ import {
   timestamp,
   date,
   integer,
+  decimal,
   pgEnum,
   boolean,
   text,
@@ -48,7 +49,7 @@ export const userMovies = pgTable('user_movies', {
   status: movieStatusEnum('status').notNull(),
   watchCount: integer('watch_count').notNull().default(0),
   runtime: integer('runtime'), // Duration in minutes
-  tmdbRating: integer('tmdb_rating'), // Store TMDB rating for reference
+  tmdbRating: decimal('tmdb_rating', { precision: 3, scale: 1 }), // Store TMDB rating for reference (e.g., 8.4)
   imdbId: varchar('imdb_id', { length: 20 }), // Store IMDb ID for reference
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -78,7 +79,7 @@ export const userTvShows = pgTable(
     tvShowPosterPath: varchar('tv_show_poster_path', { length: 500 }),
     tvShowFirstAirDate: varchar('tv_show_first_air_date', { length: 50 }),
     status: tvShowStatusEnum('status').notNull(),
-    tmdbRating: integer('tmdb_rating'), // Store TMDB rating for reference
+    tmdbRating: decimal('tmdb_rating', { precision: 3, scale: 1 }), // Store TMDB rating for reference (e.g., 8.4)
     totalSeasons: integer('total_seasons').notNull().default(0),
     totalEpisodes: integer('total_episodes').notNull().default(0),
     watchedEpisodes: integer('watched_episodes').notNull().default(0),
@@ -143,12 +144,50 @@ export const userBooks = pgTable('user_books', {
 export type UserBook = typeof userBooks.$inferSelect;
 export type NewUserBook = typeof userBooks.$inferInsert;
 
+// Game status enum
+export const gameStatusEnum = pgEnum('game_status', [
+  'want_to_play',
+  'playing',
+  'completed',
+]);
+
+// User Games table
+export const userGames = pgTable(
+  'user_games',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    gameId: integer('game_id').notNull(), // RAWG game ID
+    gameName: varchar('game_name', { length: 500 }).notNull(),
+    gameSlug: varchar('game_slug', { length: 500 }),
+    gameBackgroundImage: varchar('game_background_image', { length: 500 }),
+    gameReleased: varchar('game_released', { length: 50 }),
+    status: gameStatusEnum('status').notNull(),
+    rating: decimal('rating', { precision: 3, scale: 1 }), // User's personal rating (1-10) - can be NULL, supports decimals like 8.4
+    avgPlaytime: integer('avg_playtime'), // Average playtime from RAWG in hours - can be NULL
+    metacritic: integer('metacritic'), // Store Metacritic score for reference
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    userGameUnique: uniqueIndex('user_game_unique').on(
+      table.userId,
+      table.gameId
+    ),
+  })
+);
+
+export type UserGame = typeof userGames.$inferSelect;
+export type NewUserGame = typeof userGames.$inferInsert;
+
 // Item type enum for reviews (supports multiple media types)
 export const reviewItemTypeEnum = pgEnum('review_item_type', [
   'movie',
   'tv_episode',
   'book',
-  'game', // For future use
+  'game',
 ]);
 
 // Global Reviews table (for all media types)
@@ -159,7 +198,7 @@ export const reviews = pgTable('reviews', {
     .references(() => users.id, { onDelete: 'cascade' }),
   itemId: varchar('item_id', { length: 255 }).notNull(), // Can be movieId, bookId, episodeId, etc.
   itemType: reviewItemTypeEnum('item_type').notNull(),
-  rating: integer('rating').notNull(), // 1-5 star rating
+  rating: decimal('rating', { precision: 3, scale: 1 }).notNull(), // 1-10 star rating, supports decimals
   comment: text('comment'), // User's review text (optional)
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

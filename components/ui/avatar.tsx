@@ -51,6 +51,7 @@ export function Avatar({
         alt={alt}
         fill
         className="object-cover"
+        loading="eager"
         sizes={
           size === 'xl'
             ? '128px'

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiFilm, FiTv, FiBook, FiMonitor } from 'react-icons/fi';
+import { FiFilm, FiTv, FiBook } from 'react-icons/fi';
+import { IoGameController } from 'react-icons/io5';
 import { UserMenu } from '@/components/shared/user-menu';
 import { AppLogo } from '@/components/shared/app-logo';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -66,7 +67,7 @@ export function PortalTabs({
     { id: 'movies' as TabType, label: 'Movies', icon: FiFilm },
     { id: 'tv-shows' as TabType, label: 'TV Shows', icon: FiTv },
     { id: 'books' as TabType, label: 'Books', icon: FiBook },
-    { id: 'games' as TabType, label: 'Games', icon: FiMonitor },
+    { id: 'games' as TabType, label: 'Games', icon: IoGameController },
   ];
 
   const renderTabContent = () => {

@@ -321,7 +321,7 @@ async function handleMovieReview(userId: string, movieId: number) {
       movieReleaseDate: movie.release_date || null,
       status: 'watched',
       runtime: movie.runtime || null,
-      tmdbRating: movie.vote_average ? Math.round(movie.vote_average) : null,
+      tmdbRating: movie.vote_average ? movie.vote_average.toString() : null,
       imdbId: movie.imdb_id || null,
     });
   } else {

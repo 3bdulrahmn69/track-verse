@@ -6,18 +6,19 @@ import {
   FiClock,
   FiTv,
   FiBookOpen,
+  FiPlay,
 } from 'react-icons/fi';
 import { db } from '@/lib/db';
 import {
   users,
   userMovies,
   userTvShows,
-  userEpisodes,
   userFollows,
   userBooks,
   reviews,
+  userGames,
 } from '@/lib/db/schema';
-import { eq, and, isNotNull, ne } from 'drizzle-orm';
+import { eq, and, ne } from 'drizzle-orm';
 import { MediaCarousel } from '@/components/ui/media-carousel';
 import BackButton from '@/components/shared/back-button';
 import { Avatar } from '@/components/ui/avatar';
@@ -27,12 +28,7 @@ import { auth } from '@/lib/auth-config';
 import type { Movie } from '@/lib/tmdb';
 import type { TVShow } from '@/lib/tmdb';
 import type { Book } from '@/lib/books';
-import {
-  formatWatchTime,
-  calculateTotalMovieWatchCount,
-  calculateMovieWatchHours,
-  calculateEpisodeWatchHours,
-} from '@/lib/utils';
+import type { Game } from '@/lib/rawg';
 
 interface UserPageProps {
   params: Promise<{
@@ -101,12 +97,12 @@ export default async function UserPage({ params }: UserPageProps) {
     .from(userBooks)
     .where(and(eq(userBooks.userId, user.id), eq(userBooks.status, 'read')));
 
-  // Get watched episodes count
-  const watchedEpisodes = await db
+  // Fetch user's completed games
+  const completedGames = await db
     .select()
-    .from(userEpisodes)
+    .from(userGames)
     .where(
-      and(eq(userEpisodes.userId, user.id), eq(userEpisodes.watched, true))
+      and(eq(userGames.userId, user.id), eq(userGames.status, 'completed'))
     );
 
   // Fetch movie reviews
@@ -123,12 +119,6 @@ export default async function UserPage({ params }: UserPageProps) {
     .where(
       and(eq(userMovies.userId, user.id), eq(userMovies.status, 'watched'))
     );
-
-  // Calculate movie statistics
-  const totalMovieWatchCount = calculateTotalMovieWatchCount(totalWatched);
-  const movieWatchHours = calculateMovieWatchHours(totalWatched);
-  const episodeWatchHours = calculateEpisodeWatchHours(watchedEpisodes);
-  const totalWatchHours = movieWatchHours + episodeWatchHours;
 
   // Join movie reviews with watched movies data
   const moviesWithReviews = movieReviews
@@ -148,7 +138,7 @@ export default async function UserPage({ params }: UserPageProps) {
     backdrop_path: null,
     release_date: record.movieReleaseDate || '',
     overview: '',
-    vote_average: record.tmdbRating || 0,
+    vote_average: Number(record.tmdbRating) || 0,
     vote_count: 0,
     popularity: 0,
     genre_ids: [],
@@ -163,7 +153,7 @@ export default async function UserPage({ params }: UserPageProps) {
     backdrop_path: null,
     first_air_date: record.tvShowFirstAirDate || '',
     overview: '',
-    vote_average: record.tmdbRating || 0,
+    vote_average: Number(record.tmdbRating) || 0,
     vote_count: 0,
     popularity: 0,
     genre_ids: [],
@@ -180,6 +170,30 @@ export default async function UserPage({ params }: UserPageProps) {
       : undefined,
     first_publish_year: record.bookFirstPublishYear || undefined,
     cover_i: record.bookCoverId || undefined,
+  }));
+
+  const games: Game[] = completedGames.map((record) => ({
+    id: record.gameId,
+    slug: record.gameSlug || '',
+    name: record.gameName,
+    released: record.gameReleased || '',
+    tba: false,
+    background_image: record.gameBackgroundImage,
+    rating: Number(record.rating) || 0,
+    rating_top: 5,
+    ratings: [],
+    ratings_count: 0,
+    reviews_text_count: 0,
+    added: 0,
+    metacritic: record.metacritic,
+    playtime: record.avgPlaytime || 0,
+    suggestions_count: 0,
+    updated: '',
+    esrb_rating: null,
+    platforms: [],
+    genres: [],
+    tags: [],
+    short_screenshots: [],
   }));
 
   return (
@@ -231,68 +245,10 @@ export default async function UserPage({ params }: UserPageProps) {
                 <>
                   {/* Stats */}
                   <UserStats
+                    userId={user.id}
                     variant="detailed"
-                    stats={[
-                      {
-                        label: 'Movies',
-                        description: 'Watch History',
-                        icon: <FiFilm className="w-8 h-8 text-primary" />,
-                        bgColor: 'from-primary/20 to-primary/5',
-                        value: {
-                          primary: 'Movies Watched',
-                          primaryValue: totalWatched.length,
-                          secondary: 'Total Views',
-                          secondaryValue: totalMovieWatchCount,
-                          tertiary: 'Watch Time',
-                          tertiaryValue: formatWatchTime(movieWatchHours),
-                        },
-                      },
-                      {
-                        label: 'TV Shows',
-                        description: 'Episode Tracker',
-                        icon: <FiTv className="w-8 h-8 text-secondary" />,
-                        bgColor: 'from-secondary/20 to-secondary/5',
-                        textColor: 'text-secondary',
-                        value: {
-                          primary: 'TV Shows',
-                          primaryValue: allTVShows.length,
-                          secondary: 'Episodes Watched',
-                          secondaryValue: watchedEpisodes.length,
-                          tertiary: 'Watch Time',
-                          tertiaryValue: formatWatchTime(episodeWatchHours),
-                        },
-                      },
-                      {
-                        label: 'Books',
-                        description: 'Reading History',
-                        icon: <FiBookOpen className="w-8 h-8 text-accent" />,
-                        bgColor: 'from-accent/20 to-accent/5',
-                        textColor: 'text-accent',
-                        value: {
-                          primary: 'Books Read',
-                          primaryValue: books.length,
-                          secondary: 'Reading Progress',
-                          secondaryValue: books.length, // Could be enhanced with reading progress later
-                          tertiary: 'Library Size',
-                          tertiaryValue: books.length,
-                        },
-                      },
-                    ]}
-                    className="mt-4"
+                    className="mt-6 lg:mt-8"
                   />
-
-                  {/* Total Watch Time Summary */}
-                  <div className="mt-6 p-4 bg-muted/50 rounded-xl border border-border">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <FiClock className="w-5 h-5 text-muted-foreground" />
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Total Watch Time
-                      </span>
-                    </div>
-                    <p className="text-center text-2xl font-bold text-foreground">
-                      {formatWatchTime(totalWatchHours)}
-                    </p>
-                  </div>
                 </>
               ) : null}
             </div>
@@ -357,6 +313,24 @@ export default async function UserPage({ params }: UserPageProps) {
                 />
               </section>
             )}
+
+            {/* Completed Games */}
+            {games.length > 0 && (
+              <section className="mb-12">
+                <div className="flex items-center gap-2 mb-6">
+                  <FiPlay className="w-6 h-6 text-primary" />
+                  <h2 className="text-2xl font-semibold text-foreground">
+                    Completed Games
+                  </h2>
+                </div>
+                <MediaCarousel
+                  items={games}
+                  type="games"
+                  title="Completed Games"
+                  emptyState={<p>No games completed yet.</p>}
+                />
+              </section>
+            )}
           </>
         ) : (
           /* Private Account Message */
@@ -402,7 +376,7 @@ export default async function UserPage({ params }: UserPageProps) {
                             <FiStar
                               key={index}
                               className={`w-4 h-4 ${
-                                index < (item.review.rating || 0)
+                                index < (Number(item.review.rating) || 0)
                                   ? 'text-warning fill-warning'
                                   : 'text-muted'
                               }`}
