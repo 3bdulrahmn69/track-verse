@@ -15,6 +15,7 @@ import {
 import { Dropdown } from '@/components/ui/dropdown';
 import { useTVShowCacheStore } from '@/store/tv-show-cache-store';
 import { Loading } from '@/components/ui/loading';
+import { useSmartRefetch } from '@/hooks/use-smart-refetch';
 
 interface TVShowWithStatus extends TVShow {
   status?: 'want_to_watch' | 'watching' | 'completed' | 'stopped_watching';
@@ -65,20 +66,10 @@ export default function WatchListTab() {
 
   useEffect(() => {
     fetchWatchList();
-
-    // Listen for visibility change to refetch when tab becomes visible
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        fetchWatchList();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
   }, []);
+
+  // Smart refetch: only refetch if tab was hidden for 30+ seconds
+  useSmartRefetch(fetchWatchList, { threshold: 30000 });
 
   // Subscribe to status changes for instant updates
   useEffect(() => {

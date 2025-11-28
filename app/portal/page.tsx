@@ -34,7 +34,6 @@ export default async function PortalPage({ searchParams }: PortalPageProps) {
 
   return (
     <PortalTabs
-      key={initialTab}
       initialTab={initialTab}
       moviesTab={
         <MoviesTab

@@ -7,6 +7,7 @@ import { TVShowCardList } from './tv-show-card-list';
 import { FiFilter, FiGrid, FiList, FiTv } from 'react-icons/fi';
 import { Dropdown } from '@/components/ui/dropdown';
 import { useTVShowCacheStore } from '@/store/tv-show-cache-store';
+import { useSmartRefetch } from '@/hooks/use-smart-refetch';
 
 interface TVShowWithStatus extends TVShow {
   status?: 'want_to_watch' | 'watching' | 'completed' | 'stopped_watching';
@@ -69,20 +70,10 @@ export default function CurrentWatchingTab() {
 
   useEffect(() => {
     fetchCurrentWatching();
-
-    // Listen for visibility change to refetch when tab becomes visible
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        fetchCurrentWatching();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
   }, []);
+
+  // Smart refetch: only refetch if tab was hidden for 30+ seconds
+  useSmartRefetch(fetchCurrentWatching, { threshold: 30000 });
 
   // Subscribe to status changes for instant updates
   useEffect(() => {

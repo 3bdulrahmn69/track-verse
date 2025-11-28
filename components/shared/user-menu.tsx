@@ -35,25 +35,49 @@ export function UserMenu({ openUp = false }: UserMenuProps) {
   }, []);
 
   useEffect(() => {
-    // Fetch unread notifications count
-    const fetchUnreadCount = async () => {
+    if (!session?.user?.id) return;
+
+    // Connect to SSE stream for real-time notifications
+    const eventSource = new EventSource('/api/stream');
+
+    eventSource.onmessage = (event) => {
       try {
-        const response = await fetch('/api/notifications?unreadOnly=true');
-        if (response.ok) {
-          const data = await response.json();
+        const data = JSON.parse(event.data);
+        if (data.type === 'notification') {
+          if (data.action === 'add') {
+            // Increment unread count when new notification arrives
+            setUnreadCount((prev) => prev + 1);
+          } else if (data.action === 'delete') {
+            // Decrement unread count if deleted notification was unread
+            if (data.payload.wasUnread) {
+              setUnreadCount((prev) => Math.max(0, prev - 1));
+            }
+          } else if (data.action === 'markRead') {
+            // Decrement unread count when notification is marked as read
+            setUnreadCount((prev) => Math.max(0, prev - 1));
+          }
+          // Update unread count from server data
+          if (data.unreadCount !== undefined) {
+            setUnreadCount(data.unreadCount);
+          }
+        } else if (data.type === 'initial') {
+          // Set initial unread count
           setUnreadCount(data.unreadCount || 0);
         }
       } catch (error) {
-        console.error('Error fetching unread count:', error);
+        console.error('Error parsing SSE data:', error);
       }
     };
 
-    fetchUnreadCount();
+    eventSource.onerror = (error) => {
+      console.error('SSE connection error:', error);
+      eventSource.close();
+    };
 
-    // Poll for new notifications every 60 seconds
-    const interval = setInterval(fetchUnreadCount, 60000);
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      eventSource.close();
+    };
+  }, [session?.user?.id]);
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/login' });
