@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+// import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
   MdPersonAdd,
@@ -11,10 +11,10 @@ import {
   MdMenuBook,
 } from 'react-icons/md';
 import { FiUser } from 'react-icons/fi';
-import { FcGoogle } from 'react-icons/fc';
+// import { FcGoogle } from 'react-icons/fc';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
-import { signIn } from 'next-auth/react';
+// import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
@@ -405,17 +405,17 @@ export default function RegisterForm() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    try {
-      await signIn('google', { callbackUrl: '/portal' });
-    } catch (error) {
-      console.error('Google sign in error:', error);
-      toast.error('Google sign in failed. Please try again.', {
-        position: 'top-right',
-        autoClose: 5000,
-      });
-    }
-  };
+  // const handleGoogleSignIn = async () => {
+  //   try {
+  //     await signIn('google', { callbackUrl: '/portal' });
+  //   } catch (error) {
+  //     console.error('Google sign in error:', error);
+  //     toast.error('Google sign in failed. Please try again.', {
+  //       position: 'top-right',
+  //       autoClose: 5000,
+  //     });
+  //   }
+  // };
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -541,7 +541,7 @@ export default function RegisterForm() {
             )}
           </form>
 
-          {currentStep === 1 && (
+          {/* {currentStep === 1 && (
             <>
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
@@ -565,7 +565,7 @@ export default function RegisterForm() {
                 Sign up with Google
               </Button>
             </>
-          )}
+          )} */}
 
           {currentStep === 1 && (
             <div className="mt-6 text-center">

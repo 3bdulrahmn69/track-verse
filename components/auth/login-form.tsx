@@ -14,7 +14,7 @@ import {
   MdMenuBook,
 } from 'react-icons/md';
 import { FiMail, FiLock } from 'react-icons/fi';
-import { FcGoogle } from 'react-icons/fc';
+// import { FcGoogle } from 'react-icons/fc';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -99,17 +99,17 @@ export default function LoginForm() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    try {
-      await signIn('google', { callbackUrl: '/portal' });
-    } catch (error) {
-      console.error('Google sign in error:', error);
-      toast.error('Google sign in failed. Please try again.', {
-        position: 'top-right',
-        autoClose: 5000,
-      });
-    }
-  };
+  // const handleGoogleSignIn = async () => {
+  //   try {
+  //     await signIn('google', { callbackUrl: '/portal' });
+  //   } catch (error) {
+  //     console.error('Google sign in error:', error);
+  //     toast.error('Google sign in failed. Please try again.', {
+  //       position: 'top-right',
+  //       autoClose: 5000,
+  //     });
+  //   }
+  // };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -239,7 +239,7 @@ export default function LoginForm() {
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
 
-            <div className="relative my-6">
+            {/* <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-border"></div>
               </div>
@@ -259,7 +259,7 @@ export default function LoginForm() {
             >
               <FcGoogle className="w-5 h-5 mr-2" />
               Sign in with Google
-            </Button>
+            </Button> */}
           </form>
 
           <div className="mt-6 text-center">
