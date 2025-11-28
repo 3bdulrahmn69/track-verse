@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     url: 'https://track-verse.vercel.app',
     images: [
       {
-        url: 'https://raw.githubusercontent.com/3bdulrahmn69/track-verse/refs/heads/main/public/landing.png',
+        url: '/og-image.jpg',
         width: 1200,
         height: 630,
         alt: 'Track Verse',
@@ -58,14 +58,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    images: [
-      {
-        url: 'https://raw.githubusercontent.com/3bdulrahmn69/track-verse/refs/heads/main/public/landing.png',
-        width: 1200,
-        height: 630,
-        alt: 'Track Verse',
-      },
-    ],
+    images: ['/og-image.jpg'],
     title: 'Track Verse',
     description: 'Track your entertainment journey',
   },
@@ -79,9 +72,6 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
-  },
-  verification: {
-    google: 'your-google-verification-code',
   },
 };
 
