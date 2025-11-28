@@ -30,11 +30,75 @@ import type { Movie } from '@/lib/tmdb';
 import type { TVShow } from '@/lib/tmdb';
 import type { Book } from '@/lib/books';
 import type { Game } from '@/lib/rawg';
+import type { Metadata } from 'next';
 
 interface UserPageProps {
   params: Promise<{
     username: string;
   }>;
+}
+
+export async function generateMetadata({
+  params,
+}: UserPageProps): Promise<Metadata> {
+  const { username } = await params;
+
+  try {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username))
+      .limit(1);
+
+    if (!user) {
+      return {
+        title: 'User Not Found',
+      };
+    }
+
+    return {
+      title: `${user.fullname} (@${user.username}) - Track Verse Profile`,
+      description: user.isPublic
+        ? `View ${user.fullname}'s entertainment profile on Track Verse. See their watched movies, TV shows, books read, and games played.`
+        : `${user.fullname} (@${user.username}) has a private profile on Track Verse.`,
+      openGraph: {
+        title: `${user.fullname} (@${user.username})`,
+        description: user.isPublic
+          ? `View ${user.fullname}'s entertainment profile on Track Verse`
+          : 'Private profile on Track Verse',
+        type: 'profile',
+        url: `https://track-verse.vercel.app/users/${username}`,
+        images: user.image
+          ? [
+              {
+                url: user.image,
+                width: 400,
+                height: 400,
+                alt: user.fullname,
+              },
+            ]
+          : [],
+      },
+      twitter: {
+        card: 'summary',
+        title: `${user.fullname} (@${user.username})`,
+        description: user.isPublic
+          ? `View ${user.fullname}'s profile on Track Verse`
+          : 'Private profile',
+      },
+      alternates: {
+        canonical: `https://track-verse.vercel.app/users/${username}`,
+      },
+      robots: {
+        index: user.isPublic,
+        follow: true,
+      },
+    };
+  } catch {
+    return {
+      title: 'User Not Found',
+    };
+  }
 }
 
 export default async function UserPage({ params }: UserPageProps) {

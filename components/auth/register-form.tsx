@@ -68,7 +68,17 @@ export default function RegisterForm() {
           parsed.timestamp &&
           Date.now() - parsed.timestamp > 24 * 60 * 60 * 1000;
         if (!isExpired) {
-          setFormData(parsed.formData || formData);
+          setFormData(
+            parsed.formData || {
+              fullName: '',
+              email: '',
+              password: '',
+              confirmPassword: '',
+              dateOfBirth: '',
+              username: '',
+              agreeToTerms: false,
+            }
+          );
           setCurrentStep(parsed.currentStep || 1);
           setOtp(parsed.otp || '');
           setUsernameAvailable(parsed.usernameAvailable || null);
@@ -82,7 +92,7 @@ export default function RegisterForm() {
         localStorage.removeItem('registrationData');
       }
     }
-  }, [formData]);
+  }, []);
 
   // Save registration data to localStorage whenever it changes
   useEffect(() => {

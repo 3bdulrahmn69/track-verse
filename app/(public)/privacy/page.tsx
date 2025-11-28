@@ -3,15 +3,32 @@ import Link from 'next/link';
 import { MdArrowBack, MdCheckCircle, MdArrowForward } from 'react-icons/md';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Track Verse',
+  title: 'Privacy Policy | Track Verse - Data Protection & User Privacy',
   description:
-    'Learn how Track Verse collects, uses, and protects your personal information. Read our comprehensive Privacy Policy.',
+    'Learn how Track Verse collects, uses, and protects your personal information. Read our comprehensive Privacy Policy covering movies, TV shows, books, and video games tracking.',
   keywords: [
     'privacy policy',
     'data protection',
     'user privacy',
     'track verse',
+    'GDPR',
+    'data security',
+    'personal information',
   ],
+  openGraph: {
+    title: 'Privacy Policy | Track Verse',
+    description:
+      'Understand how we protect your data and respect your privacy on Track Verse',
+    url: 'https://track-verse.vercel.app/privacy',
+    type: 'website',
+  },
+  alternates: {
+    canonical: 'https://track-verse.vercel.app/privacy',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function PrivacyPage() {

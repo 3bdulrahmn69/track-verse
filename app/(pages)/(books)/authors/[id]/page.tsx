@@ -9,11 +9,78 @@ import {
 import { notFound } from 'next/navigation';
 import BackButton from '@/components/shared/back-button';
 import { BookCard } from '@/components/tabs/books/book-card';
+import type { Metadata } from 'next';
 
 interface AuthorPageProps {
   params: Promise<{
     id: string;
   }>;
+}
+
+export async function generateMetadata({
+  params,
+}: AuthorPageProps): Promise<Metadata> {
+  const { id: authorParam } = await params;
+  const authorId = authorParam;
+
+  if (!authorId) {
+    return {
+      title: 'Author Not Found',
+    };
+  }
+
+  try {
+    const author = await getAuthorDetails(authorId);
+    const photoUrl = author.photos?.[0]
+      ? getAuthorPhotoUrl(author.photos[0], 'L')
+      : undefined;
+    const bio = formatBio(author.bio);
+
+    return {
+      title: `${author.name} - Author Profile`,
+      description:
+        bio?.substring(0, 160) ||
+        `Explore works by ${author.name} on Track Verse. Discover books, biography, and more.`,
+      keywords: [
+        author.name,
+        'author',
+        'books',
+        'writer',
+        'track verse',
+        'biography',
+      ],
+      openGraph: {
+        title: author.name,
+        description:
+          bio?.substring(0, 200) ||
+          `Explore works by ${author.name} on Track Verse`,
+        type: 'profile',
+        url: `https://track-verse.vercel.app/authors/${authorId}`,
+        images: photoUrl
+          ? [
+              {
+                url: photoUrl,
+                width: 400,
+                height: 400,
+                alt: author.name,
+              },
+            ]
+          : [],
+      },
+      twitter: {
+        card: 'summary',
+        title: author.name,
+        description: bio?.substring(0, 160) || '',
+      },
+      alternates: {
+        canonical: `https://track-verse.vercel.app/authors/${authorId}`,
+      },
+    };
+  } catch {
+    return {
+      title: 'Author Not Found',
+    };
+  }
 }
 
 export default async function AuthorPage({ params }: AuthorPageProps) {

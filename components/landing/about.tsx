@@ -67,7 +67,7 @@ function FeatureCard({ feature }: { feature: (typeof features)[0] }) {
 
 export default function About() {
   return (
-    <section className="py-20">
+    <section className="py-20" id="about">
       <Container>
         <div className="max-w-4xl mx-auto text-center mb-16">
           <h2 className="text-4xl font-bold text-foreground mb-6">

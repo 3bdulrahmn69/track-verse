@@ -6,6 +6,17 @@ import TvShowsTab from '@/components/tabs/tv-shows/tv-shows-tab';
 import BooksTab from '@/components/tabs/books/books-tab';
 import GamesTab from '@/components/tabs/games/games-tab';
 import { getPopularMovies, getNowPlayingMovies } from '@/lib/tmdb';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Portal | Track Verse - Your Entertainment Dashboard',
+  description:
+    'Access your personalized entertainment portal. Track movies, TV shows, books, and video games. Discover trending content and manage your watchlists.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 interface PortalPageProps {
   searchParams: Promise<{

@@ -13,11 +13,80 @@ import TVShowActions from '@/components/tabs/tv-shows/tv-show-actions';
 import { TVShowDetailsTabs } from '@/components/tabs/tv-shows/tv-show-details-tabs';
 import { SeasonTracker } from '@/components/tabs/tv-shows/season-tracker';
 import { TrailerPlayer } from '@/components/shared/trailer-player';
+import type { Metadata } from 'next';
 
 interface TVShowPageProps {
   params: Promise<{
     id: string;
   }>;
+}
+
+export async function generateMetadata({
+  params,
+}: TVShowPageProps): Promise<Metadata> {
+  const { id: tvShowParam } = await params;
+  const tvShowId = parseInt(tvShowParam);
+
+  if (isNaN(tvShowId)) {
+    return {
+      title: 'TV Show Not Found',
+    };
+  }
+
+  try {
+    const tvShow = await getTVShowDetails(tvShowId);
+    const posterUrl = tvShow.poster_path
+      ? getImageUrl(tvShow.poster_path, 'w500')
+      : undefined;
+
+    return {
+      title: `${tvShow.name} (${new Date(
+        tvShow.first_air_date
+      ).getFullYear()}) - TV Show Details`,
+      description:
+        tvShow.overview ||
+        `Watch ${tvShow.name} on Track Verse. Track your progress, rate, and review this TV show.`,
+      keywords: [
+        tvShow.name,
+        'tv show',
+        'watch series',
+        'tv series',
+        'track verse',
+        ...(tvShow.genres?.map((g) => g.name) || []),
+      ],
+      openGraph: {
+        title: `${tvShow.name} (${new Date(
+          tvShow.first_air_date
+        ).getFullYear()})`,
+        description: tvShow.overview || `Watch ${tvShow.name} on Track Verse`,
+        type: 'video.tv_show',
+        url: `https://track-verse.vercel.app/tv-shows/${tvShowId}`,
+        images: posterUrl
+          ? [
+              {
+                url: posterUrl,
+                width: 500,
+                height: 750,
+                alt: tvShow.name,
+              },
+            ]
+          : [],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: tvShow.name,
+        description: tvShow.overview?.substring(0, 160) || '',
+        images: posterUrl ? [posterUrl] : [],
+      },
+      alternates: {
+        canonical: `https://track-verse.vercel.app/tv-shows/${tvShowId}`,
+      },
+    };
+  } catch {
+    return {
+      title: 'TV Show Not Found',
+    };
+  }
 }
 
 export default async function TVShowPage({ params }: TVShowPageProps) {

@@ -8,15 +8,32 @@ import {
 } from 'react-icons/md';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | Track Verse',
+  title: 'Terms of Service | Track Verse - User Agreement & Guidelines',
   description:
-    'Read the Terms of Service for Track Verse. Learn about your rights and responsibilities when using our entertainment tracking platform.',
+    'Read the Terms of Service for Track Verse. Learn about your rights and responsibilities when using our entertainment tracking platform for movies, TV shows, books, and video games.',
   keywords: [
     'terms of service',
     'terms and conditions',
     'user agreement',
     'track verse',
+    'legal terms',
+    'service agreement',
+    'user rights',
   ],
+  openGraph: {
+    title: 'Terms of Service | Track Verse',
+    description:
+      'Read our Terms of Service to understand your rights and responsibilities on Track Verse',
+    url: 'https://track-verse.vercel.app/terms',
+    type: 'website',
+  },
+  alternates: {
+    canonical: 'https://track-verse.vercel.app/terms',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function TermsPage() {

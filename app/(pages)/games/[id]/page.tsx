@@ -10,11 +10,79 @@ import { notFound } from 'next/navigation';
 import BackButton from '@/components/shared/back-button';
 import GameActions from '@/components/tabs/games/game-actions';
 import { GameCard } from '@/components/tabs/games/game-card';
+import type { Metadata } from 'next';
 
 interface GamePageProps {
   params: Promise<{
     id: string;
   }>;
+}
+
+export async function generateMetadata({
+  params,
+}: GamePageProps): Promise<Metadata> {
+  const { id: gameParam } = await params;
+  const gameId = parseInt(gameParam);
+
+  if (isNaN(gameId)) {
+    return {
+      title: 'Game Not Found',
+    };
+  }
+
+  try {
+    const game = await getGameDetails(gameId);
+    const imageUrl = game.background_image
+      ? getGameImageUrl(game.background_image)
+      : undefined;
+
+    return {
+      title: `${game.name} - Video Game Details`,
+      description:
+        game.description_raw?.substring(0, 160) ||
+        `Play ${game.name} on Track Verse. Track your progress, rate, and review this game.`,
+      keywords: [
+        game.name,
+        'video game',
+        'game details',
+        'track verse',
+        'gaming',
+        ...(game.genres?.map((g) => g.name) || []),
+        ...(game.platforms?.map((p) => p.platform.name) || []),
+      ],
+      openGraph: {
+        title: game.name,
+        description:
+          game.description_raw?.substring(0, 200) ||
+          `Play ${game.name} on Track Verse`,
+        type: 'website',
+        url: `https://track-verse.vercel.app/games/${gameId}`,
+        images: imageUrl
+          ? [
+              {
+                url: imageUrl,
+                width: 1200,
+                height: 630,
+                alt: game.name,
+              },
+            ]
+          : [],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: game.name,
+        description: game.description_raw?.substring(0, 160) || '',
+        images: imageUrl ? [imageUrl] : [],
+      },
+      alternates: {
+        canonical: `https://track-verse.vercel.app/games/${gameId}`,
+      },
+    };
+  } catch {
+    return {
+      title: 'Game Not Found',
+    };
+  }
 }
 
 export default async function GamePage({ params }: GamePageProps) {

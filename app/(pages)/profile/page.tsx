@@ -15,6 +15,17 @@ import type { Book } from '@/lib/books';
 import type { Game } from '@/lib/rawg';
 import { FiUser, FiFilm, FiEdit2, FiTv, FiBookOpen } from 'react-icons/fi';
 import { IoGameController } from 'react-icons/io5';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'My Profile | Track Verse',
+  description:
+    'View and manage your Track Verse profile. See your watched movies, TV shows, books read, and games played.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function ProfilePage() {
   const session = await auth();

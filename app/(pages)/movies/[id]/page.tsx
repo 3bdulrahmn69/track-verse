@@ -12,11 +12,79 @@ import BackButton from '@/components/shared/back-button';
 import MovieActions from '@/components/tabs/movies/movie-actions';
 import { MovieDetailsTabs } from '@/components/tabs/movies/movie-details-tabs';
 import { TrailerPlayer } from '@/components/shared/trailer-player';
+import type { Metadata } from 'next';
 
 interface MoviePageProps {
   params: Promise<{
     id: string;
   }>;
+}
+
+export async function generateMetadata({
+  params,
+}: MoviePageProps): Promise<Metadata> {
+  const { id: movieParam } = await params;
+  const movieId = parseInt(movieParam);
+
+  if (isNaN(movieId)) {
+    return {
+      title: 'Movie Not Found',
+    };
+  }
+
+  try {
+    const movie = await getMovieDetails(movieId);
+    const posterUrl = movie.poster_path
+      ? getImageUrl(movie.poster_path, 'w500')
+      : undefined;
+
+    return {
+      title: `${movie.title} (${new Date(
+        movie.release_date
+      ).getFullYear()}) - Movie Details`,
+      description:
+        movie.overview ||
+        `Watch ${movie.title} on Track Verse. Track your progress, rate, and review this movie.`,
+      keywords: [
+        movie.title,
+        'movie',
+        'watch movie',
+        'movie details',
+        'track verse',
+        ...(movie.genres?.map((g) => g.name) || []),
+      ],
+      openGraph: {
+        title: `${movie.title} (${new Date(movie.release_date).getFullYear()})`,
+        description: movie.overview || `Watch ${movie.title} on Track Verse`,
+        type: 'video.movie',
+        url: `https://track-verse.vercel.app/movies/${movieId}`,
+        images: posterUrl
+          ? [
+              {
+                url: posterUrl,
+                width: 500,
+                height: 750,
+                alt: movie.title,
+              },
+            ]
+          : [],
+        releaseDate: movie.release_date,
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: movie.title,
+        description: movie.overview?.substring(0, 160) || '',
+        images: posterUrl ? [posterUrl] : [],
+      },
+      alternates: {
+        canonical: `https://track-verse.vercel.app/movies/${movieId}`,
+      },
+    };
+  } catch {
+    return {
+      title: 'Movie Not Found',
+    };
+  }
 }
 
 export default async function MoviePage({ params }: MoviePageProps) {

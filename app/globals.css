@@ -1,5 +1,10 @@
 @import 'tailwindcss';
 
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   --background: oklch(0.98 0.004 250);
   --foreground: oklch(0.18 0.006 250);

@@ -12,11 +12,79 @@ import { notFound } from 'next/navigation';
 import BackButton from '@/components/shared/back-button';
 import BookActions from '@/components/tabs/books/book-actions';
 import { BookDetailsTabs } from '@/components/tabs/books/book-details-tabs';
+import type { Metadata } from 'next';
 
 interface BookPageProps {
   params: Promise<{
     id: string;
   }>;
+}
+
+export async function generateMetadata({
+  params,
+}: BookPageProps): Promise<Metadata> {
+  const { id: bookParam } = await params;
+  const bookId = bookParam;
+
+  if (!bookId) {
+    return {
+      title: 'Book Not Found',
+    };
+  }
+
+  try {
+    const book = await getBookDetails(bookId);
+    const coverUrl = book.covers?.[0]
+      ? getCoverUrl(book.covers[0], 'M')
+      : undefined;
+    const description = formatDescription(book.description);
+
+    return {
+      title: `${book.title} - Book Details`,
+      description:
+        description?.substring(0, 160) ||
+        `Read ${book.title} on Track Verse. Track your reading progress, rate, and review this book.`,
+      keywords: [
+        book.title,
+        'book',
+        'read book',
+        'book details',
+        'track verse',
+        'reading',
+        ...(book.subjects?.slice(0, 5) || []),
+      ],
+      openGraph: {
+        title: book.title,
+        description:
+          description?.substring(0, 200) || `Read ${book.title} on Track Verse`,
+        type: 'book',
+        url: `https://track-verse.vercel.app/books/${bookId}`,
+        images: coverUrl
+          ? [
+              {
+                url: coverUrl,
+                width: 400,
+                height: 600,
+                alt: book.title,
+              },
+            ]
+          : [],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: book.title,
+        description: description?.substring(0, 160) || '',
+        images: coverUrl ? [coverUrl] : [],
+      },
+      alternates: {
+        canonical: `https://track-verse.vercel.app/books/${bookId}`,
+      },
+    };
+  } catch {
+    return {
+      title: 'Book Not Found',
+    };
+  }
 }
 
 export default async function BookPage({ params }: BookPageProps) {

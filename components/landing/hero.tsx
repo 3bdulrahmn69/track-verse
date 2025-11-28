@@ -9,7 +9,7 @@ import {
 
 export default function Hero() {
   return (
-    <section className="min-h-screen bg-background flex items-center px-4 py-16">
+    <section id='home' className="min-h-screen bg-background flex items-center px-4 py-16">
       <div className="max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left Side - Text Content */}

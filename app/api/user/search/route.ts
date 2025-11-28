@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { ilike, or } from 'drizzle-orm';
-import { authConfig } from '@/lib/auth-config';
 
 export async function GET(request: NextRequest) {
   try {

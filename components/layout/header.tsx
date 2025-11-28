@@ -8,7 +8,7 @@ import { AppLogo } from '@/components/shared/app-logo';
 import { Button } from '@/components/ui/button';
 
 const navLinks = [
-  { href: '#hero', label: 'Home' },
+  { href: '#home', label: 'Home' },
   { href: '#about', label: 'About' },
   { href: '#features', label: 'Features' },
   { href: '#testimonials', label: 'Testimonials' },
