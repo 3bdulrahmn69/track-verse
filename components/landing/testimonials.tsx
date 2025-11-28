@@ -1,6 +1,5 @@
 import Image from 'next/image';
 import Marquee from 'react-fast-marquee';
-import { Container } from '../layout/container';
 
 type Testimonial = {
   quote: string;
@@ -12,45 +11,87 @@ type Testimonial = {
 const testimonials: Testimonial[] = [
   {
     quote:
-      'Track Verse has completely transformed how I organize my movie collection. The clean interface makes browsing my watched films so easy and enjoyable!',
-    author: 'Alex Johnson',
-    role: 'Film Enthusiast',
+      'As a media enthusiast tracking over 200 movies, 50 TV shows, countless books, and dozens of games, Track Verse has become my ultimate entertainment hub. The detailed statistics and social features keep me engaged daily!',
+    author: 'Alex Rivera',
+    role: 'Media Enthusiast',
     avatar: 'https://i.pravatar.cc/150?img=1',
   },
   {
     quote:
-      "As a hardcore gamer, I love how Track Verse lets me track my gaming achievements in a comprehensive dashboard. Finally, a gaming tracker that's both powerful and easy to use!",
-    author: 'Sam Lee',
-    role: 'Gaming Pro',
+      'Track Verse makes media tracking simple and enjoyable. I easily keep track of my favorite movies and shows without it feeling overwhelming. Perfect for casual entertainment lovers like me!',
+    author: 'Jordan Chen',
+    role: 'Casual User',
     avatar: 'https://i.pravatar.cc/150?img=2',
   },
   {
     quote:
-      'My bookshelf just got a whole new level of organization! Track Verse makes organizing my reading list and tracking my progress through books absolutely delightful.',
-    author: 'Jordan Kim',
-    role: 'Book Lover',
+      'The social features in Track Verse are incredible! Following friends and seeing their activity feeds has introduced me to amazing movies, books, and games I never would have discovered otherwise.',
+    author: 'Taylor Morgan',
+    role: 'Social Connector',
     avatar: 'https://i.pravatar.cc/150?img=3',
   },
   {
     quote:
-      'Binge-watching has never been this organized. Track Verse helps me keep track of all my favorite series across different platforms in one beautiful dashboard.',
-    author: 'Taylor Brown',
-    role: 'Series Addict',
+      'Track Verse respects my privacy while helping me maintain a perfectly organized personal media library. The private profile features give me full control over what I share and what stays personal.',
+    author: 'Casey Williams',
+    role: 'Private Tracker',
     avatar: 'https://i.pravatar.cc/150?img=4',
   },
   {
     quote:
-      'The perfect blend of functionality and fun! Track Verse makes tracking my media consumption across movies, games, books, and series an enjoyable experience.',
+      'The unified platform approach is brilliant! Having all my movies, TV shows, books, and games in one place with rich metadata and seamless tracking has transformed how I manage my entertainment collection.',
     author: 'Morgan Davis',
-    role: 'Media Collector',
+    role: 'Content Creator',
     avatar: 'https://i.pravatar.cc/150?img=5',
   },
   {
     quote:
-      "From epic game marathons to movie nights and book clubs, Track Verse keeps everything organized in a way that's as entertaining as the media itself!",
-    author: 'Casey Wilson',
-    role: 'Entertainment Fan',
+      'Real-time notifications and activity feeds keep me connected with fellow entertainment enthusiasts. Track Verse has built a community around shared interests that makes tracking media even more enjoyable!',
+    author: 'Sam Rodriguez',
+    role: 'Community Member',
     avatar: 'https://i.pravatar.cc/150?img=6',
+  },
+  {
+    quote:
+      'The episode tracking for TV shows is fantastic! I never lose track of where I left off in my favorite series. The detailed progress tracking makes binge-watching so much more organized.',
+    author: 'Riley Thompson',
+    role: 'TV Series Fan',
+    avatar: 'https://i.pravatar.cc/150?img=7',
+  },
+  {
+    quote:
+      'As a parent, Track Verse helps me keep track of family movie nights and shared reading experiences. The collaborative features make it perfect for family entertainment planning!',
+    author: 'Jamie Parker',
+    role: 'Family Organizer',
+    avatar: 'https://i.pravatar.cc/150?img=8',
+  },
+  {
+    quote:
+      'The gaming section is next-level! Detailed playtime tracking, achievement logging, and Metacritic integration help me discover and track my gaming journey like never before.',
+    author: 'Avery Johnson',
+    role: 'Gaming Enthusiast',
+    avatar: 'https://i.pravatar.cc/150?img=9',
+  },
+  {
+    quote:
+      'Track Verse has revolutionized my reading habits. The reading progress tracker and note-taking features make every book journey memorable and well-documented.',
+    author: 'Drew Martinez',
+    role: 'Avid Reader',
+    avatar: 'https://i.pravatar.cc/150?img=10',
+  },
+  {
+    quote:
+      'The API integrations with TMDB, RAWG, and Open Library mean I get rich, accurate information for everything I track. No more manual data entry - pure tracking bliss!',
+    author: 'Cameron Lee',
+    role: 'Tech-Savvy User',
+    avatar: 'https://i.pravatar.cc/150?img=11',
+  },
+  {
+    quote:
+      "Whether I'm on my phone, tablet, or desktop, Track Verse works perfectly everywhere. The responsive design and cloud sync mean my entertainment data is always with me.",
+    author: 'Patel Singh',
+    role: 'Mobile User',
+    avatar: 'https://i.pravatar.cc/150?img=12',
   },
 ];
 
@@ -98,31 +139,24 @@ export default function Testimonials() {
           organizes and enjoys their entertainment journey.
         </p>
       </div>
-      <Container>
-        {/* First Row: Right to Left */}
-        <div className="overflow-hidden mb-8 fade-edges">
-          <Marquee direction="left" speed={60} gradient={false}>
-            {duplicatedTestimonials.map((testimonial, index) => (
-              <TestimonialsCard
-                key={`row1-${index}`}
-                testimonial={testimonial}
-              />
-            ))}
-          </Marquee>
-        </div>
 
-        {/* Second Row: Left to Right */}
-        <div className="overflow-hidden fade-edges">
-          <Marquee direction="right" speed={60} gradient={false}>
-            {duplicatedTestimonials.map((testimonial, index) => (
-              <TestimonialsCard
-                key={`row2-${index}`}
-                testimonial={testimonial}
-              />
-            ))}
-          </Marquee>
-        </div>
-      </Container>
+      {/* First Row: Right to Left */}
+      <div className="overflow-hidden mb-8 fade-edges">
+        <Marquee direction="left" speed={60} gradient={false}>
+          {duplicatedTestimonials.map((testimonial, index) => (
+            <TestimonialsCard key={`row1-${index}`} testimonial={testimonial} />
+          ))}
+        </Marquee>
+      </div>
+
+      {/* Second Row: Left to Right */}
+      <div className="overflow-hidden fade-edges">
+        <Marquee direction="right" speed={60} gradient={false}>
+          {duplicatedTestimonials.map((testimonial, index) => (
+            <TestimonialsCard key={`row2-${index}`} testimonial={testimonial} />
+          ))}
+        </Marquee>
+      </div>
     </section>
   );
 }

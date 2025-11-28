@@ -24,6 +24,7 @@ import BackButton from '@/components/shared/back-button';
 import { Avatar } from '@/components/ui/avatar';
 import { UserStats } from '@/components/user/user-stats';
 import { UserFollowInfo } from '@/components/user/user-follow-info';
+import { FollowRequestActions } from '@/components/user/follow-request-actions';
 import { auth } from '@/lib/auth-config';
 import type { Movie } from '@/lib/tmdb';
 import type { TVShow } from '@/lib/tmdb';
@@ -227,6 +228,13 @@ export default async function UserPage({ params }: UserPageProps) {
                   showFollowButton={true}
                 />
               </div>
+
+              {/* Follow Request Actions */}
+              {session?.user?.id && session.user.id !== user.id && (
+                <div className="mb-4 flex justify-center md:justify-start">
+                  <FollowRequestActions userId={user.id} />
+                </div>
+              )}
 
               <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4 justify-center md:justify-start">
                 <div className="flex items-center gap-1">

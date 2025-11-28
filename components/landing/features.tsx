@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   MdMovie,
-  MdHome,
+  MdOndemandVideo,
   MdLibraryBooks,
   MdVideogameAsset,
 } from 'react-icons/md';
@@ -9,29 +9,30 @@ import { Container } from '../layout/container';
 
 const features = [
   {
-    title: 'Cinema',
+    title: 'Movies',
     description:
-      'Track your favorite movies with ratings, reviews, and watch lists.',
+      'Track your favorite movies with ratings, reviews, and watch lists. Discover trending films and manage your personal cinema collection.',
     icon: MdMovie,
     gradient: 'from-red-500 to-pink-500',
   },
   {
-    title: 'Home',
+    title: 'TV Shows',
     description:
-      'Track TV shows and series with episode guides, watch history, and recommendations.',
-    icon: MdHome,
+      'Track TV shows and series with episode guides, watch history, and recommendations. Never miss an episode of your favorite series.',
+    icon: MdOndemandVideo,
     gradient: 'from-blue-500 to-cyan-500',
   },
   {
-    title: 'Library',
-    description: 'Keep track of books, reading progress, notes, and quotes.',
+    title: 'Books',
+    description:
+      'Keep track of books, reading progress, notes, and quotes. Build your personal library and track your reading journey.',
     icon: MdLibraryBooks,
     gradient: 'from-green-500 to-emerald-500',
   },
   {
-    title: 'CyberCafe',
+    title: 'Games',
     description:
-      'Log video games, playtime, achievements, and reviews in a cybercafe setting.',
+      'Log video games, playtime, achievements, and reviews. Track your gaming progress and discover new titles to play.',
     icon: MdVideogameAsset,
     gradient: 'from-purple-500 to-violet-500',
   },

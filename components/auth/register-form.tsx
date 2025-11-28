@@ -342,71 +342,73 @@ export default function RegisterForm() {
                   aria-invalid={!!errors.email}
                 />
 
-                <div className="relative">
-                  <Input
-                    label="Password"
-                    type={showPassword ? 'text' : 'password'}
-                    icon={<FiLock className="w-4 h-4" />}
-                    placeholder="Create a password"
-                    value={formData.password}
-                    onChange={(e) =>
-                      handleInputChange('password', e.target.value)
-                    }
-                    error={errors.password}
-                    disabled={isLoading}
-                    autoComplete="new-password"
-                    aria-required="true"
-                    aria-invalid={!!errors.password}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-[52%] -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    disabled={isLoading}
-                    aria-label={
-                      showPassword ? 'Hide password' : 'Show password'
-                    }
-                  >
-                    {showPassword ? (
-                      <MdVisibilityOff size={20} />
-                    ) : (
-                      <MdVisibility size={20} />
-                    )}
-                  </button>
-                </div>
+                <Input
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  icon={<FiLock className="w-4 h-4" />}
+                  rightIcon={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                      disabled={isLoading}
+                      aria-label={
+                        showPassword ? 'Hide password' : 'Show password'
+                      }
+                    >
+                      {showPassword ? (
+                        <MdVisibilityOff size={20} />
+                      ) : (
+                        <MdVisibility size={20} />
+                      )}
+                    </button>
+                  }
+                  placeholder="Create a password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    handleInputChange('password', e.target.value)
+                  }
+                  error={errors.password}
+                  disabled={isLoading}
+                  autoComplete="new-password"
+                  aria-required="true"
+                  aria-invalid={!!errors.password}
+                />
 
-                <div className="relative">
-                  <Input
-                    label="Confirm Password"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    icon={<FiLock className="w-4 h-4" />}
-                    placeholder="Confirm your password"
-                    value={formData.confirmPassword}
-                    onChange={(e) =>
-                      handleInputChange('confirmPassword', e.target.value)
-                    }
-                    error={errors.confirmPassword}
-                    disabled={isLoading}
-                    autoComplete="new-password"
-                    aria-required="true"
-                    aria-invalid={!!errors.confirmPassword}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-[52%] -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    disabled={isLoading}
-                    aria-label={
-                      showConfirmPassword ? 'Hide password' : 'Show password'
-                    }
-                  >
-                    {showConfirmPassword ? (
-                      <MdVisibilityOff size={20} />
-                    ) : (
-                      <MdVisibility size={20} />
-                    )}
-                  </button>
-                </div>
+                <Input
+                  label="Confirm Password"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  icon={<FiLock className="w-4 h-4" />}
+                  rightIcon={
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                      disabled={isLoading}
+                      aria-label={
+                        showConfirmPassword ? 'Hide password' : 'Show password'
+                      }
+                    >
+                      {showConfirmPassword ? (
+                        <MdVisibilityOff size={20} />
+                      ) : (
+                        <MdVisibility size={20} />
+                      )}
+                    </button>
+                  }
+                  placeholder="Confirm your password"
+                  value={formData.confirmPassword}
+                  onChange={(e) =>
+                    handleInputChange('confirmPassword', e.target.value)
+                  }
+                  error={errors.confirmPassword}
+                  disabled={isLoading}
+                  autoComplete="new-password"
+                  aria-required="true"
+                  aria-invalid={!!errors.confirmPassword}
+                />
 
                 <Input
                   label="Date of Birth"

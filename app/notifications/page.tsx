@@ -59,6 +59,55 @@ export default function NotificationsPage() {
     }
   }, [session, filter, fetchNotifications]);
 
+  // Subscribe to SSE for real-time notifications
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const eventSource = new EventSource('/api/stream');
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'notification') {
+          if (data.action === 'add') {
+            setNotifications((prev) => {
+              // Check if notification already exists
+              const exists = prev.some((n) => n.id === data.payload.id);
+              if (!exists) {
+                return [data.payload, ...prev];
+              }
+              return prev;
+            });
+          } else if (data.action === 'delete') {
+            setNotifications((prev) =>
+              prev.filter((n) => n.id !== data.payload.id)
+            );
+          }
+        } else if (data.type === 'follow') {
+          if (data.action === 'update') {
+            setNotifications((prev) =>
+              prev.map((n) =>
+                n.followId === data.payload.followId
+                  ? { ...n, followStatus: data.payload.status }
+                  : n
+              )
+            );
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing SSE data:', error);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error('SSE connection error:', error);
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, [session?.user?.id, fetchNotifications]);
+
   const markAllAsRead = async () => {
     try {
       const unreadNotificationIds = notifications

@@ -8,6 +8,7 @@ import { eq } from 'drizzle-orm';
 import { verifyPassword } from '@/lib/auth';
 
 export const authConfig = {
+  trustHost: true,
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,

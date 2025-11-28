@@ -34,7 +34,7 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-semibold mb-4">Quick Links</h4>
+            <h3 className="font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               {quickLinks.map((link) => (
                 <li key={link.href}>
@@ -51,7 +51,7 @@ export default function Footer() {
 
           {/* Developer Info */}
           <div>
-            <h4 className="font-semibold mb-4">Developer</h4>
+            <h3 className="font-semibold mb-4">Developer</h3>
             <p className="text-muted-foreground mb-2 flex items-center gap-1">
               Built with <FiHeart className="text-red-500" /> by
             </p>

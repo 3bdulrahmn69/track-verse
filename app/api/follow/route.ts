@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-config';
 import { db } from '@/lib/db';
 import { userFollows, notifications, users } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, or } from 'drizzle-orm';
+import { Redis } from '@upstash/redis';
 
 // POST /api/follow - Send a follow request
 export async function POST(req: NextRequest) {
@@ -77,12 +78,61 @@ export async function POST(req: NextRequest) {
         .returning();
 
       // Create notification
-      await db.insert(notifications).values({
-        userId: targetUserId,
-        fromUserId: session.user.id,
-        type: 'follow_request',
-        followId: updatedFollow.id,
+      const inserted = await db
+        .insert(notifications)
+        .values({
+          userId: targetUserId,
+          fromUserId: session.user.id,
+          type: 'follow_request',
+          followId: updatedFollow.id,
+        })
+        .returning();
+
+      // Get full notification data
+      const [fullNotification] = await db
+        .select({
+          id: notifications.id,
+          type: notifications.type,
+          read: notifications.read,
+          createdAt: notifications.createdAt,
+          followId: notifications.followId,
+          fromUser: {
+            id: users.id,
+            username: users.username,
+            fullname: users.fullname,
+            image: users.image,
+          },
+        })
+        .from(notifications)
+        .innerJoin(users, eq(notifications.fromUserId, users.id))
+        .where(eq(notifications.id, inserted[0].id));
+
+      let followStatus = null;
+      if (
+        fullNotification.type === 'follow_request' &&
+        fullNotification.followId
+      ) {
+        const [follow] = await db
+          .select({ status: userFollows.status })
+          .from(userFollows)
+          .where(eq(userFollows.id, fullNotification.followId))
+          .limit(1);
+        followStatus = follow?.status || null;
+      }
+
+      // Publish to SSE
+      const redis = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL!,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN!,
       });
+      await redis.lpush(
+        'events',
+        JSON.stringify({
+          type: 'notification',
+          action: 'add',
+          payload: { ...fullNotification, followStatus },
+        })
+      );
 
       // If rejected, update status to pending
       const [resendFollow] = await db
@@ -92,12 +142,61 @@ export async function POST(req: NextRequest) {
         .returning();
 
       // Create notification
-      await db.insert(notifications).values({
-        userId: targetUserId,
-        fromUserId: session.user.id,
-        type: 'follow_request',
-        followId: resendFollow.id,
+      const inserted2 = await db
+        .insert(notifications)
+        .values({
+          userId: targetUserId,
+          fromUserId: session.user.id,
+          type: 'follow_request',
+          followId: resendFollow.id,
+        })
+        .returning();
+
+      // Get full notification data
+      const [fullNotification2] = await db
+        .select({
+          id: notifications.id,
+          type: notifications.type,
+          read: notifications.read,
+          createdAt: notifications.createdAt,
+          followId: notifications.followId,
+          fromUser: {
+            id: users.id,
+            username: users.username,
+            fullname: users.fullname,
+            image: users.image,
+          },
+        })
+        .from(notifications)
+        .innerJoin(users, eq(notifications.fromUserId, users.id))
+        .where(eq(notifications.id, inserted2[0].id));
+
+      let followStatus2 = null;
+      if (
+        fullNotification2.type === 'follow_request' &&
+        fullNotification2.followId
+      ) {
+        const [follow] = await db
+          .select({ status: userFollows.status })
+          .from(userFollows)
+          .where(eq(userFollows.id, fullNotification2.followId))
+          .limit(1);
+        followStatus2 = follow?.status || null;
+      }
+
+      // Publish to SSE
+      const redis2 = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL!,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN!,
       });
+      await redis2.lpush(
+        'events',
+        JSON.stringify({
+          type: 'notification',
+          action: 'add',
+          payload: { ...fullNotification2, followStatus: followStatus2 },
+        })
+      );
 
       return NextResponse.json({
         message: 'Follow request sent',
@@ -119,12 +218,61 @@ export async function POST(req: NextRequest) {
       .returning();
 
     // Create notification for the target user
-    await db.insert(notifications).values({
-      userId: targetUserId,
-      fromUserId: session.user.id,
-      type: notificationType,
-      followId: newFollow.id,
+    const inserted3 = await db
+      .insert(notifications)
+      .values({
+        userId: targetUserId,
+        fromUserId: session.user.id,
+        type: notificationType,
+        followId: newFollow.id,
+      })
+      .returning();
+
+    // Get full notification data
+    const [fullNotification3] = await db
+      .select({
+        id: notifications.id,
+        type: notifications.type,
+        read: notifications.read,
+        createdAt: notifications.createdAt,
+        followId: notifications.followId,
+        fromUser: {
+          id: users.id,
+          username: users.username,
+          fullname: users.fullname,
+          image: users.image,
+        },
+      })
+      .from(notifications)
+      .innerJoin(users, eq(notifications.fromUserId, users.id))
+      .where(eq(notifications.id, inserted3[0].id));
+
+    let followStatus3 = null;
+    if (
+      fullNotification3.type === 'follow_request' &&
+      fullNotification3.followId
+    ) {
+      const [follow] = await db
+        .select({ status: userFollows.status })
+        .from(userFollows)
+        .where(eq(userFollows.id, fullNotification3.followId))
+        .limit(1);
+      followStatus3 = follow?.status || null;
+    }
+
+    // Publish to SSE
+    const redis3 = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL!,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
     });
+    await redis3.lpush(
+      'events',
+      JSON.stringify({
+        type: 'notification',
+        action: 'add',
+        payload: { ...fullNotification3, followStatus: followStatus3 },
+      })
+    );
 
     const message = targetUser.isPublic
       ? 'Successfully followed user'
@@ -262,6 +410,52 @@ export async function DELETE(req: NextRequest) {
           eq(userFollows.followingId, targetUserId)
         )
       );
+
+    // Get the notification id before deleting
+    const [notificationToDelete] = await db
+      .select({ id: notifications.id })
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.userId, targetUserId),
+          eq(notifications.fromUserId, session.user.id),
+          or(
+            eq(notifications.type, 'follow_request'),
+            eq(notifications.type, 'follow')
+          )
+        )
+      )
+      .limit(1);
+
+    // Delete the follow request notification
+    await db
+      .delete(notifications)
+      .where(
+        and(
+          eq(notifications.userId, targetUserId),
+          eq(notifications.fromUserId, session.user.id),
+          or(
+            eq(notifications.type, 'follow_request'),
+            eq(notifications.type, 'follow')
+          )
+        )
+      );
+
+    // Publish to SSE for the target user
+    const redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL!,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    });
+    if (notificationToDelete) {
+      await redis.lpush(
+        'events',
+        JSON.stringify({
+          type: 'notification',
+          action: 'delete',
+          payload: { id: notificationToDelete.id },
+        })
+      );
+    }
 
     return NextResponse.json({ message: 'Unfollowed successfully' });
   } catch (error) {

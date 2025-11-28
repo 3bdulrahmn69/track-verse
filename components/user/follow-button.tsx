@@ -17,6 +17,7 @@ export function FollowButton({ userId, onFollowChange }: FollowButtonProps) {
     hasFollowRequest: boolean;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [showUnfollowDialog, setShowUnfollowDialog] = useState(false);
 
@@ -27,9 +28,16 @@ export function FollowButton({ userId, onFollowChange }: FollowButtonProps) {
         if (response.ok) {
           const data = await response.json();
           setFollowStatus(data);
+          setError(null);
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          setError(errorData.error || `HTTP ${response.status}`);
+          setFollowStatus(null);
         }
       } catch (error) {
         console.error('Error fetching follow status:', error);
+        setError('Network error');
+        setFollowStatus(null);
       } finally {
         setLoading(false);
       }
@@ -44,9 +52,16 @@ export function FollowButton({ userId, onFollowChange }: FollowButtonProps) {
       if (response.ok) {
         const data = await response.json();
         setFollowStatus(data);
+        setError(null);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        setError(errorData.error || `HTTP ${response.status}`);
+        setFollowStatus(null);
       }
     } catch (error) {
       console.error('Error fetching follow status:', error);
+      setError('Network error');
+      setFollowStatus(null);
     }
   };
 
@@ -109,7 +124,28 @@ export function FollowButton({ userId, onFollowChange }: FollowButtonProps) {
     );
   }
 
+  if (error) {
+    return (
+      <div className="px-4 py-2 rounded-lg bg-red-50 text-red-600 text-sm">
+        Error: {error}
+      </div>
+    );
+  }
+
   if (!followStatus) return null;
+
+  if (followStatus.hasFollowRequest) {
+    return (
+      <button
+        onClick={handleFollow}
+        disabled={processing}
+        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+      >
+        <FiUserPlus className="w-4 h-4" />
+        Follow
+      </button>
+    );
+  }
 
   if (followStatus.isFollowing) {
     return (
