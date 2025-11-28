@@ -8,8 +8,6 @@ const quickLinks = [
   { href: '#hero', label: 'Home' },
   { href: '#about', label: 'About' },
   { href: '#features', label: 'Features' },
-  { href: '/privacy', label: 'Privacy Policy' },
-  { href: '/terms', label: 'Terms of Service' },
 ];
 
 export default function Footer() {
@@ -72,12 +70,28 @@ export default function Footer() {
         </div>
 
         {/* Bottom Copyright */}
-        <div className="border-t border-border mt-8 pt-8 text-center">
-          <p className="text-muted-foreground">
-            &copy; 2025{' '}
-            <span className="text-primary font-bold">Track Verse</span>. All
-            rights reserved.
-          </p>
+        <div className="border-t border-border mt-8 pt-8">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p className="text-muted-foreground">
+              &copy; 2025{' '}
+              <span className="text-primary font-bold">Track Verse</span>. All
+              rights reserved.
+            </p>
+            <div className="flex gap-6">
+              <Link
+                href="/privacy"
+                className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+              >
+                Privacy Policy
+              </Link>
+              <Link
+                href="/terms"
+                className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+              >
+                Terms of Service
+              </Link>
+            </div>
+          </div>
         </div>
       </Container>
     </footer>

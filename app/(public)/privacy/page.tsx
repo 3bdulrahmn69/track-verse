@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { MdArrowBack } from 'react-icons/md';
+import { MdArrowBack, MdCheckCircle, MdArrowForward } from 'react-icons/md';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | Track Verse',
@@ -33,7 +33,7 @@ export default function PrivacyPage() {
             Privacy Policy
           </h1>
           <p className="text-muted-foreground">
-            Last updated: October 26, 2025
+            Last updated: November 28, 2025
           </p>
         </div>
 
@@ -45,11 +45,12 @@ export default function PrivacyPage() {
               1. Introduction
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              At Track Verse, we take your privacy seriously. This Privacy
-              Policy explains how we collect, use, disclose, and safeguard your
-              information when you use our service. Please read this policy
-              carefully. If you do not agree with the terms of this privacy
-              policy, please do not access the service.
+              At Track Verse, a comprehensive media tracking and social platform
+              for movies, TV shows, books, and video games, we take your privacy
+              seriously. This Privacy Policy explains how we collect, use,
+              disclose, and safeguard your information when you use our service.
+              Please read this policy carefully. If you do not agree with the
+              terms of this privacy policy, please do not access the service.
             </p>
           </section>
 
@@ -67,14 +68,32 @@ export default function PrivacyPage() {
                   We collect information that you provide directly to us,
                   including:
                 </p>
-                <ul className="list-disc list-inside space-y-2 text-muted-foreground mt-2">
-                  <li>Full name</li>
-                  <li>Email address</li>
-                  <li>Username</li>
-                  <li>Date of birth</li>
-                  <li>Password (encrypted)</li>
-                  <li>Profile picture (if you choose to upload one)</li>
-                </ul>
+                <div className="space-y-2 text-muted-foreground mt-2">
+                  <div className="flex items-start gap-2">
+                    <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <span>Full name</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <span>Email address</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <span>Username</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <span>Date of birth</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <span>Password (encrypted)</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <span>Profile picture (if you choose to upload one)</span>
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -83,16 +102,37 @@ export default function PrivacyPage() {
                 </h3>
                 <p className="text-muted-foreground leading-relaxed">
                   We automatically collect certain information about your device
-                  and how you interact with our service:
+                  and how you interact with our service, including your tracking
+                  activity for movies, TV shows, books, and video games:
                 </p>
-                <ul className="list-disc list-inside space-y-2 text-muted-foreground mt-2">
-                  <li>Browser type and version</li>
-                  <li>Operating system</li>
-                  <li>IP address</li>
-                  <li>Pages visited and features used</li>
-                  <li>Time and date of visits</li>
-                  <li>Movies, shows, games, and books you track</li>
-                </ul>
+                <div className="space-y-2 text-muted-foreground mt-2">
+                  <div className="flex items-start gap-2">
+                    <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <span>Browser type and version</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <span>Operating system</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <span>IP address</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <span>Pages visited and features used</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <span>Time and date of visits</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <span>
+                      Movies, shows, books, and games you track and review
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -105,17 +145,44 @@ export default function PrivacyPage() {
             <p className="text-muted-foreground leading-relaxed mb-3">
               We use the information we collect to:
             </p>
-            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-              <li>Provide, maintain, and improve our services</li>
-              <li>Create and manage your account</li>
-              <li>
-                Personalize your experience and provide tailored recommendations
-              </li>
-              <li>Communicate with you about updates, features, and support</li>
-              <li>Analyze usage patterns and trends</li>
-              <li>Detect and prevent fraud, abuse, and security issues</li>
-              <li>Comply with legal obligations</li>
-            </ul>
+            <div className="space-y-2 text-muted-foreground">
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>Provide, maintain, and improve our services</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>Create and manage your account</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  Personalize your experience and provide tailored
+                  recommendations based on your tracking history and social
+                  connections
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  Communicate with you about updates, features, and support
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>Analyze usage patterns and trends</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  Detect and prevent fraud, abuse, and security issues
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>Comply with legal obligations</span>
+              </div>
+            </div>
           </section>
 
           {/* Information Sharing */}
@@ -127,28 +194,43 @@ export default function PrivacyPage() {
               We do not sell your personal information. We may share your
               information in the following circumstances:
             </p>
-            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-              <li>
-                <strong>With your consent:</strong> When you explicitly agree to
-                share information
-              </li>
-              <li>
-                <strong>Service providers:</strong> With third-party vendors who
-                help us operate our service
-              </li>
-              <li>
-                <strong>Legal requirements:</strong> When required by law or to
-                protect our rights
-              </li>
-              <li>
-                <strong>Business transfers:</strong> In connection with a
-                merger, acquisition, or sale of assets
-              </li>
-              <li>
-                <strong>Public information:</strong> Content you choose to make
-                public (reviews, ratings, lists)
-              </li>
-            </ul>
+            <div className="space-y-2 text-muted-foreground">
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  <strong>With your consent:</strong> When you explicitly agree
+                  to share information
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  <strong>Service providers:</strong> With third-party vendors
+                  who help us operate our service
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  <strong>Legal requirements:</strong> When required by law or
+                  to protect our rights
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  <strong>Business transfers:</strong> In connection with a
+                  merger, acquisition, or sale of assets
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  <strong>Public information:</strong> Content you choose to
+                  make public (reviews, ratings, lists, and public profiles)
+                </span>
+              </div>
+            </div>
           </section>
 
           {/* Data Security */}
@@ -186,27 +268,43 @@ export default function PrivacyPage() {
             <p className="text-muted-foreground leading-relaxed mb-3">
               You have the following rights regarding your personal information:
             </p>
-            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-              <li>
-                <strong>Access:</strong> Request a copy of your personal
-                information
-              </li>
-              <li>
-                <strong>Correction:</strong> Update or correct inaccurate
-                information
-              </li>
-              <li>
-                <strong>Deletion:</strong> Request deletion of your account and
-                data
-              </li>
-              <li>
-                <strong>Export:</strong> Download your data in a portable format
-              </li>
-              <li>
-                <strong>Opt-out:</strong> Unsubscribe from marketing
-                communications
-              </li>
-            </ul>
+            <div className="space-y-2 text-muted-foreground">
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  <strong>Access:</strong> Request a copy of your personal
+                  information
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  <strong>Correction:</strong> Update or correct inaccurate
+                  information
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  <strong>Deletion:</strong> Request deletion of your account
+                  and data
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  <strong>Export:</strong> Download your data in a portable
+                  format
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  <strong>Opt-out:</strong> Unsubscribe from marketing
+                  communications
+                </span>
+              </div>
+            </div>
           </section>
 
           {/* Cookies */}
@@ -217,9 +315,11 @@ export default function PrivacyPage() {
             <p className="text-muted-foreground leading-relaxed">
               We use cookies and similar tracking technologies to enhance your
               experience, analyze usage patterns, and remember your preferences.
-              You can control cookies through your browser settings, but
-              disabling cookies may limit your ability to use certain features
-              of our service.
+              Track Verse integrates with third-party APIs (TMDB, RAWG, Open
+              Library) for media data, which may use their own cookies and
+              tracking technologies. You can control cookies through your
+              browser settings, but disabling cookies may limit your ability to
+              use certain features of our service.
             </p>
           </section>
 
@@ -286,15 +386,17 @@ export default function PrivacyPage() {
           <div className="flex flex-wrap gap-4 justify-between items-center">
             <Link
               href="/terms"
-              className="text-primary hover:text-primary/90 transition-colors"
+              className="inline-flex items-center text-primary hover:text-primary/90 transition-colors"
             >
-              View Terms of Service →
+              View Terms of Service
+              <MdArrowForward className="w-4 h-4 ml-1" />
             </Link>
             <Link
               href="/register"
-              className="text-primary hover:text-primary/90 transition-colors"
+              className="inline-flex items-center text-primary hover:text-primary/90 transition-colors"
             >
-              Create an Account →
+              Create an Account
+              <MdArrowForward className="w-4 h-4 ml-1" />
             </Link>
           </div>
         </div>

@@ -11,33 +11,38 @@ const features = [
   {
     icon: MdMovie,
     color: 'primary',
+    'bg-color': 'primary/10',
     title: 'Unified Platform',
     description:
       'Single application for all media types (movies, TV shows, books, games)',
   },
   {
     icon: MdPeople,
-    color: 'accent',
+    color: 'blue-500',
+    'bg-color': 'blue-100',
     title: 'Social Integration',
     description:
       'Follow friends, see activity feeds, and discover content socially',
   },
   {
     icon: MdStorage,
-    color: 'secondary',
+    color: 'green-500',
+    'bg-color': 'green-100',
     title: 'Rich Metadata',
     description:
       'Integration with industry-leading APIs (TMDB, RAWG, Open Library)',
   },
   {
     icon: MdNotifications,
-    color: 'success',
+    color: 'info',
+    'bg-color': 'info/10',
     title: 'Real-time Updates',
     description: 'Live notifications and activity feeds powered by Redis',
   },
   {
     icon: MdSecurity,
-    color: 'info',
+    color: 'red-500',
+    'bg-color': 'red-100',
     title: 'Privacy Controls',
     description: 'Granular privacy settings for public/private profiles',
   },
@@ -48,7 +53,7 @@ function FeatureCard({ feature }: { feature: (typeof features)[0] }) {
   return (
     <div className="bg-card border border-border rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 min-h-48 flex flex-col">
       <div
-        className={`w-12 h-12 bg-${feature.color}/10 rounded-lg flex items-center justify-center mb-4 shrink-0`}
+        className={`w-12 h-12 bg-${feature['bg-color']} rounded-lg flex items-center justify-center mb-4 shrink-0`}
       >
         <Icon className={`w-6 h-6 text-${feature.color}`} />
       </div>
@@ -74,18 +79,6 @@ export default function About() {
             movies, TV shows, books, and video games. The application provides a
             unified dashboard for managing personal media libraries while
             fostering a social community around shared interests.
-          </p>
-        </div>
-
-        <div className="mb-12">
-          <h3 className="text-2xl font-semibold text-foreground mb-4">
-            Our Mission
-          </h3>
-          <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl">
-            To create the ultimate media tracking experience where users can
-            maintain detailed personal collections, discover new content through
-            social connections, and engage with a community of fellow
-            entertainment enthusiasts.
           </p>
         </div>
 

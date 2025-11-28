@@ -1,6 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { MdArrowBack } from 'react-icons/md';
+import {
+  MdArrowBack,
+  MdCheckCircle,
+  MdClose,
+  MdArrowForward,
+} from 'react-icons/md';
 
 export const metadata: Metadata = {
   title: 'Terms of Service | Track Verse',
@@ -33,7 +38,7 @@ export default function TermsPage() {
             Terms of Service
           </h1>
           <p className="text-muted-foreground">
-            Last updated: October 26, 2025
+            Last updated: November 28, 2025
           </p>
         </div>
 
@@ -45,10 +50,12 @@ export default function TermsPage() {
               1. Introduction
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              Welcome to Track Verse. By accessing or using our service, you
-              agree to be bound by these Terms of Service. Please read them
-              carefully. If you do not agree to these terms, please do not use
-              our service.
+              Welcome to Track Verse, a comprehensive media tracking and social
+              platform that allows users to track, review, and share their
+              consumption of movies, TV shows, books, and video games. By
+              accessing or using our service, you agree to be bound by these
+              Terms of Service. Please read them carefully. If you do not agree
+              to these terms, please do not use our service.
             </p>
           </section>
 
@@ -57,25 +64,42 @@ export default function TermsPage() {
             <h2 className="text-2xl font-semibold text-foreground mb-4">
               2. Account Terms
             </h2>
-            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-              <li>You must be at least 13 years old to use this service.</li>
-              <li>
-                You must provide accurate and complete information when creating
-                your account.
-              </li>
-              <li>
-                You are responsible for maintaining the security of your account
-                and password.
-              </li>
-              <li>
-                You are responsible for all activities that occur under your
-                account.
-              </li>
-              <li>
-                You must not use the service for any illegal or unauthorized
-                purpose.
-              </li>
-            </ul>
+            <div className="space-y-2 text-muted-foreground">
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  You must be at least 13 years old to use this service.
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  You must provide accurate and complete information when
+                  creating your account.
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  You are responsible for maintaining the security of your
+                  account and password.
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  You are responsible for all activities that occur under your
+                  account.
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdCheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  You must not use the service for any illegal or unauthorized
+                  purpose.
+                </span>
+              </div>
+            </div>
           </section>
 
           {/* Acceptable Use */}
@@ -86,22 +110,42 @@ export default function TermsPage() {
             <p className="text-muted-foreground leading-relaxed mb-3">
               You agree not to:
             </p>
-            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-              <li>
-                Upload, post, or transmit any content that is unlawful, harmful,
-                or offensive
-              </li>
-              <li>Impersonate any person or entity</li>
-              <li>Harass, abuse, or harm other users</li>
-              <li>
-                Attempt to gain unauthorized access to the service or other
-                accounts
-              </li>
-              <li>Use the service to distribute spam, malware, or viruses</li>
-              <li>
-                Scrape, crawl, or use automated tools to access the service
-              </li>
-            </ul>
+            <div className="space-y-2 text-muted-foreground">
+              <div className="flex items-start gap-2">
+                <MdClose className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <span>
+                  Upload, post, or transmit any content that is unlawful,
+                  harmful, or offensive
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdClose className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <span>Impersonate any person or entity</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdClose className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <span>Harass, abuse, or harm other users</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdClose className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <span>
+                  Attempt to gain unauthorized access to the service or other
+                  accounts
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdClose className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <span>
+                  Use the service to distribute spam, malware, or viruses
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <MdClose className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <span>
+                  Scrape, crawl, or use automated tools to access the service
+                </span>
+              </div>
+            </div>
           </section>
 
           {/* User Content */}
@@ -110,12 +154,13 @@ export default function TermsPage() {
               4. User Content
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              You retain ownership of any content you post on Track Verse.
-              However, by posting content, you grant us a worldwide,
-              non-exclusive, royalty-free license to use, display, and
-              distribute your content in connection with the service. You are
-              responsible for ensuring you have the rights to any content you
-              post.
+              You retain ownership of any content you post on Track Verse,
+              including reviews, ratings, comments, and personal lists. However,
+              by posting content, you grant us a worldwide, non-exclusive,
+              royalty-free license to use, display, and distribute your content
+              in connection with the service. You are responsible for ensuring
+              you have the rights to any content you post and that it complies
+              with these Terms of Service.
             </p>
           </section>
 
@@ -128,9 +173,11 @@ export default function TermsPage() {
               The Track Verse service, including its original content, features,
               and functionality, is owned by Track Verse and is protected by
               international copyright, trademark, patent, trade secret, and
-              other intellectual property laws. You may not copy, modify,
-              distribute, sell, or lease any part of our services without our
-              explicit permission.
+              other intellectual property laws. Track Verse integrates with
+              third-party APIs including TMDB (The Movie Database), RAWG Video
+              Games Database, and Open Library for media data. You may not copy,
+              modify, distribute, sell, or lease any part of our services or
+              access these APIs directly without our explicit permission.
             </p>
           </section>
 
@@ -212,15 +259,17 @@ export default function TermsPage() {
           <div className="flex flex-wrap gap-4 justify-between items-center">
             <Link
               href="/privacy"
-              className="text-primary hover:text-primary/90 transition-colors"
+              className="inline-flex items-center text-primary hover:text-primary/90 transition-colors"
             >
-              View Privacy Policy →
+              View Privacy Policy
+              <MdArrowForward className="w-4 h-4 ml-1" />
             </Link>
             <Link
               href="/register"
-              className="text-primary hover:text-primary/90 transition-colors"
+              className="inline-flex items-center text-primary hover:text-primary/90 transition-colors"
             >
-              Create an Account →
+              Create an Account
+              <MdArrowForward className="w-4 h-4 ml-1" />
             </Link>
           </div>
         </div>

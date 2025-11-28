@@ -68,9 +68,9 @@ export default function Hero() {
                     </span>
                   </div>
 
-                  <div className="group flex flex-col items-center p-6 rounded-2xl bg-card/50 border border-border/50 hover:bg-card hover:border-accent/20 transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                    <div className="bg-accent/10 p-4 rounded-full mb-4 group-hover:bg-accent/20 transition-colors duration-300">
-                      <MdOndemandVideo className="text-4xl text-accent" />
+                  <div className="group flex flex-col items-center p-6 rounded-2xl bg-card/50 border border-border/50 hover:bg-card hover:border-primary/20 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                    <div className="bg-primary/10 p-4 rounded-full mb-4 group-hover:bg-primary/20 transition-colors duration-300">
+                      <MdOndemandVideo className="text-4xl text-primary" />
                     </div>
                     <span className="font-semibold text-foreground mb-1">
                       TV Shows
@@ -80,9 +80,9 @@ export default function Hero() {
                     </span>
                   </div>
 
-                  <div className="group flex flex-col items-center p-6 rounded-2xl bg-card/50 border border-border/50 hover:bg-card hover:border-secondary/20 transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                    <div className="bg-secondary/10 p-4 rounded-full mb-4 group-hover:bg-secondary/20 transition-colors duration-300">
-                      <MdLibraryBooks className="text-4xl text-secondary" />
+                  <div className="group flex flex-col items-center p-6 rounded-2xl bg-card/50 border border-border/50 hover:bg-card hover:border-primary/20 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                    <div className="bg-primary/10 p-4 rounded-full mb-4 group-hover:bg-primary/20 transition-colors duration-300">
+                      <MdLibraryBooks className="text-4xl text-primary" />
                     </div>
                     <span className="font-semibold text-foreground mb-1">
                       Books
@@ -92,9 +92,9 @@ export default function Hero() {
                     </span>
                   </div>
 
-                  <div className="group flex flex-col items-center p-6 rounded-2xl bg-card/50 border border-border/50 hover:bg-card hover:border-info/20 transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                    <div className="bg-info/10 p-4 rounded-full mb-4 group-hover:bg-info/20 transition-colors duration-300">
-                      <MdVideogameAsset className="text-4xl text-info" />
+                  <div className="group flex flex-col items-center p-6 rounded-2xl bg-card/50 border border-border/50 hover:bg-card hover:border-primary/20 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                    <div className="bg-primary/10 p-4 rounded-full mb-4 group-hover:bg-primary/20 transition-colors duration-300">
+                      <MdVideogameAsset className="text-4xl text-primary" />
                     </div>
                     <span className="font-semibold text-foreground mb-1">
                       Games
@@ -106,7 +106,7 @@ export default function Hero() {
                 </div>
 
                 {/* Bottom Stats or Callout */}
-                <div className="bg-linear-to-r from-primary/10 via-accent/10 to-secondary/10 rounded-2xl p-6 border border-border/30">
+                <div className="Real-time Updatesbg-linear-to-r from-primary/10 via-accent/10 to-secondary/10 rounded-2xl p-6 border border-border/30">
                   <p className="text-muted-foreground text-sm leading-relaxed">
                     Join thousands of users discovering, tracking, and sharing
                     their favorite entertainment across all platforms.
