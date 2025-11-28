@@ -3,13 +3,12 @@ import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const username = searchParams.get('username');
+    const { username } = await request.json();
 
     if (!username) {
-      return NextResponse.json(
+      return NextResponse.json( 
         { error: 'Username is required' },
         { status: 400 }
       );

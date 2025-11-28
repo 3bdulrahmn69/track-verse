@@ -26,7 +26,7 @@ export function SecurityTab() {
   });
 
   const [emailData, setEmailData] = useState({
-    newEmail: '',
+    newEmail: session?.user?.email || '',
     password: '',
   });
 
@@ -129,6 +129,13 @@ export function SecurityTab() {
       return;
     }
 
+    // Check if email has actually changed
+    if (emailData.newEmail === session?.user?.email) {
+      toast.error('New email is the same as current email');
+      setIsLoadingEmail(false);
+      return;
+    }
+
     try {
       const response = await fetch('/api/user/email', {
         method: 'PATCH',
@@ -180,27 +187,19 @@ export function SecurityTab() {
         </p>
 
         <form onSubmit={handleEmailSubmit} className="space-y-6">
-          <div className="bg-muted/30 p-4 rounded-lg">
-            <p className="text-sm text-muted-foreground">
-              Current Email:{' '}
-              <span className="font-medium text-foreground">
-                {session?.user?.email}
-              </span>
-            </p>
-          </div>
-
           {/* New Email */}
           <div>
             <Input
               id="newEmail"
               type="email"
-              label="New Email Address"
+              label="Email Address"
               icon={<FiMail className="w-4 h-4" />}
               value={emailData.newEmail}
               onChange={(e) =>
                 setEmailData({ ...emailData, newEmail: e.target.value })
               }
-              placeholder="Enter new email"
+              placeholder="Enter your email address"
+              helperText="Edit your email address. You'll need to verify with your password."
               required
             />
           </div>

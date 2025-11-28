@@ -3,22 +3,20 @@
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
+import { UsernameInput } from '@/components/ui/username-input';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';
 import { FiSave, FiUser, FiCalendar, FiCamera, FiX } from 'react-icons/fi';
 import { toast } from 'react-toastify';
-import { useDebounce } from '@/hooks/useDebounce';
 
 export function PersonalInfoTab() {
   const { data: session, update } = useSession();
   const [isLoading, setIsLoading] = useState(false);
-  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string>('');
+  const [pendingImageFile, setPendingImageFile] = useState<string>('');
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(
     null
   );
-  const [usernameError, setUsernameError] = useState<string>('');
-  const [previewImage, setPreviewImage] = useState<string>('');
-  const [pendingImageFile, setPendingImageFile] = useState<string>('');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -26,9 +24,6 @@ export function PersonalInfoTab() {
     dateOfBirth: '',
     image: '',
   });
-
-  // Debounce username for checking availability
-  const debouncedUsername = useDebounce(formData.username, 500);
 
   useEffect(() => {
     if (session?.user) {
@@ -58,49 +53,6 @@ export function PersonalInfoTab() {
       setPreviewImage(session.user.image || '');
     }
   }, [session]);
-
-  // Check username availability when debounced value changes
-  useEffect(() => {
-    checkUsernameAvailability(debouncedUsername);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedUsername]);
-
-  const checkUsernameAvailability = async (username: string) => {
-    if (!username || username === session?.user?.username) {
-      setUsernameAvailable(null);
-      setUsernameError('');
-      return;
-    }
-
-    // Validate minimum length
-    if (username.length < 3) {
-      setUsernameError('Username must be at least 3 characters');
-      setUsernameAvailable(null);
-      return;
-    }
-
-    setIsCheckingUsername(true);
-    setUsernameError('');
-    try {
-      const response = await fetch(
-        `/api/user/check-username?username=${encodeURIComponent(username)}`
-      );
-      const data = await response.json();
-      setUsernameAvailable(data.available);
-    } catch (error) {
-      console.error('Error checking username:', error);
-      setUsernameError('Error checking username');
-    } finally {
-      setIsCheckingUsername(false);
-    }
-  };
-
-  const handleUsernameChange = (username: string) => {
-    setFormData({ ...formData, username });
-    // Reset states immediately
-    setUsernameAvailable(null);
-    setUsernameError('');
-  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -149,7 +101,6 @@ export function PersonalInfoTab() {
       setPreviewImage(session.user.image || '');
       setPendingImageFile('');
       setUsernameAvailable(null);
-      setUsernameError('');
     }
   };
 
@@ -287,29 +238,12 @@ export function PersonalInfoTab() {
 
         {/* Username */}
         <div>
-          <Input
-            id="username"
-            type="text"
-            label="Username"
-            icon={<FiUser className="w-4 h-4" />}
+          <UsernameInput
             value={formData.username}
-            onChange={(e) => handleUsernameChange(e.target.value)}
-            placeholder="Enter your username"
-            required
-            minLength={3}
-            rightIcon={
-              isCheckingUsername ? (
-                <span className="text-muted-foreground text-sm">
-                  Checking...
-                </span>
-              ) : usernameAvailable === true &&
-                formData.username !== session?.user?.username ? (
-                <span className="text-green-500 text-sm">✓ Available</span>
-              ) : usernameAvailable === false ? (
-                <span className="text-destructive text-sm">✗ Taken</span>
-              ) : null
-            }
-            error={usernameError}
+            onChange={(value) => setFormData({ ...formData, username: value })}
+            onAvailabilityChange={setUsernameAvailable}
+            currentUsername={session?.user?.username}
+            disabled={isLoading}
           />
         </div>
 

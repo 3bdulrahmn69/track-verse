@@ -221,6 +221,15 @@ export default function LoginForm() {
               aria-describedby={errors.password ? 'password-error' : undefined}
             />
 
+            <div className="text-right">
+              <Link
+                href="/forget-password"
+                className="text-sm text-primary hover:text-primary/90 font-medium transition-colors hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
             <Button
               type="submit"
               className="w-full"

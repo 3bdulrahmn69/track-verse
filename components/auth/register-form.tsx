@@ -1,44 +1,48 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Card } from '@/components/ui/card';
-import BackButton from '@/components/shared/back-button';
 import {
-  MdVisibility,
-  MdVisibilityOff,
-  MdArrowBack,
-  MdArrowForward,
   MdPersonAdd,
+  MdEmail,
   MdMovie,
   MdSportsEsports,
   MdMenuBook,
-  MdCheckCircle,
 } from 'react-icons/md';
-import { FiUser, FiMail, FiLock, FiCalendar } from 'react-icons/fi';
+import { FiUser } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { useEffect } from 'react';
 import {
   validateEmail,
   validatePassword,
-  validateUsername,
   validateFullName,
   validateDateOfBirth,
   validatePasswordMatch,
   validateTermsAcceptance,
 } from '@/lib/validation';
+import BackButton from '@/components/shared/back-button';
+import { RegistrationStep1 } from './registration-step1';
+import { RegistrationStep2 } from './registration-step2';
+import { RegistrationStep3 } from './registration-step3';
+import { RegistrationProgress } from './registration-progress';
 
 export default function RegisterForm() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [currentStep, setCurrentStep] = useState(1);
+  const [otp, setOtp] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isSendingOTP, setIsSendingOTP] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(
+    null
+  );
+  const [isUsernameValid, setIsUsernameValid] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -52,6 +56,59 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Load saved registration data from localStorage
+  useEffect(() => {
+    const savedData = localStorage.getItem('registrationData');
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        // Only load data if it's less than 24 hours old
+        const isExpired =
+          parsed.timestamp &&
+          Date.now() - parsed.timestamp > 24 * 60 * 60 * 1000;
+        if (!isExpired) {
+          setFormData(parsed.formData || formData);
+          setCurrentStep(parsed.currentStep || 1);
+          setOtp(parsed.otp || '');
+          setUsernameAvailable(parsed.usernameAvailable || null);
+          setShowPassword(parsed.showPassword || false);
+          setShowConfirmPassword(parsed.showConfirmPassword || false);
+        } else {
+          localStorage.removeItem('registrationData');
+        }
+      } catch (error) {
+        console.error('Error loading saved registration data:', error);
+        localStorage.removeItem('registrationData');
+      }
+    }
+  }, [formData]);
+
+  // Save registration data to localStorage whenever it changes
+  useEffect(() => {
+    const dataToSave = {
+      formData,
+      currentStep,
+      otp,
+      usernameAvailable,
+      showPassword,
+      showConfirmPassword,
+      timestamp: Date.now(),
+    };
+    localStorage.setItem('registrationData', JSON.stringify(dataToSave));
+  }, [
+    formData,
+    currentStep,
+    otp,
+    usernameAvailable,
+    showPassword,
+    showConfirmPassword,
+  ]);
+
+  // Clear saved data on successful registration
+  const clearSavedData = () => {
+    localStorage.removeItem('registrationData');
+  };
 
   // Redirect authenticated users to portal
   useEffect(() => {
@@ -108,28 +165,166 @@ export default function RegisterForm() {
   };
 
   const validateStep2 = () => {
+    if (!otp || otp.length !== 6) {
+      setOtpError('Please enter a valid 6-digit code');
+      return false;
+    }
+    return true;
+  };
+
+  const validateStep3 = () => {
     const newErrors: Record<string, string> = {};
 
-    // Validate username
-    const usernameValidation = validateUsername(formData.username);
-    if (!usernameValidation.isValid) {
-      newErrors.username = usernameValidation.message!;
+    // Check if username is valid (validated by UsernameInput component)
+    if (!isUsernameValid) {
+      newErrors.username = 'Please choose a valid and available username';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleNext = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (validateStep1()) {
-      setCurrentStep(2);
+
+    if (currentStep === 1) {
+      if (validateStep1()) {
+        // Send OTP
+        setIsSendingOTP(true);
+        try {
+          const response = await fetch('/api/auth/send-otp', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: formData.email,
+              type: 'verification',
+            }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            toast.error(data.error || 'Failed to send verification code', {
+              position: 'top-right',
+              autoClose: 5000,
+            });
+            return;
+          }
+
+          toast.success('Verification code sent to your email!', {
+            position: 'top-right',
+            autoClose: 3000,
+          });
+
+          setCurrentStep(2);
+        } catch (error) {
+          console.error('Send OTP error:', error);
+          toast.error('Failed to send verification code', {
+            position: 'top-right',
+            autoClose: 5000,
+          });
+        } finally {
+          setIsSendingOTP(false);
+        }
+      }
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (!validateStep2()) {
+      return;
+    }
+
+    setIsVerifying(true);
+    setOtpError('');
+
+    try {
+      const response = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          otp,
+          type: 'verification',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setOtpError(data.error || 'Invalid verification code');
+        return;
+      }
+
+      toast.success('Email verified successfully!', {
+        position: 'top-right',
+        autoClose: 3000,
+      });
+
+      setCurrentStep(3);
+    } catch (error) {
+      console.error('Verify OTP error:', error);
+      setOtpError('Failed to verify code. Please try again.');
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    setIsSendingOTP(true);
+    setOtp('');
+    setOtpError('');
+
+    try {
+      const response = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          type: 'verification',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || 'Failed to resend code', {
+          position: 'top-right',
+          autoClose: 5000,
+        });
+        return;
+      }
+
+      toast.success('New verification code sent!', {
+        position: 'top-right',
+        autoClose: 3000,
+      });
+    } catch (error) {
+      console.error('Resend OTP error:', error);
+      toast.error('Failed to resend code', {
+        position: 'top-right',
+        autoClose: 5000,
+      });
+    } finally {
+      setIsSendingOTP(false);
     }
   };
 
   const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    setCurrentStep(1);
+    if (currentStep === 2) {
+      setCurrentStep(1);
+      setOtp('');
+      setOtpError('');
+    } else if (currentStep === 3) {
+      setCurrentStep(2);
+    }
     setErrors({});
   };
 
@@ -138,14 +333,17 @@ export default function RegisterForm() {
 
     // Validate current step first
     if (currentStep === 1) {
-      if (validateStep1()) {
-        setCurrentStep(2);
-      }
+      await handleNext(e as React.FormEvent<HTMLFormElement>);
       return;
     }
 
-    // If on step 2, validate and submit
-    if (!validateStep2()) {
+    if (currentStep === 2) {
+      await handleVerifyOTP();
+      return;
+    }
+
+    // If on step 3, validate and submit
+    if (!validateStep3()) {
       return;
     }
 
@@ -181,7 +379,8 @@ export default function RegisterForm() {
         autoClose: 3000,
       });
 
-      // Reset form and redirect to login
+      // Clear saved data and reset form
+      clearSavedData();
       setTimeout(() => {
         router.push('/login');
       }, 2000);
@@ -213,6 +412,10 @@ export default function RegisterForm() {
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: '' }));
+    }
+    // Reset username availability when username changes
+    if (field === 'username') {
+      setUsernameAvailable(null);
     }
   };
 
@@ -254,53 +457,32 @@ export default function RegisterForm() {
         <Card className="w-full backdrop-blur-sm bg-card/95 shadow-2xl border-border/50 animate-fade-in">
           <div className="text-center mb-6">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4 animate-scale-in">
-              <MdPersonAdd className="w-8 h-8 text-primary" />
+              {currentStep === 1 ? (
+                <MdPersonAdd className="w-8 h-8 text-primary" />
+              ) : currentStep === 2 ? (
+                <MdEmail className="w-8 h-8 text-primary" />
+              ) : (
+                <FiUser className="w-8 h-8 text-primary" />
+              )}
             </div>
             <h1 className="text-2xl font-bold text-foreground mb-2">
-              {currentStep === 1 ? 'Create Account' : 'Choose Username'}
+              {currentStep === 1
+                ? 'Create Account'
+                : currentStep === 2
+                ? 'Verify Email'
+                : 'Choose Username'}
             </h1>
             <p className="text-muted-foreground">
               {currentStep === 1
                 ? 'Join Track Verse and start tracking your entertainment'
+                : currentStep === 2
+                ? 'Enter the code sent to your email'
                 : 'Pick a unique username for your profile'}
             </p>
           </div>
 
           {/* Enhanced Progress Indicator */}
-          <div
-            className="flex items-center justify-center mb-6"
-            role="progressbar"
-            aria-valuenow={currentStep}
-            aria-valuemin={1}
-            aria-valuemax={2}
-            aria-label={`Registration progress: Step ${currentStep} of 2`}
-          >
-            <div className="flex items-center space-x-2">
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ${
-                  currentStep >= 1
-                    ? 'bg-primary text-primary-foreground scale-110 shadow-lg shadow-primary/50'
-                    : 'bg-muted text-muted-foreground'
-                }`}
-              >
-                {currentStep > 1 ? <MdCheckCircle className="w-6 h-6" /> : '1'}
-              </div>
-              <div
-                className={`w-16 h-1 transition-all duration-300 ${
-                  currentStep >= 2 ? 'bg-primary' : 'bg-muted'
-                }`}
-              />
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ${
-                  currentStep >= 2
-                    ? 'bg-primary text-primary-foreground scale-110 shadow-lg shadow-primary/50'
-                    : 'bg-muted text-muted-foreground'
-                }`}
-              >
-                2
-              </div>
-            </div>
-          </div>
+          <RegistrationProgress currentStep={currentStep} />
 
           <form
             onSubmit={currentStep === 1 ? handleNext : handleSubmit}
@@ -310,218 +492,42 @@ export default function RegisterForm() {
             noValidate
           >
             {currentStep === 1 ? (
-              // Step 1: Basic Information
-              <div className="space-y-4 animate-slide-in">
-                <Input
-                  label="Full Name"
-                  type="text"
-                  icon={<FiUser className="w-4 h-4" />}
-                  placeholder="Enter your full name"
-                  value={formData.fullName}
-                  onChange={(e) =>
-                    handleInputChange('fullName', e.target.value)
-                  }
-                  error={errors.fullName}
-                  disabled={isLoading}
-                  autoComplete="name"
-                  aria-required="true"
-                  aria-invalid={!!errors.fullName}
-                />
-
-                <Input
-                  label="Email"
-                  type="email"
-                  icon={<FiMail className="w-4 h-4" />}
-                  placeholder="Enter your email address"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  error={errors.email}
-                  disabled={isLoading}
-                  autoComplete="email"
-                  aria-required="true"
-                  aria-invalid={!!errors.email}
-                />
-
-                <Input
-                  label="Password"
-                  type={showPassword ? 'text' : 'password'}
-                  icon={<FiLock className="w-4 h-4" />}
-                  rightIcon={
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="text-muted-foreground hover:text-foreground transition-colors"
-                      disabled={isLoading}
-                      aria-label={
-                        showPassword ? 'Hide password' : 'Show password'
-                      }
-                    >
-                      {showPassword ? (
-                        <MdVisibilityOff size={20} />
-                      ) : (
-                        <MdVisibility size={20} />
-                      )}
-                    </button>
-                  }
-                  placeholder="Create a password"
-                  value={formData.password}
-                  onChange={(e) =>
-                    handleInputChange('password', e.target.value)
-                  }
-                  error={errors.password}
-                  disabled={isLoading}
-                  autoComplete="new-password"
-                  aria-required="true"
-                  aria-invalid={!!errors.password}
-                />
-
-                <Input
-                  label="Confirm Password"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  icon={<FiLock className="w-4 h-4" />}
-                  rightIcon={
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                      className="text-muted-foreground hover:text-foreground transition-colors"
-                      disabled={isLoading}
-                      aria-label={
-                        showConfirmPassword ? 'Hide password' : 'Show password'
-                      }
-                    >
-                      {showConfirmPassword ? (
-                        <MdVisibilityOff size={20} />
-                      ) : (
-                        <MdVisibility size={20} />
-                      )}
-                    </button>
-                  }
-                  placeholder="Confirm your password"
-                  value={formData.confirmPassword}
-                  onChange={(e) =>
-                    handleInputChange('confirmPassword', e.target.value)
-                  }
-                  error={errors.confirmPassword}
-                  disabled={isLoading}
-                  autoComplete="new-password"
-                  aria-required="true"
-                  aria-invalid={!!errors.confirmPassword}
-                />
-
-                <Input
-                  label="Date of Birth"
-                  type="date"
-                  icon={<FiCalendar className="w-4 h-4" />}
-                  value={formData.dateOfBirth}
-                  onChange={(e) =>
-                    handleInputChange('dateOfBirth', e.target.value)
-                  }
-                  error={errors.dateOfBirth}
-                  disabled={isLoading}
-                  autoComplete="bday"
-                  aria-required="true"
-                  aria-invalid={!!errors.dateOfBirth}
-                />
-
-                <div
-                  className={
-                    errors.agreeToTerms
-                      ? 'p-3 rounded-lg border border-destructive bg-destructive/5'
-                      : ''
-                  }
-                >
-                  <div className="flex items-start space-x-2">
-                    <Checkbox
-                      id="agreeToTerms"
-                      checked={formData.agreeToTerms}
-                      onChange={(e) =>
-                        handleInputChange('agreeToTerms', e.target.checked)
-                      }
-                      disabled={isLoading}
-                      aria-required="true"
-                      className="mt-0.5"
-                    />
-                    <label
-                      htmlFor="agreeToTerms"
-                      className="text-sm font-medium text-foreground cursor-pointer"
-                    >
-                      I agree to the{' '}
-                      <Link
-                        href="/terms"
-                        className="text-primary hover:text-primary/90 underline"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Terms of Service
-                      </Link>{' '}
-                      and{' '}
-                      <Link
-                        href="/privacy"
-                        className="text-primary hover:text-primary/90 underline"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Privacy Policy
-                      </Link>
-                    </label>
-                  </div>
-                  {errors.agreeToTerms && (
-                    <p className="text-sm text-destructive mt-2">
-                      {errors.agreeToTerms}
-                    </p>
-                  )}
-                </div>
-
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  Continue
-                  <MdArrowForward className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
+              <RegistrationStep1
+                formData={formData}
+                errors={errors}
+                showPassword={showPassword}
+                showConfirmPassword={showConfirmPassword}
+                isLoading={isLoading}
+                isSendingOTP={isSendingOTP}
+                onInputChange={handleInputChange}
+                onPasswordToggle={() => setShowPassword(!showPassword)}
+                onConfirmPasswordToggle={() =>
+                  setShowConfirmPassword(!showConfirmPassword)
+                }
+              />
+            ) : currentStep === 2 ? (
+              <RegistrationStep2
+                email={formData.email}
+                otp={otp}
+                otpError={otpError}
+                isVerifying={isVerifying}
+                isSendingOTP={isSendingOTP}
+                onOtpChange={(value) => {
+                  setOtp(value);
+                  setOtpError('');
+                }}
+                onResendOTP={handleResendOTP}
+                onBack={handleBack}
+              />
             ) : (
-              // Step 2: Username
-              <div className="space-y-4 animate-slide-in">
-                <Input
-                  label="Username"
-                  type="text"
-                  icon={<FiUser className="w-4 h-4" />}
-                  placeholder="Choose a unique username"
-                  value={formData.username}
-                  onChange={(e) =>
-                    handleInputChange('username', e.target.value)
-                  }
-                  error={errors.username}
-                  helperText="3-20 characters, letters, numbers, and underscores only"
-                  disabled={isLoading}
-                  autoComplete="username"
-                  aria-required="true"
-                  aria-invalid={!!errors.username}
-                />
-
-                <div className="flex gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleBack}
-                    disabled={isLoading}
-                    className="flex-1"
-                  >
-                    <MdArrowBack className="mr-2 h-4 w-4" />
-                    Back
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="flex-1"
-                    disabled={isLoading}
-                    aria-busy={isLoading}
-                  >
-                    {isLoading ? 'Creating...' : 'Create Account'}
-                  </Button>
-                </div>
-              </div>
+              <RegistrationStep3
+                username={formData.username}
+                isLoading={isLoading}
+                onInputChange={handleInputChange}
+                onBack={handleBack}
+                onUsernameValidChange={setIsUsernameValid}
+                isUsernameValid={isUsernameValid}
+              />
             )}
           </form>
 
@@ -551,17 +557,19 @@ export default function RegisterForm() {
             </>
           )}
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Already have an account?{' '}
-              <Link
-                href="/login"
-                className="text-primary hover:text-primary/90 font-medium transition-colors hover:underline"
-              >
-                Sign in
-              </Link>
-            </p>
-          </div>
+          {currentStep === 1 && (
+            <div className="mt-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                Already have an account?{' '}
+                <Link
+                  href="/login"
+                  className="text-primary hover:text-primary/90 font-medium transition-colors hover:underline"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          )}
         </Card>
       </div>
 
