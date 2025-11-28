@@ -43,6 +43,14 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://track-verse.vercel.app',
+    images: [
+      {
+        url: 'https://raw.githubusercontent.com/3bdulrahmn69/track-verse/refs/heads/main/public/landing.png',
+        width: 1200,
+        height: 630,
+        alt: 'Track Verse',
+      },
+    ],
     siteName: 'Track Verse',
     title: 'Track Verse - Your Ultimate Entertainment Tracking Platform',
     description:
@@ -50,6 +58,14 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
+    images: [
+      {
+        url: 'https://raw.githubusercontent.com/3bdulrahmn69/track-verse/refs/heads/main/public/landing.png',
+        width: 1200,
+        height: 630,
+        alt: 'Track Verse',
+      },
+    ],
     title: 'Track Verse',
     description: 'Track your entertainment journey',
   },
