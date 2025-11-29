@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth-config';
 import { db } from '@/lib/db';
 import { userFollows } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { Redis } from '@upstash/redis';
+import { notifyUser } from '@/lib/notification-helper';
 
 // PATCH /api/follow/[userId] - Accept or reject a follow request
 export async function PATCH(
@@ -54,19 +54,8 @@ export async function PATCH(
         .where(eq(userFollows.id, followRequest.id))
         .returning();
 
-      // Publish follow event for the accepter
-      const redis = new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL!,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-      });
-      await redis.lpush(
-        'events',
-        JSON.stringify({
-          type: 'follow',
-          action: 'update',
-          payload: { followId: updatedFollow.id, status: 'accepted' },
-        })
-      );
+      // Notify the follower that their request was accepted
+      await notifyUser(followerUserId);
 
       return NextResponse.json({
         message: 'Follow request accepted',
@@ -80,19 +69,8 @@ export async function PATCH(
         .where(eq(userFollows.id, followRequest.id))
         .returning();
 
-      // Publish follow event for the accepter
-      const redis = new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL!,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-      });
-      await redis.lpush(
-        'events',
-        JSON.stringify({
-          type: 'follow',
-          action: 'update',
-          payload: { followId: updatedFollow.id, status: 'rejected' },
-        })
-      );
+      // Notify the follower that their request was rejected
+      await notifyUser(followerUserId);
 
       return NextResponse.json({
         message: 'Follow request rejected',

@@ -46,7 +46,7 @@ class OTPStore {
   }
 
   async delete(email: string): Promise<boolean> {
-    const result = await db.delete(otps).where(eq(otps.email, email));
+    await db.delete(otps).where(eq(otps.email, email));
     return true;
   }
 }

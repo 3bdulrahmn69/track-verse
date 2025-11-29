@@ -59,7 +59,7 @@ export default function NotificationsPage() {
     }
   }, [session, filter, fetchNotifications]);
 
-  // Subscribe to SSE for real-time notifications
+  // Subscribe to SSE for real-time notifications updates
   useEffect(() => {
     if (!session?.user?.id) return;
 
@@ -68,31 +68,29 @@ export default function NotificationsPage() {
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+
         if (data.type === 'notification') {
-          if (data.action === 'add') {
+          if (data.action === 'new' && data.notification) {
+            // Add new notification to the list
             setNotifications((prev) => {
               // Check if notification already exists
-              const exists = prev.some((n) => n.id === data.payload.id);
+              const exists = prev.some((n) => n.id === data.notification.id);
               if (!exists) {
-                return [data.payload, ...prev];
+                return [data.notification, ...prev];
               }
               return prev;
             });
-          } else if (data.action === 'delete') {
+          } else if (data.action === 'deleted' && data.notificationId) {
+            // Remove deleted notification from the list
             setNotifications((prev) =>
-              prev.filter((n) => n.id !== data.payload.id)
+              prev.filter((n) => n.id !== data.notificationId)
             );
+          } else if (data.action === 'update') {
+            // Generic update, refresh the list
+            fetchNotifications();
           }
-        } else if (data.type === 'follow') {
-          if (data.action === 'update') {
-            setNotifications((prev) =>
-              prev.map((n) =>
-                n.followId === data.payload.followId
-                  ? { ...n, followStatus: data.payload.status }
-                  : n
-              )
-            );
-          }
+        } else if (data.type === 'connected') {
+          console.log('SSE connected for notifications');
         }
       } catch (error) {
         console.error('Error parsing SSE data:', error);
@@ -101,6 +99,13 @@ export default function NotificationsPage() {
 
     eventSource.onerror = (error) => {
       console.error('SSE connection error:', error);
+      eventSource.close();
+      // Auto-reconnect after 5 seconds
+      setTimeout(() => {
+        if (session?.user?.id) {
+          window.location.reload();
+        }
+      }, 5000);
     };
 
     return () => {

@@ -44,6 +44,7 @@ export function UsernameInput({
     const validation = validateUsername(value);
     setValidationError(validation.isValid ? '' : validation.message || '');
     onValidationChange?.(validation.isValid, validation.message);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   // Check username availability when debounced value changes

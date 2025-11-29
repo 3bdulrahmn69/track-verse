@@ -37,40 +37,33 @@ export function UserMenu({ openUp = false }: UserMenuProps) {
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    // Connect to SSE stream for real-time notifications
+    // Subscribe to SSE for real-time unread count updates
     const eventSource = new EventSource('/api/stream');
 
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         if (data.type === 'notification') {
-          if (data.action === 'add') {
-            // Increment unread count when new notification arrives
+          // Increment unread count for any new notification
+          if (data.action === 'new') {
             setUnreadCount((prev) => prev + 1);
-          } else if (data.action === 'delete') {
-            // Decrement unread count if deleted notification was unread
-            if (data.payload.wasUnread) {
-              setUnreadCount((prev) => Math.max(0, prev - 1));
-            }
-          } else if (data.action === 'markRead') {
-            // Decrement unread count when notification is marked as read
+          } else if (data.action === 'deleted' || data.action === 'update') {
+            // Decrement or reset on delete/update (will be corrected when user visits notifications page)
             setUnreadCount((prev) => Math.max(0, prev - 1));
           }
-          // Update unread count from server data
-          if (data.unreadCount !== undefined) {
-            setUnreadCount(data.unreadCount);
-          }
-        } else if (data.type === 'initial') {
-          // Set initial unread count
-          setUnreadCount(data.unreadCount || 0);
+        } else if (data.type === 'connected') {
+          // On connection, fetch initial unread count
+          fetch('/api/notifications?unreadOnly=true')
+            .then((res) => res.json())
+            .then((data) => setUnreadCount(data.notifications?.length || 0))
+            .catch(console.error);
         }
       } catch (error) {
         console.error('Error parsing SSE data:', error);
       }
     };
 
-    eventSource.onerror = (error) => {
-      console.error('SSE connection error:', error);
+    eventSource.onerror = () => {
       eventSource.close();
     };
 
