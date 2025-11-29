@@ -312,13 +312,10 @@ export async function DELETE(req: NextRequest) {
         )
       );
 
-    // Notify the target user to refresh their notifications
+    // Notify the target user with the deleted notification ID
     if (notificationToDelete) {
-      await notifyUser(targetUserId);
+      await notifyUser(targetUserId, notificationToDelete.id);
     }
-
-    // Also notify the current user (follower) in case they're viewing their sent requests
-    await notifyUser(session.user.id);
 
     return NextResponse.json({ message: 'Unfollowed successfully' });
   } catch (error) {
