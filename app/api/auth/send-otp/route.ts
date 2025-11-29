@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     const otp = generateOTP();
 
     // Store OTP with 10 minutes expiration
-    otpStore.set(email, {
+    await otpStore.set(email, {
       otp,
       expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
       type,

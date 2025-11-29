@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get stored OTP
-    const storedData = otpStore.get(email);
+    const storedData = await otpStore.get(email);
 
     if (!storedData) {
       return NextResponse.json(
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     // Check if OTP is expired
     if (storedData.expiresAt < Date.now()) {
-      otpStore.delete(email);
+      await otpStore.delete(email);
       return NextResponse.json(
         { error: 'OTP has expired. Please request a new one.' },
         { status: 400 }
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // OTP is valid - delete it to prevent reuse
-    otpStore.delete(email);
+    await otpStore.delete(email);
 
     return NextResponse.json({
       message: 'OTP verified successfully',

@@ -1,5 +1,7 @@
-// Shared OTP store for both send-otp and verify-otp routes
-// In production, this should be replaced with Redis or a database
+// OTP store using database for production compatibility
+import { db } from '@/lib/db';
+import { otps } from '@/lib/db/schema';
+import { eq, and, gt } from 'drizzle-orm';
 
 interface OTPData {
   otp: string;
@@ -8,33 +10,44 @@ interface OTPData {
 }
 
 class OTPStore {
-  private store: Map<string, OTPData>;
+  async set(email: string, data: OTPData): Promise<void> {
+    // Delete any existing OTPs for this email
+    await db.delete(otps).where(eq(otps.email, email));
 
-  constructor() {
-    this.store = new Map();
-    // Cleanup expired OTPs every minute
-    setInterval(() => this.cleanup(), 60000);
+    // Insert new OTP
+    await db.insert(otps).values({
+      email,
+      otp: data.otp,
+      type: data.type,
+      expiresAt: new Date(data.expiresAt),
+    });
   }
 
-  set(email: string, data: OTPData): void {
-    this.store.set(email, data);
-  }
+  async get(email: string): Promise<OTPData | undefined> {
+    const now = new Date();
 
-  get(email: string): OTPData | undefined {
-    return this.store.get(email);
-  }
+    // Get non-expired OTP for this email
+    const result = await db
+      .select()
+      .from(otps)
+      .where(and(eq(otps.email, email), gt(otps.expiresAt, now)))
+      .limit(1);
 
-  delete(email: string): boolean {
-    return this.store.delete(email);
-  }
-
-  private cleanup(): void {
-    const now = Date.now();
-    for (const [email, data] of this.store.entries()) {
-      if (data.expiresAt < now) {
-        this.store.delete(email);
-      }
+    if (result.length === 0) {
+      return undefined;
     }
+
+    const otp = result[0];
+    return {
+      otp: otp.otp,
+      expiresAt: otp.expiresAt.getTime(),
+      type: otp.type,
+    };
+  }
+
+  async delete(email: string): Promise<boolean> {
+    const result = await db.delete(otps).where(eq(otps.email, email));
+    return true;
   }
 }
 

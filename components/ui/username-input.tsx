@@ -44,7 +44,7 @@ export function UsernameInput({
     const validation = validateUsername(value);
     setValidationError(validation.isValid ? '' : validation.message || '');
     onValidationChange?.(validation.isValid, validation.message);
-  }, [value, onValidationChange]);
+  }, [value]);
 
   // Check username availability when debounced value changes
   useEffect(() => {
@@ -77,6 +77,14 @@ export function UsernameInput({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username }),
       });
+
+      if (!response.ok) {
+        console.error('Failed to check username:', response.statusText);
+        setIsAvailable(null);
+        onAvailabilityChange?.(null);
+        return;
+      }
+
       const data = await response.json();
       setIsAvailable(data.available);
       onAvailabilityChange?.(data.available);

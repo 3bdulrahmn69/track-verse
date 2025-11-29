@@ -257,3 +257,19 @@ export const notifications = pgTable('notifications', {
 
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
+
+// OTP type enum
+export const otpTypeEnum = pgEnum('otp_type', ['verification', 'reset']);
+
+// OTP table for email verification and password reset
+export const otps = pgTable('otps', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  email: varchar('email', { length: 255 }).notNull(),
+  otp: varchar('otp', { length: 6 }).notNull(),
+  type: otpTypeEnum('type').notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type OTP = typeof otps.$inferSelect;
+export type NewOTP = typeof otps.$inferInsert;

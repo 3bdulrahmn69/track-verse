@@ -1,14 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const { username } = await request.json();
 
     if (!username) {
-      return NextResponse.json( 
+      return NextResponse.json(
         { error: 'Username is required' },
         { status: 400 }
       );
