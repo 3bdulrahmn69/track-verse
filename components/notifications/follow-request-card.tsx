@@ -23,13 +23,9 @@ interface Notification {
 
 interface FollowRequestCardProps {
   notification: Notification;
-  onUpdate: () => void;
 }
 
-export function FollowRequestCard({
-  notification,
-  onUpdate,
-}: FollowRequestCardProps) {
+export function FollowRequestCard({ notification }: FollowRequestCardProps) {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleAccept = async () => {
@@ -43,7 +39,6 @@ export function FollowRequestCard({
 
       if (response.ok) {
         console.log(`You are now following ${notification.fromUser.fullname}`);
-        onUpdate();
       } else {
         const data = await response.json();
         console.error(data.error || 'Failed to accept follow request');
@@ -67,7 +62,7 @@ export function FollowRequestCard({
       });
 
       if (response.ok) {
-        onUpdate();
+        console.log('Notification marked as read');
       } else {
         console.error('Failed to mark notification as read');
       }
@@ -89,7 +84,6 @@ export function FollowRequestCard({
 
       if (response.ok) {
         console.log('Follow request rejected');
-        onUpdate();
       } else {
         const data = await response.json();
         console.error(data.error || 'Failed to reject follow request');

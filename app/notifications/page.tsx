@@ -264,7 +264,6 @@ export default function NotificationsPage() {
               <FollowRequestCard
                 key={notification.id}
                 notification={notification}
-                onUpdate={fetchNotifications}
               />
             ))}
           </div>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-config';
 import { db } from '@/lib/db';
-import { userFollows } from '@/lib/db/schema';
+import { userFollows, notifications } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { notifyUser } from '@/lib/notification-helper';
 
@@ -46,6 +46,19 @@ export async function PATCH(
       );
     }
 
+    // Get the notification ID before updating
+    const [existingNotification] = await db
+      .select({ id: notifications.id })
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.fromUserId, session.user.id),
+          eq(notifications.type, 'follow_request'),
+          eq(notifications.followId, followRequest.id)
+        )
+      )
+      .limit(1);
+
     if (action === 'accept') {
       // Update follow status to accepted
       const [updatedFollow] = await db
@@ -54,8 +67,15 @@ export async function PATCH(
         .where(eq(userFollows.id, followRequest.id))
         .returning();
 
-      // Notify the follower that their request was accepted
-      await notifyUser(followerUserId);
+      // Delete the follow_request notification
+      if (existingNotification) {
+        await db
+          .delete(notifications)
+          .where(eq(notifications.id, existingNotification.id));
+
+        // Notify to remove the notification via SSE
+        await notifyUser(followerUserId, existingNotification.id);
+      }
 
       return NextResponse.json({
         message: 'Follow request accepted',
@@ -69,8 +89,15 @@ export async function PATCH(
         .where(eq(userFollows.id, followRequest.id))
         .returning();
 
-      // Notify the follower that their request was rejected
-      await notifyUser(followerUserId);
+      // Delete the follow_request notification
+      if (existingNotification) {
+        await db
+          .delete(notifications)
+          .where(eq(notifications.id, existingNotification.id));
+
+        // Notify to remove the notification via SSE
+        await notifyUser(followerUserId, existingNotification.id);
+      }
 
       return NextResponse.json({
         message: 'Follow request rejected',
