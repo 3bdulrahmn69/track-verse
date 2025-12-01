@@ -19,7 +19,6 @@ interface UserMenuProps {
 
 export function UserMenu({ openUp = false }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const menuRef = useRef<HTMLDivElement>(null);
   const { data: session } = useSession();
 
@@ -34,44 +33,6 @@ export function UserMenu({ openUp = false }: UserMenuProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    if (!session?.user?.id) return;
-
-    // Subscribe to SSE for real-time unread count updates
-    const eventSource = new EventSource('/api/stream');
-
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === 'notification') {
-          // Increment unread count for any new notification
-          if (data.action === 'new') {
-            setUnreadCount((prev) => prev + 1);
-          } else if (data.action === 'deleted' || data.action === 'update') {
-            // Decrement or reset on delete/update (will be corrected when user visits notifications page)
-            setUnreadCount((prev) => Math.max(0, prev - 1));
-          }
-        } else if (data.type === 'connected') {
-          // On connection, fetch initial unread count
-          fetch('/api/notifications?unreadOnly=true')
-            .then((res) => res.json())
-            .then((data) => setUnreadCount(data.notifications?.length || 0))
-            .catch(console.error);
-        }
-      } catch (error) {
-        console.error('Error parsing SSE data:', error);
-      }
-    };
-
-    eventSource.onerror = () => {
-      eventSource.close();
-    };
-
-    return () => {
-      eventSource.close();
-    };
-  }, [session?.user?.id]);
-
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/login' });
   };
@@ -85,11 +46,6 @@ export function UserMenu({ openUp = false }: UserMenuProps) {
           className="relative p-2 rounded-full hover:bg-muted transition-colors duration-200 hidden md:flex"
         >
           <FiBell className="w-5 h-5 text-foreground" />
-          {unreadCount > 0 && (
-            <span className="absolute top-0 right-0 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          )}
         </Link>
 
         {/* User Menu Button */}
@@ -145,18 +101,8 @@ export function UserMenu({ openUp = false }: UserMenuProps) {
             >
               <div className="relative">
                 <FiBell className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-red-500 rounded-full">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
               </div>
               <span>Notifications</span>
-              {unreadCount > 0 && (
-                <span className="ml-auto text-xs text-muted-foreground">
-                  {unreadCount} new
-                </span>
-              )}
             </Link>
 
             <Link
