@@ -3,8 +3,9 @@
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import { MdVisibility, MdVisibilityOff, MdArrowForward } from 'react-icons/md';
-import { FiUser, FiMail, FiLock, FiCalendar } from 'react-icons/fi';
+import { FiUser, FiMail, FiLock } from 'react-icons/fi';
 import Link from 'next/link';
 
 interface RegistrationStep1Props {
@@ -125,17 +126,14 @@ export function RegistrationStep1({
         aria-invalid={!!errors.confirmPassword}
       />
 
-      <Input
+      <DatePicker
         label="Date of Birth"
-        type="date"
-        icon={<FiCalendar className="w-4 h-4" />}
         value={formData.dateOfBirth}
-        onChange={(e) => onInputChange('dateOfBirth', e.target.value)}
+        onChange={(date) => onInputChange('dateOfBirth', date)}
         error={errors.dateOfBirth}
-        disabled={isLoading}
-        autoComplete="bday"
-        aria-required="true"
-        aria-invalid={!!errors.dateOfBirth}
+        placeholder="Select your date of birth"
+        maxDate={new Date().toISOString().split('T')[0]}
+        minDate="1900-01-01"
       />
 
       <div

@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { UsernameInput } from '@/components/ui/username-input';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';
-import { FiSave, FiUser, FiCalendar, FiCamera, FiX } from 'react-icons/fi';
+import { DatePicker } from '@/components/ui/date-picker';
+import { FiSave, FiUser, FiCamera, FiX } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 
 export function PersonalInfoTab() {
@@ -249,15 +250,13 @@ export function PersonalInfoTab() {
 
         {/* Date of Birth */}
         <div>
-          <Input
-            id="dateOfBirth"
-            type="date"
+          <DatePicker
             label="Date of Birth"
-            icon={<FiCalendar className="w-4 h-4" />}
             value={formData.dateOfBirth}
-            onChange={(e) =>
-              setFormData({ ...formData, dateOfBirth: e.target.value })
-            }
+            onChange={(date) => setFormData({ ...formData, dateOfBirth: date })}
+            placeholder="Select your date of birth"
+            maxDate={new Date().toISOString().split('T')[0]}
+            minDate="1900-01-01"
           />
         </div>
       </div>

@@ -395,7 +395,7 @@ export default function RegisterForm() {
       // Automatically sign in the user
       const signInResult = await signIn('credentials', {
         redirect: false,
-        email: formData.email,
+        identifier: formData.email,
         password: formData.password,
       });
 
