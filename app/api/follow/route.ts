@@ -70,14 +70,27 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
-      // If rejected, update status to pending
+      // If rejected, update status to pending and resend
+      // First, delete any existing notifications for this follow relationship
+      await db
+        .delete(notifications)
+        .where(
+          and(
+            eq(notifications.userId, targetUserId),
+            eq(notifications.fromUserId, session.user.id),
+            eq(notifications.type, 'follow_request'),
+            eq(notifications.followId, follow.id)
+          )
+        );
+
+      // Update follow status to pending
       const [updatedFollow] = await db
         .update(userFollows)
         .set({ status: 'pending', updatedAt: new Date() })
         .where(eq(userFollows.id, follow.id))
         .returning();
 
-      // Create notification
+      // Create new notification
       const [newNotification] = await db
         .insert(notifications)
         .values({
@@ -91,30 +104,9 @@ export async function POST(req: NextRequest) {
       // Notify the target user with notification ID
       await notifyUser(targetUserId, newNotification.id);
 
-      // If rejected, update status to pending
-      const [resendFollow] = await db
-        .update(userFollows)
-        .set({ status: 'pending', updatedAt: new Date() })
-        .where(eq(userFollows.id, follow.id))
-        .returning();
-
-      // Create notification
-      const [resendNotification] = await db
-        .insert(notifications)
-        .values({
-          userId: targetUserId,
-          fromUserId: session.user.id,
-          type: 'follow_request',
-          followId: resendFollow.id,
-        })
-        .returning();
-
-      // Notify the target user with notification ID
-      await notifyUser(targetUserId, resendNotification.id);
-
       return NextResponse.json({
         message: 'Follow request sent',
-        follow: resendFollow,
+        follow: updatedFollow,
       });
     }
 

@@ -52,7 +52,8 @@ export async function PATCH(
       .from(notifications)
       .where(
         and(
-          eq(notifications.fromUserId, session.user.id),
+          eq(notifications.userId, session.user.id),
+          eq(notifications.fromUserId, followerUserId),
           eq(notifications.type, 'follow_request'),
           eq(notifications.followId, followRequest.id)
         )
@@ -67,15 +68,45 @@ export async function PATCH(
         .where(eq(userFollows.id, followRequest.id))
         .returning();
 
-      // Delete the follow_request notification
+      // Delete the follow_request notification from User A's notifications
       if (existingNotification) {
         await db
           .delete(notifications)
           .where(eq(notifications.id, existingNotification.id));
 
-        // Notify to remove the notification via SSE
-        await notifyUser(followerUserId, existingNotification.id);
+        // Notify User A to remove the follow_request notification via SSE
+        await notifyUser(session.user.id, existingNotification.id);
       }
+
+      // Create 'follow_accepted' notification for User B (the follower)
+      const [acceptedNotification] = await db
+        .insert(notifications)
+        .values({
+          userId: followerUserId,
+          fromUserId: session.user.id,
+          type: 'follow_accepted',
+          followId: updatedFollow.id,
+          read: false,
+        })
+        .returning();
+
+      // Notify User B about acceptance via SSE
+      await notifyUser(followerUserId, acceptedNotification.id);
+
+      // Create 'follow' notification for User A (you have a new follower)
+      const [newFollowerNotification] = await db
+        .insert(notifications)
+        .values({
+          userId: session.user.id,
+          fromUserId: followerUserId,
+          type: 'follow',
+          followId: updatedFollow.id,
+          read: false,
+        })
+        .returning();
+
+      // Notify User A about new follower via SSE
+      await notifyUser(session.user.id, newFollowerNotification.id);
 
       return NextResponse.json({
         message: 'Follow request accepted',
@@ -95,8 +126,8 @@ export async function PATCH(
           .delete(notifications)
           .where(eq(notifications.id, existingNotification.id));
 
-        // Notify to remove the notification via SSE
-        await notifyUser(followerUserId, existingNotification.id);
+        // Notify current user to remove the notification via SSE
+        await notifyUser(session.user.id, existingNotification.id);
       }
 
       return NextResponse.json({

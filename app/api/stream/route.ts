@@ -40,14 +40,57 @@ export async function GET(request: NextRequest) {
             return false;
           }
 
-          const pendingEvent = await redis.get<{
-            timestamp: number;
-            notificationId?: string;
-            action: string;
-          }>(key);
+          // Process all pending events in the queue
+          let hasMoreEvents = true;
+          while (hasMoreEvents) {
+            let eventJson: string | null = null;
 
-          if (pendingEvent && pendingEvent.timestamp !== lastCheckedTimestamp) {
-            lastCheckedTimestamp = pendingEvent.timestamp;
+            try {
+              const result = await redis.rpop<string>(key);
+              eventJson = result;
+            } catch (error: any) {
+              // If key has wrong type (old format), delete it and continue
+              if (error?.message?.includes('WRONGTYPE')) {
+                console.log('Deleting old Redis key with wrong type:', key);
+                await redis.del(key);
+                hasMoreEvents = false;
+                break;
+              }
+              throw error;
+            }
+
+            if (!eventJson) {
+              hasMoreEvents = false;
+              break;
+            }
+
+            // Handle case where rpop returns object instead of string
+            let eventString: string;
+            if (typeof eventJson === 'string') {
+              eventString = eventJson;
+            } else if (typeof eventJson === 'object') {
+              eventString = JSON.stringify(eventJson);
+            } else {
+              console.error('Unexpected rpop result type:', typeof eventJson);
+              continue;
+            }
+
+            let pendingEvent: {
+              timestamp: number;
+              notificationId?: string;
+              action: string;
+            };
+
+            try {
+              pendingEvent = JSON.parse(eventString);
+            } catch (parseError) {
+              console.error(
+                'Failed to parse event JSON:',
+                eventString,
+                parseError
+              );
+              continue;
+            }
 
             // If there's a notification ID, fetch the full notification
             if (pendingEvent.notificationId) {
@@ -79,22 +122,18 @@ export async function GET(request: NextRequest) {
                         type: 'notification',
                         action: 'new',
                         notification,
-                      })}
-
-`
+                      })}\n\n`
                     )
                   );
                 } else {
-                  // Notification was deleted, send update signal
+                  // Notification was deleted, send delete signal
                   controller.enqueue(
                     encoder.encode(
                       `data: ${JSON.stringify({
                         type: 'notification',
                         action: 'deleted',
                         notificationId: pendingEvent.notificationId,
-                      })}
-
-`
+                      })}\n\n`
                     )
                   );
                 }
@@ -106,9 +145,7 @@ export async function GET(request: NextRequest) {
                     `data: ${JSON.stringify({
                       type: 'update',
                       timestamp: pendingEvent.timestamp,
-                    })}
-
-`
+                    })}\n\n`
                   )
                 );
               }
@@ -120,15 +157,10 @@ export async function GET(request: NextRequest) {
                     type: 'notification',
                     action: 'update',
                     timestamp: pendingEvent.timestamp,
-                  })}
-
-`
+                  })}\n\n`
                 )
               );
             }
-
-            // Clear the pending event after processing
-            await redis.del(key);
           }
 
           return true;

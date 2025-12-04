@@ -7,7 +7,7 @@ const redis = new Redis({
 
 /**
  * Notify a user that they have a new notification
- * Stores notification ID in Redis for SSE to pick up
+ * Stores notification ID in Redis queue for SSE to pick up
  */
 export async function notifyUser(
   userId: string,
@@ -17,16 +17,18 @@ export async function notifyUser(
     const key = `notifications:${userId}:pending`;
     const timestamp = Date.now();
 
-    // Store notification event with timestamp
-    await redis.setex(
+    // Push notification event to list (queue)
+    await redis.lpush(
       key,
-      3600, // 1 hour expiration
       JSON.stringify({
         timestamp,
         notificationId,
         action: notificationId ? 'new' : 'update',
       })
     );
+
+    // Set expiration on the list (refresh TTL on each push)
+    await redis.expire(key, 3600); // 1 hour expiration
   } catch (error) {
     console.error('Error notifying user:', error);
     // Don't throw - notification delivery is not critical

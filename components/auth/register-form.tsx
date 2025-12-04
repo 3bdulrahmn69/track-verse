@@ -14,7 +14,7 @@ import { FiUser } from 'react-icons/fi';
 // import { FcGoogle } from 'react-icons/fc';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
-// import { signIn } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
@@ -384,16 +384,39 @@ export default function RegisterForm() {
         return;
       }
 
-      toast.success('Account created successfully! Redirecting to login...', {
+      toast.success('Account created successfully! Signing you in...', {
         position: 'top-right',
-        autoClose: 3000,
+        autoClose: 2000,
       });
 
-      // Clear saved data and reset form
+      // Clear saved data
       clearSavedData();
+
+      // Automatically sign in the user
+      const signInResult = await signIn('credentials', {
+        redirect: false,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (signInResult?.error) {
+        toast.error(
+          'Account created but sign in failed. Please login manually.',
+          {
+            position: 'top-right',
+            autoClose: 5000,
+          }
+        );
+        setTimeout(() => {
+          router.push('/login');
+        }, 2000);
+        return;
+      }
+
+      // Redirect to portal after successful sign in
       setTimeout(() => {
-        router.push('/login');
-      }, 2000);
+        router.push('/portal');
+      }, 1500);
     } catch (error) {
       console.error('Registration error:', error);
       toast.error('Registration failed. Please try again.', {

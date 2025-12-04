@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth-config';
 import { db } from '@/lib/db';
 import { notifications, users, userFollows } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { notifyUser } from '@/lib/notification-helper';
 
 // GET /api/notifications - Get all notifications for the current user
 export async function GET(req: NextRequest) {
@@ -102,6 +103,9 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
+    // Notify user via SSE to update UI
+    await notifyUser(session.user.id);
+
     return NextResponse.json({ message: 'Notifications marked as read' });
   } catch (error) {
     console.error('Error marking notifications as read:', error);
@@ -130,7 +134,11 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
+    // Delete notification from database
     await db.delete(notifications).where(eq(notifications.id, notificationId));
+
+    // Notify user via SSE to remove from UI
+    await notifyUser(session.user.id, notificationId);
 
     return NextResponse.json({ message: 'Notification deleted' });
   } catch (error) {
